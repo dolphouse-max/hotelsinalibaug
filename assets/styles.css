@@ -242,15 +242,18 @@ gap:1rem;
 margin-top:1rem;
 }
 
+.rank-content{
+display:block;
+}
+
 .rank-item{
-display:grid;
-grid-template-columns:48px 1fr;
-gap:1rem;
+display:flex;
+gap:14px;
 padding:1.2rem;
 border-radius:16px;
 border:1px solid var(--line);
 background:var(--surface);
-transition:0.25s;
+align-items:flex-start;
 }
 
 .rank-item:hover{
@@ -259,13 +262,15 @@ box-shadow:0 12px 30px rgba(0,0,0,0.06);
 }
 
 .rank-item strong{
+display:block;
 font-size:1.1rem;
-color:var(--accent-dark);
+margin-bottom:6px;
 }
 
 .rank-item p{
-margin:0.4rem 0;
+margin:6px 0;
 }
+
 
 .rank-item.top{
 border-color:rgba(11,110,138,0.35);
