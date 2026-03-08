@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#e4f5ff"/>
+  <path d="M0 480C250 455 394 505 646 468s358-82 578-57 261 64 376 52V900H0Z" fill="#5cb0c6"/>
+  <path d="M0 645C222 603 453 687 690 653s402-67 622-33 172 37 288 25V900H0Z" fill="#efd7ac"/>
+  <rect x="250" y="300" width="1100" height="320" rx="24" fill="#fff8ef"/>
+  <rect x="320" y="370" width="120" height="170" fill="#c88454"/>
+  <rect x="490" y="370" width="120" height="170" fill="#c88454"/>
+  <rect x="660" y="370" width="120" height="170" fill="#c88454"/>
+  <rect x="830" y="370" width="120" height="170" fill="#c88454"/>
+  <rect x="1000" y="370" width="120" height="170" fill="#c88454"/>
+  <text x="100" y="125" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Resort Exterior</text>
+</svg>

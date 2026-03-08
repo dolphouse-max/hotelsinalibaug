@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#ffe6d6"/>
+  <circle cx="1200" cy="190" r="110" fill="#ffb36b"/>
+  <path d="M0 420C248 410 447 518 685 474s332-88 560-55 225 59 355 45V900H0Z" fill="#4b98b9"/>
+  <path d="M0 625C238 611 405 695 649 659s396-92 617-55 230 58 334 44V900H0Z" fill="#efcf9d"/>
+  <text x="100" y="125" fill="#6c352a" font-family="Georgia, serif" font-size="56" font-weight="700">Alibaug Beach Sunset</text>
+</svg>

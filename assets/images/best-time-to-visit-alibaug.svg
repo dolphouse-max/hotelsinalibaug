@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Best time to visit Alibaug</title>
+  <desc id="desc">Seasonal guide illustration for Alibaug with sun, rain cloud, sea and resort silhouettes.</desc>
+  <rect width="1600" height="900" fill="#e6f6ff"/>
+  <circle cx="1180" cy="170" r="72" fill="#ffd471"/>
+  <g fill="#a5bfd1">
+    <circle cx="350" cy="165" r="48"/><circle cx="402" cy="150" r="58"/><circle cx="458" cy="170" r="46"/>
+  </g>
+  <path d="M0 455C239 420 437 510 667 472s360-96 593-75 213 63 340 44V900H0Z" fill="#53abc3"/>
+  <path d="M0 640C245 597 404 674 667 646s407-70 628-25 181 52 305 34V900H0Z" fill="#efd8ae"/>
+  <rect x="300" y="365" width="285" height="190" rx="16" fill="#fff9f1"/>
+  <rect x="1025" y="350" width="300" height="205" rx="16" fill="#fff5e9"/>
+  <text x="110" y="118" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Best Time to Visit Alibaug</text>
+  <text x="110" y="178" fill="#173f53" font-family="Georgia, serif" font-size="30">Season guide for beach weather and weekend trips</text>
+</svg>

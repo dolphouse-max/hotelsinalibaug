@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#fff1df"/>
+  <circle cx="800" cy="470" r="230" fill="#fffaf4" stroke="#d9c4a1" stroke-width="10"/>
+  <ellipse cx="770" cy="460" rx="130" ry="62" fill="#ff9c62"/>
+  <ellipse cx="880" cy="520" rx="110" ry="48" fill="#ffcf64"/>
+  <ellipse cx="720" cy="545" rx="95" ry="40" fill="#7ab36a"/>
+  <text x="100" y="125" fill="#6e4b2c" font-family="Georgia, serif" font-size="56" font-weight="700">Best Seafood in Alibaug</text>
+</svg>

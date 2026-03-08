@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Things to do in Alibaug</title>
+  <desc id="desc">Travel activity illustration for Alibaug with beaches, coastal road and scenic stay backdrop.</desc>
+  <rect width="1600" height="900" fill="#dff5ff"/>
+  <path d="M0 452C201 410 421 501 648 469s373-105 602-77 256 76 350 59V900H0Z" fill="#48a5c0"/>
+  <path d="M0 636C244 603 422 679 667 650s405-84 625-39 193 46 308 29V900H0Z" fill="#efd7ac"/>
+  <path d="M1210 635l66-122 67 122z" fill="#ff8553"/><rect x="1259" y="635" width="18" height="74" fill="#7d5635"/>
+  <circle cx="860" cy="680" r="52" fill="#bfd8df"/><circle cx="915" cy="675" r="40" fill="#d7e6ea"/>
+  <rect x="275" y="375" width="300" height="180" rx="16" fill="#fff9f1"/>
+  <text x="110" y="118" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Things to Do in Alibaug</text>
+  <text x="110" y="178" fill="#173f53" font-family="Georgia, serif" font-size="30">Beach time, weekend plans and scenic coastal ideas</text>
+</svg>

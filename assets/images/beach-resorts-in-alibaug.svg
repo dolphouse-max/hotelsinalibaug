@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Beach resorts in Alibaug</title>
+  <desc id="desc">Beach resort scene with sea waves, umbrellas, palms and coastal cottages in Alibaug.</desc>
+  <rect width="1600" height="900" fill="#daf2ff"/>
+  <circle cx="1310" cy="160" r="76" fill="#ffd474"/>
+  <path d="M0 455C230 400 420 472 650 445s320-88 528-71 279 72 422 53V900H0Z" fill="#1490af"/>
+  <path d="M0 612C192 586 359 655 600 628s434-86 643-43 260 54 357 42V900H0Z" fill="#f2d7ad"/>
+  <g fill="#fff8f0">
+    <rect x="285" y="380" width="250" height="145" rx="18"/>
+    <rect x="770" y="360" width="300" height="165" rx="18"/>
+  </g>
+  <g fill="#cb8351">
+    <rect x="330" y="425" width="45" height="100"/><rect x="398" y="425" width="45" height="100"/><rect x="466" y="425" width="45" height="100"/>
+    <rect x="825" y="408" width="50" height="117"/><rect x="900" y="408" width="50" height="117"/><rect x="975" y="408" width="50" height="117"/>
+  </g>
+  <g fill="#2e9566">
+    <rect x="160" y="360" width="16" height="185"/><circle cx="168" cy="340" r="46"/><circle cx="134" cy="372" r="34"/><circle cx="202" cy="375" r="32"/>
+    <rect x="1185" y="342" width="16" height="198"/><circle cx="1193" cy="320" r="48"/><circle cx="1158" cy="354" r="36"/><circle cx="1227" cy="355" r="34"/>
+  </g>
+  <g>
+    <path d="M610 610l48-90 48 90z" fill="#ff7f50"/>
+    <rect x="646" y="610" width="24" height="95" fill="#7e5935"/>
+    <path d="M710 622l48-90 48 90z" fill="#ffd35b"/>
+    <rect x="746" y="622" width="24" height="82" fill="#7e5935"/>
+  </g>
+  <text x="110" y="118" fill="#174257" font-family="Georgia, serif" font-size="58" font-weight="700">Beach Resorts in Alibaug</text>
+  <text x="110" y="178" fill="#174257" font-family="Georgia, serif" font-size="30">Coastal stays, beach holidays and sea-view escapes</text>
+</svg>
