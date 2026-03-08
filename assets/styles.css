@@ -383,3 +383,77 @@ flex-direction:row;
 }
 
 }
+/* HOTEL RANKING LIST FIX */
+
+.ranking{
+display:flex;
+flex-direction:column;
+gap:1.2rem;
+margin-top:1.2rem;
+}
+
+.rank-item{
+display:grid;
+grid-template-columns:42px 1fr;
+gap:14px;
+padding:1.2rem;
+border-radius:16px;
+border:1px solid var(--line);
+background:var(--surface);
+align-items:start;
+}
+
+.rank-item strong{
+display:block;
+font-size:1.15rem;
+margin-bottom:6px;
+color:var(--accent-dark);
+}
+
+.rank-item p{
+margin:6px 0;
+}
+
+.rank-item a{
+font-weight:700;
+}
+
+.rank-item.top{
+border-color:rgba(11,110,138,0.35);
+background:linear-gradient(
+180deg,
+rgba(11,110,138,0.1),
+rgba(255,253,248,0.95)
+);
+}
+
+.rank-number{
+display:flex;
+align-items:center;
+justify-content:center;
+width:42px;
+height:42px;
+border-radius:50%;
+background:var(--accent);
+color:#fff;
+font-weight:700;
+font-size:1rem;
+flex-shrink:0;
+}
+ .rank-content { display: inline; }
+
+ .tags {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 6px;
+   margin: 0.5rem 0 0.65rem;
+ }
+
+ .tags span {
+   background: #eef6f9;
+   border: 1px solid var(--line);
+   padding: 4px 8px;
+   font-size: 0.8rem;
+   border-radius: 6px;
+   color: var(--accent-dark);
+ }
