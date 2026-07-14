@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
-  <rect width="1600" height="900" fill="#e1f5ff"/>
-  <path d="M0 440C210 415 414 505 668 460s377-109 603-81 215 65 329 55V900H0Z" fill="#4fa8c1"/>
-  <path d="M0 638C224 612 403 688 651 649s411-78 631-32 191 53 318 37V900H0Z" fill="#eed8ad"/>
-  <path d="M180 580c95-115 160-150 235-140-90 48-141 120-187 206Z" fill="#7ab36a"/>
-  <path d="M1310 580c-95-115-160-150-235-140 90 48 141 120 187 206Z" fill="#7ab36a"/>
-  <text x="100" y="125" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Hidden Beaches in Alibaug</text>
-</svg>
