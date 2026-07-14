@@ -6,7 +6,6 @@ pages_build_output_dir = "."
 binding = "DB"
 database_name = "alibaug-checkin-db"
 database_id = "b33c9905-3cba-4303-b8df-ff90569b343d"
-preview_database_id = "DB"
 
 # Add these as Cloudflare Pages secrets or variables in the dashboard:
 # API_READ_TOKEN
