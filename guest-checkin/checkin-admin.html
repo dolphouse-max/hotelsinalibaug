@@ -174,7 +174,9 @@
             </label>
             <button id="connectButton" type="button">Connect hotel to Google Drive</button>
             <button id="statusButton" type="button" class="secondary">Check Drive status</button>
+            <button id="linkButton" type="button" class="secondary">Generate guest link</button>
             <div id="driveStatus" class="status hint"></div>
+            <div id="linkStatus" class="status hint"></div>
           </div>
         </section>
 
@@ -224,10 +226,12 @@
       const healthButton = document.getElementById("healthButton");
       const connectButton = document.getElementById("connectButton");
       const statusButton = document.getElementById("statusButton");
+      const linkButton = document.getElementById("linkButton");
       const uploadButton = document.getElementById("uploadButton");
       const uploadForm = document.getElementById("uploadForm");
       const healthStatus = document.getElementById("healthStatus");
       const driveStatus = document.getElementById("driveStatus");
+      const linkStatus = document.getElementById("linkStatus");
       const uploadStatus = document.getElementById("uploadStatus");
 
       function tokenHeader() {
@@ -319,6 +323,29 @@
           setStatus(driveStatus, error.message || "Unable to fetch Google Drive status.", true);
         } finally {
           statusButton.disabled = false;
+        }
+      });
+
+      linkButton.addEventListener("click", async () => {
+        linkButton.disabled = true;
+        setStatus(linkStatus, "Generating secure guest link...", false);
+
+        try {
+          const hotelId = requireHotelId();
+          const response = await fetch(`/api/auth/checkin-link?hotel_id=${encodeURIComponent(hotelId)}`, {
+            headers: tokenHeader()
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to generate check-in link.");
+          }
+
+          setStatus(linkStatus, data.checkinUrl, false);
+        } catch (error) {
+          setStatus(linkStatus, error.message || "Unable to generate check-in link.", true);
+        } finally {
+          linkButton.disabled = false;
         }
       });
 

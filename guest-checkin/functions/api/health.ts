@@ -7,6 +7,7 @@ interface Env {
   GOOGLE_CLIENT_SECRET?: string;
   GOOGLE_REDIRECT_URI?: string;
   ENCRYPTION_KEY?: string;
+  CHECKIN_LINK_SECRET?: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -37,6 +38,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         redirectUriConfigured: Boolean(context.env.GOOGLE_REDIRECT_URI),
         stateSigningConfigured: Boolean(context.env.GOOGLE_CLIENT_SECRET),
         encryptionKeyConfigured: Boolean(context.env.ENCRYPTION_KEY),
+        checkinLinkSecretConfigured: Boolean(context.env.CHECKIN_LINK_SECRET),
       },
     });
   } catch (error) {
