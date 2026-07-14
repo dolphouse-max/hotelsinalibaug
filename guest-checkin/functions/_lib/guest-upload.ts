@@ -1,5 +1,6 @@
 import { isSafeId } from "./api";
 import { getHotelDriveAccessToken, uploadFileToHotelDrive } from "./google-drive";
+import { assertHotelCanAcceptGuestUploads } from "./hotel-subscription";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_CONTENT_TYPES = new Set([
@@ -64,6 +65,8 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
     throw new Error("Unsupported file type");
   }
 
+  await assertHotelCanAcceptGuestUploads(hotelId, env);
+
   const { accessToken, folderId, hotel } = await getHotelDriveAccessToken(hotelId, env);
   const extension =
     normalizedContentType === "application/pdf" ? "pdf" : normalizedContentType.split("/")[1];
@@ -114,7 +117,12 @@ export function statusForGuestUploadError(message: string): number {
     return 404;
   }
 
-  if (message.includes("not connected") || message.includes("expired")) {
+  if (
+    message.includes("not connected") ||
+    message.includes("expired") ||
+    message.includes("inactive") ||
+    message.includes("not started")
+  ) {
     return 409;
   }
 

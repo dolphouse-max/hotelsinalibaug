@@ -1,7 +1,7 @@
 PRAGMA foreign_keys = ON;
 
-DELETE FROM police_access_logs;
 DELETE FROM guests;
+DELETE FROM hotel_staff;
 DELETE FROM hotels;
 
 INSERT INTO hotels (
@@ -9,6 +9,11 @@ INSERT INTO hotels (
   name,
   contact,
   address,
+  total_rooms,
+  occupied_rooms,
+  subscription_start_date,
+  subscription_end_date,
+  is_active,
   encrypted_refresh_token,
   google_drive_folder_id
 )
@@ -18,8 +23,33 @@ VALUES
     'Sea Breeze Alibaug',
     '+91-9876543210',
     'Nagaon Beach Road, Alibaug, Maharashtra',
+    18,
+    6,
+    '2026-01-01',
+    '2027-01-01',
+    1,
     NULL,
     NULL
+  );
+
+INSERT INTO hotel_staff (
+  id,
+  hotel_id,
+  full_name,
+  email,
+  phone,
+  role,
+  is_active
+)
+VALUES
+  (
+    'staffalibaug0001',
+    'hotelalibaug0001',
+    'Front Desk Admin',
+    'frontdesk@seabreezealibaug.in',
+    '+91-9123456780',
+    'admin',
+    1
   );
 
 INSERT INTO guests (
