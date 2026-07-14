@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Luxury resorts in Alibaug</title>
+  <desc id="desc">Luxury resort themed illustration with premium villas, palm trees and scenic sea backdrop in Alibaug.</desc>
+  <rect width="1600" height="900" fill="#e4f5ff"/>
+  <path d="M0 445C220 392 414 495 656 454s364-99 582-70 245 76 362 56V900H0Z" fill="#4ca9c1"/>
+  <path d="M0 630C215 593 450 682 689 649s404-86 621-37 201 50 290 33V900H0Z" fill="#f0d8af"/>
+  <rect x="260" y="340" width="315" height="220" rx="18" fill="#fff8f0"/>
+  <rect x="645" y="360" width="310" height="200" rx="18" fill="#fff5e9"/>
+  <rect x="1025" y="330" width="310" height="230" rx="18" fill="#fffaf4"/>
+  <circle cx="800" cy="640" r="72" fill="#b2d5e2"/>
+  <text x="110" y="118" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Luxury Resorts in Alibaug</text>
+  <text x="110" y="178" fill="#173f53" font-family="Georgia, serif" font-size="30">Premium villas, sea views and high-end weekend breaks</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#eef7fb"/>
+  <rect x="180" y="130" width="1240" height="640" rx="26" fill="#f9fcff" stroke="#cfe0e8" stroke-width="8"/>
+  <path d="M280 250C450 240 530 320 680 340s290 0 470 50 170 170 250 220" fill="none" stroke="#7ec0d1" stroke-width="26" stroke-linecap="round"/>
+  <path d="M330 620C500 520 640 560 780 520s300-150 430-220" fill="none" stroke="#d0b08a" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="420" cy="500" r="24" fill="#0b6e8a"/>
+  <circle cx="690" cy="430" r="24" fill="#0b6e8a"/>
+  <circle cx="980" cy="350" r="24" fill="#0b6e8a"/>
+  <circle cx="1120" cy="560" r="24" fill="#0b6e8a"/>
+  <text x="100" y="100" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Map of Alibaug Hotels</text>
+</svg>

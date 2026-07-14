@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Hotels for couples in Alibaug</title>
+  <desc id="desc">Romantic Alibaug stay illustration with sunset coastline, resort cottages and calm sea.</desc>
+  <rect width="1600" height="900" fill="#ffe7d5"/>
+  <circle cx="1220" cy="185" r="86" fill="#ffbb7f"/>
+  <path d="M0 450C220 405 400 488 635 462s380-104 596-88 247 86 369 68V900H0Z" fill="#4e96b5"/>
+  <path d="M0 628C252 611 429 685 667 650s421-71 629-31 194 42 304 26V900H0Z" fill="#f0cc9f"/>
+  <rect x="285" y="385" width="300" height="175" rx="18" fill="#fff3ea"/>
+  <rect x="1020" y="365" width="300" height="195" rx="18" fill="#fff7ef"/>
+  <path d="M760 635c0-52 38-86 76-86 28 0 47 12 64 34 18-22 37-34 65-34 37 0 75 34 75 86 0 76-74 118-140 169-67-51-140-93-140-169Z" fill="#d85a63"/>
+  <text x="110" y="118" fill="#6d2f2f" font-family="Georgia, serif" font-size="56" font-weight="700">Hotels for Couples in Alibaug</text>
+  <text x="110" y="178" fill="#6d2f2f" font-family="Georgia, serif" font-size="30">Romantic beach weekends and quiet stays</text>
+</svg>

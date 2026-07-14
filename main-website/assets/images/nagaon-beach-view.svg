@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#daf4ff"/>
+  <circle cx="1285" cy="180" r="78" fill="#ffd06b"/>
+  <path d="M0 440C245 405 425 494 647 462s360-106 590-82 253 76 363 60V900H0Z" fill="#1790af"/>
+  <path d="M0 630C215 595 449 680 678 650s426-97 637-55 192 40 285 35V900H0Z" fill="#f1d7ab"/>
+  <text x="100" y="125" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Nagaon Beach</text>
+</svg>

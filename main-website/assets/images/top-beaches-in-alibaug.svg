@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Top beaches in Alibaug</title>
+  <desc id="desc">Panoramic beach guide illustration showing multiple coastal stretches in Alibaug.</desc>
+  <rect width="1600" height="900" fill="#dcf5ff"/>
+  <path d="M0 430C238 377 444 493 653 455s338-108 572-91 259 88 375 71V900H0Z" fill="#1690af"/>
+  <path d="M0 617C217 589 423 654 664 632s414-88 628-49 207 52 308 38V900H0Z" fill="#f1d7aa"/>
+  <path d="M0 520c100 12 165 48 230 48 91 0 126-51 206-51s117 43 194 43 116-43 196-43 116 34 186 34 107-42 187-42 117 46 200 46 124-35 201-35v50H0Z" fill="#8ed0df" opacity=".65"/>
+  <text x="110" y="118" fill="#173f53" font-family="Georgia, serif" font-size="56" font-weight="700">Top Beaches in Alibaug</text>
+  <text x="110" y="178" fill="#173f53" font-family="Georgia, serif" font-size="30">Nagaon, Kashid, Kihim and more coastal stops</text>
+</svg>
