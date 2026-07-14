@@ -1,0 +1,15 @@
+compatibility_date = "2026-07-14"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "alibaug-checkin-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+preview_database_id = "DB"
+
+# Add these as Cloudflare Pages secrets or variables in the dashboard:
+# API_READ_TOKEN
+# GOOGLE_CLIENT_ID
+# GOOGLE_CLIENT_SECRET
+# GOOGLE_REDIRECT_URI
+# ENCRYPTION_KEY
