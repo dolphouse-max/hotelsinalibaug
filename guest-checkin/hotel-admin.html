@@ -320,6 +320,23 @@
               </div>
               <div id="staffList" class="mt-6 grid gap-4"></div>
             </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean">Current Guests</h2>
+                  <p class="mt-2 text-sm text-slate-600">Search checked-in guests and complete their check-out when they leave.</p>
+                </div>
+                <div class="flex gap-3">
+                  <input id="guestSearch" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10 lg:w-72" placeholder="Search room, guest name, phone, or guest ID">
+                  <button id="refreshGuestsButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
+                    Refresh Guests
+                  </button>
+                </div>
+              </div>
+              <div id="guestListState" class="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Load a hotel to see currently checked-in guests.</div>
+              <div id="guestList" class="mt-6 grid gap-4"></div>
+            </article>
           </section>
         </div>
       </main>
@@ -365,6 +382,11 @@
       const staffBackFile = document.getElementById("staffIdBackFile");
       const staffFrontFileName = document.getElementById("staffFrontFileName");
       const staffBackFileName = document.getElementById("staffBackFileName");
+      const refreshGuestsButton = document.getElementById("refreshGuestsButton");
+      const guestSearch = document.getElementById("guestSearch");
+      const guestListState = document.getElementById("guestListState");
+      const guestList = document.getElementById("guestList");
+      let guestSearchTimeout = null;
 
       hotelIdInput.value = params.get("hotel_id") || "";
 
@@ -585,6 +607,85 @@
         }
       }
 
+      function renderGuests(guests) {
+        guestList.innerHTML = "";
+
+        if (!guests.length) {
+          guestListState.textContent = "No currently checked-in guests matched this search.";
+          return;
+        }
+
+        guestListState.textContent = `${guests.length} current guest${guests.length === 1 ? "" : "s"} loaded.`;
+
+        for (const guest of guests) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5";
+          card.innerHTML = `
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-lg font-semibold text-ocean">${guest.name}</h3>
+                  <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Checked In</span>
+                  <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-harbor">Room ${guest.room_number}</span>
+                </div>
+                <p class="mt-2 text-sm text-slate-500">Guest ID: <span class="font-medium text-slate-700">${guest.id}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Phone: <span class="font-medium text-slate-700">${guest.phone || "Not set"}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Total Guests: <span class="font-medium text-slate-700">${guest.total_guests || 1}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Expected Check-Out: <span class="font-medium text-slate-700">${guest.expected_check_out_date || "Not set"}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Route: <span class="font-medium text-slate-700">${guest.coming_from || "-"} to ${guest.going_to || "-"}</span></p>
+              </div>
+              <div class="flex w-full flex-col gap-3 lg:w-auto">
+                <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                  <p><span class="font-semibold text-ocean">Check-In:</span> ${guest.check_in_time}</p>
+                  <p class="mt-1"><span class="font-semibold text-ocean">ID:</span> ${guest.id_type} / ${guest.id_number}</p>
+                </div>
+                <button type="button" class="rounded-2xl bg-ocean px-4 py-3 text-sm font-semibold text-white transition hover:bg-harbor" data-checkout-guest="${guest.id}">
+                  Check Out Guest
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.querySelector("[data-checkout-guest]").addEventListener("click", async (event) => {
+            const button = event.currentTarget;
+            const confirmed = window.confirm(`Check out ${guest.name} from room ${guest.room_number}?`);
+            if (!confirmed) {
+              return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Checking Out...";
+
+            try {
+              const response = await fetch("/api/hotel-admin/guests", {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                  hotel_id: hotelIdInput.value.trim(),
+                  guest_id: guest.id,
+                }),
+              });
+              const data = await readJson(response);
+
+              if (!response.ok) {
+                throw new Error(data.error || "Unable to check out guest");
+              }
+
+              showMessage(formSuccess, `${guest.name} checked out successfully.`);
+              await loadHotel();
+              await loadGuests();
+            } catch (error) {
+              showMessage(formError, error instanceof Error ? error.message : "Unable to check out guest");
+            } finally {
+              button.disabled = false;
+              button.textContent = "Check Out Guest";
+            }
+          });
+
+          guestList.appendChild(card);
+        }
+      }
+
       async function readJson(response) {
         const text = await response.text();
 
@@ -726,6 +827,7 @@
 
           fillForm(data.hotel);
           await loadStaff();
+          await loadGuests();
         } catch (error) {
           showMessage(formError, error instanceof Error ? error.message : "Unable to load hotel profile");
         }
@@ -759,14 +861,57 @@
         }
       }
 
+      async function loadGuests() {
+        const hotelId = hotelIdInput.value.trim();
+
+        if (!hotelId) {
+          guestListState.textContent = "Enter a hotel ID and load the hotel to view current guests.";
+          guestList.innerHTML = "";
+          return;
+        }
+
+        guestListState.textContent = "Loading current guests...";
+        guestList.innerHTML = "";
+
+        try {
+          const query = guestSearch.value.trim();
+          const url = new URL("/api/hotel-admin/guests", window.location.origin);
+          url.searchParams.set("hotel_id", hotelId);
+          url.searchParams.set("status", "current");
+          if (query) {
+            url.searchParams.set("q", query);
+          }
+
+          const response = await fetch(url.toString(), {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load current guests");
+          }
+
+          renderGuests(data.guests || []);
+        } catch (error) {
+          guestListState.textContent = error instanceof Error ? error.message : "Unable to load current guests";
+        }
+      }
+
       loadButton.addEventListener("click", loadHotel);
       refreshStaffButton.addEventListener("click", loadStaff);
+      refreshGuestsButton.addEventListener("click", loadGuests);
       staffResetButton.addEventListener("click", resetStaffForm);
       staffWhatsappSame.addEventListener("change", syncStaffWhatsapp);
       staffPhone.addEventListener("input", syncStaffWhatsapp);
       staffVehicleType.addEventListener("change", syncStaffVehicle);
       staffFrontFile.addEventListener("change", () => setFileLabel(staffFrontFile, staffFrontFileName, "No front image selected yet."));
       staffBackFile.addEventListener("change", () => setFileLabel(staffBackFile, staffBackFileName, "No back image selected yet."));
+      guestSearch.addEventListener("input", () => {
+        clearTimeout(guestSearchTimeout);
+        guestSearchTimeout = setTimeout(() => {
+          loadGuests();
+        }, 250);
+      });
       syncStaffWhatsapp();
       syncStaffVehicle();
 
