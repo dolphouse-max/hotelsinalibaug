@@ -62,19 +62,27 @@ async function countValue(statement) {
   return Number(row?.count || 0);
 }
 
-async function insertPoliceLogs(db, officerName, guests) {
+async function insertPoliceLogs(db, officerName, guests, logColumns) {
   if (!guests.length) {
     return;
   }
 
+  const supportsHotelId = logColumns.has("hotel_id");
   const statements = guests.map((guest) =>
-    db.prepare(
-      `INSERT INTO police_access_logs (
-         officer_name,
-         guest_id,
-         hotel_id
-       ) VALUES (?1, ?2, ?3)`
-    ).bind(officerName, guest.id, guest.hotel_id)
+    supportsHotelId
+      ? db.prepare(
+          `INSERT INTO police_access_logs (
+             officer_name,
+             guest_id,
+             hotel_id
+           ) VALUES (?1, ?2, ?3)`
+        ).bind(officerName, guest.id, guest.hotel_id)
+      : db.prepare(
+          `INSERT INTO police_access_logs (
+             officer_name,
+             guest_id
+           ) VALUES (?1, ?2)`
+        ).bind(officerName, guest.id)
   );
 
   await db.batch(statements);
@@ -212,21 +220,34 @@ export async function onRequestGet(context) {
              ${staffNameColumn} ASC
            LIMIT 100`
         ).bind(hotelId).all(),
-        context.env.DB.prepare(
-          `SELECT
-             ${selectColumn(logColumns, "id")},
-             ${selectColumn(logColumns, "officer_name")},
-             ${selectColumn(logColumns, "guest_id")},
-             ${selectColumn(logColumns, "accessed_at")}
-           FROM police_access_logs
-           WHERE hotel_id = ?1
-           ORDER BY accessed_at DESC
-           LIMIT 100`
-        ).bind(hotelId).all(),
+        logColumns.has("hotel_id")
+          ? context.env.DB.prepare(
+              `SELECT
+                 ${selectColumn(logColumns, "id")},
+                 ${selectColumn(logColumns, "officer_name")},
+                 ${selectColumn(logColumns, "guest_id")},
+                 ${selectColumn(logColumns, "accessed_at")}
+               FROM police_access_logs
+               WHERE hotel_id = ?1
+               ORDER BY accessed_at DESC
+               LIMIT 100`
+            ).bind(hotelId).all()
+          : context.env.DB.prepare(
+              `SELECT
+                 p.id,
+                 p.officer_name,
+                 p.guest_id,
+                 p.accessed_at
+               FROM police_access_logs p
+               INNER JOIN guests g ON g.id = p.guest_id
+               WHERE g.hotel_id = ?1
+               ORDER BY p.accessed_at DESC
+               LIMIT 100`
+            ).bind(hotelId).all(),
       ]);
 
     const currentGuests = currentGuestsResult.results || [];
-    await insertPoliceLogs(context.env.DB, officerName, currentGuests);
+    await insertPoliceLogs(context.env.DB, officerName, currentGuests, logColumns);
 
     return json({
       ok: true,

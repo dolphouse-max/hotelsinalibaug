@@ -37,14 +37,25 @@ async function insertPoliceLogs(db, officerName, guests) {
     return;
   }
 
+  const { results } = await db.prepare(`PRAGMA table_info(police_access_logs)`).all();
+  const logColumns = new Set((results || []).map((column) => column.name));
+  const supportsHotelId = logColumns.has("hotel_id");
+
   const statements = guests.map((guest) =>
-    db.prepare(
-      `INSERT INTO police_access_logs (
-         officer_name,
-         guest_id,
-         hotel_id
-       ) VALUES (?1, ?2, ?3)`
-    ).bind(officerName, guest.id, guest.hotel_id)
+    supportsHotelId
+      ? db.prepare(
+          `INSERT INTO police_access_logs (
+             officer_name,
+             guest_id,
+             hotel_id
+           ) VALUES (?1, ?2, ?3)`
+        ).bind(officerName, guest.id, guest.hotel_id)
+      : db.prepare(
+          `INSERT INTO police_access_logs (
+             officer_name,
+             guest_id
+           ) VALUES (?1, ?2)`
+        ).bind(officerName, guest.id)
   );
 
   await db.batch(statements);
