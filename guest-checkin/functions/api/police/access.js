@@ -14,8 +14,12 @@ function badRequest(message) {
   return json({ error: message }, { status: 400 });
 }
 
-function isSafeId(value) {
+function isSafeGuestId(value) {
   return typeof value === "string" && /^[a-z0-9]{16,64}$/i.test(value.trim());
+}
+
+function isSafeHotelId(value) {
+  return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
 }
 
 function requirePoliceAccess(request, env) {
@@ -60,11 +64,11 @@ export async function onRequestGet(context) {
     return badRequest("officer_name is required");
   }
 
-  if (!isSafeId(hotelId)) {
+  if (!isSafeHotelId(hotelId)) {
     return badRequest("Valid hotel_id is required");
   }
 
-  if (guestId && !isSafeId(guestId)) {
+  if (guestId && !isSafeGuestId(guestId)) {
     return badRequest("Invalid guest_id");
   }
 
@@ -79,7 +83,6 @@ export async function onRequestGet(context) {
       g.id_number,
       g.check_in_time,
       g.check_out_time,
-      g.google_drive_file_id,
       g.created_at,
       g.updated_at
     FROM guests g
@@ -123,7 +126,7 @@ export async function onRequestPost(context) {
       return badRequest("officer_name is required");
     }
 
-    if (!isSafeId(hotelId) || !isSafeId(guestId)) {
+    if (!isSafeHotelId(hotelId) || !isSafeGuestId(guestId)) {
       return badRequest("Valid hotel_id and guest_id are required");
     }
 
@@ -138,7 +141,6 @@ export async function onRequestPost(context) {
          g.id_number,
          g.check_in_time,
          g.check_out_time,
-         g.google_drive_file_id,
          g.created_at,
          g.updated_at
        FROM guests g

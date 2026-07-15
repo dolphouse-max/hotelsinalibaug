@@ -14,8 +14,8 @@ function badRequest(message) {
   return json({ error: message }, { status: 400 });
 }
 
-function isSafeId(value) {
-  return typeof value === "string" && /^[a-z0-9]{16,64}$/i.test(value.trim());
+function isSafeHotelId(value) {
+  return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
 }
 
 function isIsoDate(value) {
@@ -76,7 +76,7 @@ export async function onRequestGet(context) {
     return badRequest("officer_name is required");
   }
 
-  if (!isSafeId(hotelId)) {
+  if (!isSafeHotelId(hotelId)) {
     return badRequest("Valid hotel_id is required");
   }
 

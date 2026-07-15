@@ -59,8 +59,10 @@
                   <input id="officerName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Inspector Anil Patil">
                 </div>
                 <div>
-                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
-                  <input id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="hotelalibaug0001">
+                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+                  <select id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+                    <option value="">Load hotels after entering token</option>
+                  </select>
                 </div>
               </div>
 
@@ -103,6 +105,7 @@
     <script>
       const params = new URLSearchParams(window.location.search);
       const policeForm = document.getElementById("policeForm");
+      const tokenInput = document.getElementById("policeToken");
       const policeError = document.getElementById("policeError");
       const policeSuccess = document.getElementById("policeSuccess");
       const lookupButton = document.getElementById("lookupButton");
@@ -138,6 +141,31 @@
 
         if (officerName) {
           document.getElementById("officerName").value = officerName;
+        }
+      }
+
+      async function loadHotels() {
+        const response = await fetch("/api/police/hotels", {
+          headers: authHeader(),
+        });
+        const data = await readJson(response);
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load hotels");
+        }
+
+        const select = document.getElementById("hotelId");
+        const selectedHotelId = params.get("hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
+        select.innerHTML = '<option value="">Select hotel</option>';
+
+        for (const hotel of data.hotels || []) {
+          const option = document.createElement("option");
+          option.value = hotel.id;
+          option.textContent = `${hotel.name} (${hotel.id})`;
+          if (hotel.id === selectedHotelId) {
+            option.selected = true;
+          }
+          select.appendChild(option);
         }
       }
 
@@ -231,6 +259,10 @@
       });
 
       restoreContext();
+      tokenInput.addEventListener("change", () => {
+        loadHotels().catch(() => {});
+      });
+      loadHotels().catch(() => {});
     </script>
   </body>
 </html>

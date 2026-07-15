@@ -57,8 +57,10 @@
               <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Inspector Patil">
             </div>
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
-              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="hotelalibaug0001">
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+              <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+                <option value="">Load hotels after entering token</option>
+              </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -242,6 +244,30 @@
         return {
           Authorization: `Bearer ${tokenInput.value.trim()}`,
         };
+      }
+
+      async function loadHotels() {
+        const response = await fetch("/api/police/hotels", {
+          headers: authHeaders(),
+        });
+        const data = await readJson(response);
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load hotels");
+        }
+
+        const selectedHotelId = params.get("hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
+        hotelIdInput.innerHTML = '<option value="">Select hotel</option>';
+
+        for (const hotel of data.hotels || []) {
+          const option = document.createElement("option");
+          option.value = hotel.id;
+          option.textContent = `${hotel.name} (${hotel.id})`;
+          if (hotel.id === selectedHotelId) {
+            option.selected = true;
+          }
+          hotelIdInput.appendChild(option);
+        }
       }
 
       function setLoading(isLoading) {
@@ -503,9 +529,12 @@
 
       tokenInput.value = "";
       officerNameInput.value = params.get("officer_name") || localStorage.getItem("dashboard_officer_name") || "";
-      hotelIdInput.value = params.get("hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
       fromDateInput.value = formatDateOffset(29);
       toDateInput.value = formatDateOffset(0);
+      tokenInput.addEventListener("change", () => {
+        loadHotels().catch(() => {});
+      });
+      loadHotels().catch(() => {});
     </script>
   </body>
 </html>
