@@ -151,11 +151,24 @@
                   </div>
                 </div>
 
-                <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
-                <div id="formSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+              <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+              <div id="formSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+              <div id="duplicatePanel" class="hidden rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                <p class="font-semibold">Possible existing hotel found</p>
+                <p id="duplicateMessage" class="mt-2"></p>
+                <div id="duplicateList" class="mt-4 grid gap-3"></div>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <button id="useExistingButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-amber-300 bg-white px-5 py-3 font-semibold text-amber-950 transition hover:bg-amber-100">
+                    Use Existing Hotel
+                  </button>
+                  <button id="createAnywayButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white transition hover:bg-ocean-900">
+                    Create Anyway
+                  </button>
+                </div>
+              </div>
 
-                <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean-950 px-5 py-4 text-base font-semibold text-white transition hover:bg-ocean-900 focus:outline-none focus:ring-4 focus:ring-ocean-950/10 disabled:opacity-70">
-                  <span id="submitText">Create Hotel</span>
+              <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean-950 px-5 py-4 text-base font-semibold text-white transition hover:bg-ocean-900 focus:outline-none focus:ring-4 focus:ring-ocean-950/10 disabled:opacity-70">
+                <span id="submitText">Create Hotel</span>
                   <span id="submitSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
                 </button>
               </form>
@@ -304,6 +317,11 @@
       const submitButton = document.getElementById("submitButton");
       const submitText = document.getElementById("submitText");
       const submitSpinner = document.getElementById("submitSpinner");
+      const duplicatePanel = document.getElementById("duplicatePanel");
+      const duplicateMessage = document.getElementById("duplicateMessage");
+      const duplicateList = document.getElementById("duplicateList");
+      const useExistingButton = document.getElementById("useExistingButton");
+      const createAnywayButton = document.getElementById("createAnywayButton");
       const totalHotelsStat = document.getElementById("totalHotelsStat");
       const reminderHotelsStat = document.getElementById("reminderHotelsStat");
       const inactiveHotelsStat = document.getElementById("inactiveHotelsStat");
@@ -311,6 +329,9 @@
       const subscriptionEndDateInput = document.getElementById("subscriptionEndDate");
       const activeFlagInput = document.getElementById("activeFlag");
       const hotelCardTemplate = document.getElementById("hotelCardTemplate");
+      let pendingDuplicatePayload = null;
+      let pendingDuplicateHotels = [];
+      let loadedHotels = [];
 
       function todayDate() {
         return new Date().toISOString().slice(0, 10);
@@ -346,6 +367,31 @@
         return compact ? compact.charAt(0).toUpperCase() + compact.slice(1) : "";
       }
 
+      function suggestHotelId(name) {
+        const base = slugHotelId(name);
+        if (!base) {
+          return "";
+        }
+
+        const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp(`^${escapedBase}(\\d{4})$`, "i");
+        let maxSuffix = 0;
+
+        for (const hotel of loadedHotels) {
+          const match = String(hotel.id || "").match(pattern);
+          if (!match) {
+            continue;
+          }
+
+          const suffix = Number(match[1]);
+          if (Number.isFinite(suffix) && suffix > maxSuffix) {
+            maxSuffix = suffix;
+          }
+        }
+
+        return `${base}${String(maxSuffix + 1).padStart(4, "0")}`;
+      }
+
       function authHeaders() {
         const token = tokenInput.value.trim();
         return token
@@ -363,12 +409,61 @@
         formSuccess.classList.add("hidden");
         formError.textContent = "";
         formSuccess.textContent = "";
+        duplicatePanel.classList.add("hidden");
+        duplicateMessage.textContent = "";
+        duplicateList.innerHTML = "";
       }
 
       function setSubmitting(isSubmitting) {
         submitButton.disabled = isSubmitting;
         submitText.textContent = isSubmitting ? "Creating Hotel..." : "Create Hotel";
         submitSpinner.classList.toggle("hidden", !isSubmitting);
+      }
+
+      function buildCreatePayload(skipDuplicateCheck = false) {
+        const payload = {
+          hotel_id: hotelIdInput.value.trim(),
+          name: hotelNameInput.value.trim(),
+          mobile_number: document.getElementById("mobileNumber").value.trim(),
+          gmail_id: document.getElementById("gmailId").value.trim(),
+          address: document.getElementById("address").value.trim(),
+          total_rooms: Number(document.getElementById("totalRooms").value || "0"),
+          occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
+          subscription_start_date: subscriptionStartDateInput.value,
+          subscription_end_date: subscriptionEndDateInput.value,
+          is_active: Number(activeFlagInput.value),
+        };
+
+        if (skipDuplicateCheck) {
+          payload.skip_duplicate_check = true;
+        }
+
+        return payload;
+      }
+
+      function renderDuplicatePanel(message, hotels, exactHotelIdMatch) {
+        duplicateMessage.textContent = exactHotelIdMatch
+          ? `${message} You can open the previous hotel below, or change the Hotel ID if this is a different property.`
+          : `${message} Review the existing hotel below. If it is the same property, use the previous one. If it is the wrong match, you can still create a new one.`;
+        duplicateList.innerHTML = "";
+
+        for (const hotel of hotels) {
+          const card = document.createElement("div");
+          card.className = "rounded-2xl border border-amber-200 bg-white px-4 py-4";
+          card.innerHTML = `
+            <p class="font-semibold text-ocean-950">${hotel.name}</p>
+            <p class="mt-2 text-slate-700">Hotel ID: <span class="font-medium">${hotel.id}</span></p>
+            <p class="mt-1 text-slate-700">Admin Gmail: <span class="font-medium">${hotel.admin_email || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Mobile: <span class="font-medium">${hotel.admin_phone || hotel.contact || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Trial End: <span class="font-medium">${hotel.subscription_end_date}</span></p>
+          `;
+          duplicateList.appendChild(card);
+        }
+
+        useExistingButton.disabled = hotels.length === 0;
+        createAnywayButton.disabled = exactHotelIdMatch;
+        createAnywayButton.textContent = exactHotelIdMatch ? "Change Hotel ID To Create New" : "Create Anyway";
+        duplicatePanel.classList.remove("hidden");
       }
 
       function updateStats(hotels) {
@@ -511,6 +606,7 @@
 
       function renderHotels(hotels) {
         hotelsGrid.innerHTML = "";
+        loadedHotels = hotels;
         updateStats(hotels);
 
         if (!hotels.length) {
@@ -540,6 +636,7 @@
 
           renderHotels(data.hotels || []);
         } catch (error) {
+          loadedHotels = [];
           updateStats([]);
           listState.textContent = error instanceof Error ? error.message : "Unable to load hotels";
         }
@@ -557,8 +654,7 @@
 
       hotelNameInput.addEventListener("input", () => {
         if (!hotelIdInput.dataset.userEdited) {
-          const base = slugHotelId(hotelNameInput.value);
-          hotelIdInput.value = base ? `${base}0001` : "";
+          hotelIdInput.value = suggestHotelId(hotelNameInput.value);
         }
       });
 
@@ -592,18 +688,7 @@
         setSubmitting(true);
 
         try {
-          const payload = {
-            hotel_id: hotelIdInput.value.trim(),
-            name: hotelNameInput.value.trim(),
-            mobile_number: document.getElementById("mobileNumber").value.trim(),
-            gmail_id: document.getElementById("gmailId").value.trim(),
-            address: document.getElementById("address").value.trim(),
-            total_rooms: Number(document.getElementById("totalRooms").value || "0"),
-            occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
-            subscription_start_date: subscriptionStartDateInput.value,
-            subscription_end_date: subscriptionEndDateInput.value,
-            is_active: Number(activeFlagInput.value),
-          };
+          const payload = buildCreatePayload(false);
 
           const response = await fetch("/api/super-admin/manage-hotel", {
             method: "POST",
@@ -613,6 +698,12 @@
           const data = await readJson(response);
 
           if (!response.ok) {
+            if (response.status === 409 && data.code === "duplicate_hotel") {
+              pendingDuplicatePayload = payload;
+              pendingDuplicateHotels = data.existing_hotels || [];
+              renderDuplicatePanel(data.error || "Possible duplicate hotel found.", pendingDuplicateHotels, Boolean(data.exact_hotel_id_match));
+              return;
+            }
             throw new Error(data.error || "Unable to create hotel");
           }
 
@@ -622,6 +713,52 @@
           subscriptionEndDateInput.dataset.userEdited = "";
           activeFlagInput.value = "1";
           initializeDates();
+          await loadHotels();
+        } catch (error) {
+          showFormMessage(formError, error instanceof Error ? error.message : "Unable to create hotel");
+        } finally {
+          setSubmitting(false);
+        }
+      });
+
+      useExistingButton.addEventListener("click", () => {
+        if (!pendingDuplicateHotels.length) {
+          return;
+        }
+
+        const existing = pendingDuplicateHotels[0];
+        showFormMessage(formSuccess, `Using existing hotel ${existing.name} (${existing.id}). No new duplicate was created.`);
+        duplicatePanel.classList.add("hidden");
+      });
+
+      createAnywayButton.addEventListener("click", async () => {
+        if (!pendingDuplicatePayload) {
+          return;
+        }
+
+        clearFormMessages();
+        setSubmitting(true);
+
+        try {
+          const response = await fetch("/api/super-admin/manage-hotel", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ ...pendingDuplicatePayload, skip_duplicate_check: true }),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to create hotel");
+          }
+
+          showFormMessage(formSuccess, `${data.hotel.name} created after duplicate review. Trial runs until ${data.hotel.subscription_end_date}.`);
+          hotelForm.reset();
+          hotelIdInput.dataset.userEdited = "";
+          subscriptionEndDateInput.dataset.userEdited = "";
+          activeFlagInput.value = "1";
+          initializeDates();
+          pendingDuplicatePayload = null;
+          pendingDuplicateHotels = [];
           await loadHotels();
         } catch (error) {
           showFormMessage(formError, error instanceof Error ? error.message : "Unable to create hotel");
