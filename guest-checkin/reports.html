@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Reports | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+              shell: "#f6efe3",
+              dune: "#ead4ad",
+              breeze: "#9bc8c2",
+              sunset: "#dc8f67",
+            },
+            boxShadow: {
+              resort: "0 28px 90px rgba(11, 24, 36, 0.16)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(23,50,74,0.18),_transparent_36%),linear-gradient(180deg,#f6f8fb_0%,#eef2f6_100%)]">
+      <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-harbor/70">Hotels In Alibaug SaaS</p>
+              <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ocean sm:text-4xl">Hotel Reports</h1>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                View daily check-ins, current guests, check-outs, guest register history, and active staff for a single hotel.
+              </p>
+            </div>
+            <a href="/dashboard.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
+              Back To Dashboard
+            </a>
+          </div>
+
+          <form id="reportsForm" class="mt-8 grid gap-4 lg:grid-cols-[1.1fr_1fr_1fr_auto]">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Paste your Hotel Admin token">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="fromDate" class="mb-2 block text-sm font-medium text-slate-700">From</label>
+                <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              </div>
+              <div>
+                <label for="toDate" class="mb-2 block text-sm font-medium text-slate-700">To</label>
+                <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              </div>
+            </div>
+            <div class="flex items-end">
+              <button id="loadReportsButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean px-5 py-4 text-base font-semibold text-white transition hover:bg-harbor focus:outline-none focus:ring-4 focus:ring-ocean/10 disabled:opacity-70">
+                <span id="loadReportsText">Load Reports</span>
+                <span id="loadReportsSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              </button>
+            </div>
+          </form>
+
+          <div id="reportsError" class="mt-5 hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+        </section>
+
+        <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Check-Ins In Range</p>
+            <p id="metricCheckins" class="mt-3 text-3xl font-semibold text-ocean">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Current In-House Guests</p>
+            <p id="metricCurrentGuests" class="mt-3 text-3xl font-semibold text-ocean">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Check-Outs Today</p>
+            <p id="metricCheckoutsToday" class="mt-3 text-3xl font-semibold text-ocean">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Active Staff</p>
+            <p id="metricActiveStaff" class="mt-3 text-3xl font-semibold text-ocean">0</p>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean">Hotel Snapshot</h2>
+                <p id="hotelSnapshot" class="mt-2 text-sm text-slate-600">Load a hotel report to view occupancy and trial details.</p>
+              </div>
+              <div id="trialBadge" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            </div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean">Today’s Check-Ins</h2>
+                <p id="todayCheckinsState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+            </div>
+            <div id="todayCheckinsList" class="mt-6 space-y-3"></div>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <h2 class="text-2xl font-semibold text-ocean">Current Guests</h2>
+            <p id="currentGuestsState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+            <div id="currentGuestsList" class="mt-6 space-y-3"></div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <h2 class="text-2xl font-semibold text-ocean">Check-Outs Today</h2>
+            <p id="checkoutsTodayState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+            <div id="checkoutsTodayList" class="mt-6 space-y-3"></div>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean">Guest Register</h2>
+                <p id="guestRegisterState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+              <button id="exportGuestRegisterButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
+                Export CSV
+              </button>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-left text-sm">
+                <thead class="text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Guest</th>
+                    <th class="px-3 py-2 font-medium">Room</th>
+                    <th class="px-3 py-2 font-medium">Phone</th>
+                    <th class="px-3 py-2 font-medium">ID</th>
+                    <th class="px-3 py-2 font-medium">Check-In</th>
+                    <th class="px-3 py-2 font-medium">Check-Out</th>
+                  </tr>
+                </thead>
+                <tbody id="guestRegisterTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean">Staff Register</h2>
+                <p id="staffRegisterState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+              <button id="exportStaffButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
+                Export CSV
+              </button>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-left text-sm">
+                <thead class="text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Staff</th>
+                    <th class="px-3 py-2 font-medium">Role</th>
+                    <th class="px-3 py-2 font-medium">Phone</th>
+                    <th class="px-3 py-2 font-medium">Status</th>
+                    <th class="px-3 py-2 font-medium">Working Since</th>
+                  </tr>
+                </thead>
+                <tbody id="staffRegisterTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const reportsForm = document.getElementById("reportsForm");
+      const reportsError = document.getElementById("reportsError");
+      const loadReportsText = document.getElementById("loadReportsText");
+      const loadReportsSpinner = document.getElementById("loadReportsSpinner");
+      const hotelSnapshot = document.getElementById("hotelSnapshot");
+      const trialBadge = document.getElementById("trialBadge");
+      const metricCheckins = document.getElementById("metricCheckins");
+      const metricCurrentGuests = document.getElementById("metricCurrentGuests");
+      const metricCheckoutsToday = document.getElementById("metricCheckoutsToday");
+      const metricActiveStaff = document.getElementById("metricActiveStaff");
+      const todayCheckinsState = document.getElementById("todayCheckinsState");
+      const todayCheckinsList = document.getElementById("todayCheckinsList");
+      const currentGuestsState = document.getElementById("currentGuestsState");
+      const currentGuestsList = document.getElementById("currentGuestsList");
+      const checkoutsTodayState = document.getElementById("checkoutsTodayState");
+      const checkoutsTodayList = document.getElementById("checkoutsTodayList");
+      const guestRegisterState = document.getElementById("guestRegisterState");
+      const guestRegisterTable = document.getElementById("guestRegisterTable");
+      const staffRegisterState = document.getElementById("staffRegisterState");
+      const staffRegisterTable = document.getElementById("staffRegisterTable");
+      const exportGuestRegisterButton = document.getElementById("exportGuestRegisterButton");
+      const exportStaffButton = document.getElementById("exportStaffButton");
+
+      let lastReportData = null;
+
+      function formatDateOffset(daysAgo) {
+        const date = new Date();
+        date.setDate(date.getDate() - daysAgo);
+        return date.toISOString().slice(0, 10);
+      }
+
+      function showError(message) {
+        reportsError.textContent = message;
+        reportsError.classList.remove("hidden");
+      }
+
+      function clearError() {
+        reportsError.classList.add("hidden");
+        reportsError.textContent = "";
+      }
+
+      function setLoading(isLoading) {
+        reportsForm.querySelector("button[type='submit']").disabled = isLoading;
+        loadReportsText.textContent = isLoading ? "Loading Reports..." : "Load Reports";
+        loadReportsSpinner.classList.toggle("hidden", !isLoading);
+      }
+
+      function authHeaders() {
+        const token = tokenInput.value.trim();
+        return {
+          Authorization: `Bearer ${token}`,
+        };
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: "Unexpected response" };
+        }
+      }
+
+      function createCardLine(label, value) {
+        return `<p class="mt-1 text-sm text-slate-500">${label}: <span class="font-medium text-slate-700">${value}</span></p>`;
+      }
+
+      function renderSimpleCards(container, rows, emptyText, builder) {
+        container.innerHTML = "";
+
+        if (!rows.length) {
+          container.innerHTML = `<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">${emptyText}</div>`;
+          return;
+        }
+
+        for (const row of rows) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4";
+          card.innerHTML = builder(row);
+          container.appendChild(card);
+        }
+      }
+
+      function renderTableRows(container, rows, emptyText, columns) {
+        container.innerHTML = "";
+
+        if (!rows.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="${columns}" class="px-3 py-6 text-center text-sm text-slate-500">${emptyText}</td>`;
+          container.appendChild(tr);
+          return;
+        }
+
+        for (const row of rows) {
+          container.appendChild(row);
+        }
+      }
+
+      function downloadCsv(filename, rows) {
+        if (!rows.length) {
+          showError("There is no data to export yet.");
+          return;
+        }
+
+        const csv = rows
+          .map((row) =>
+            row
+              .map((cell) => `"${String(cell ?? "").replace(/"/g, "\"\"")}"`)
+              .join(",")
+          )
+          .join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function renderReport(data) {
+        lastReportData = data;
+        const { hotel, summary, reports, filters } = data;
+
+        metricCheckins.textContent = summary.total_checkins_in_range;
+        metricCurrentGuests.textContent = summary.current_in_house_guests;
+        metricCheckoutsToday.textContent = summary.checkouts_today;
+        metricActiveStaff.textContent = summary.active_staff;
+
+        hotelSnapshot.innerHTML = `
+          <span class="block text-lg font-semibold text-ocean">${hotel.name}</span>
+          ${createCardLine("Hotel ID", hotel.id)}
+          ${createCardLine("Rooms Occupied", `${summary.occupied_rooms} / ${summary.total_rooms}`)}
+          ${createCardLine("Report Range", `${filters.from} to ${filters.to}`)}
+          ${createCardLine("Trial End", hotel.subscription_end_date || "Not set")}
+        `;
+
+        if (hotel.payment_reminder_active && hotel.payment_reminder_message) {
+          trialBadge.className = "rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800";
+          trialBadge.textContent = hotel.payment_reminder_message;
+          trialBadge.classList.remove("hidden");
+        } else {
+          trialBadge.classList.add("hidden");
+          trialBadge.textContent = "";
+        }
+
+        todayCheckinsState.textContent = `${reports.todays_checkins.length} check-in${reports.todays_checkins.length === 1 ? "" : "s"} today.`;
+        renderSimpleCards(
+          todayCheckinsList,
+          reports.todays_checkins,
+          "No guests checked in today.",
+          (guest) => `
+            <h3 class="text-base font-semibold text-ocean">${guest.name}</h3>
+            ${createCardLine("Room", guest.room_number || "-")}
+            ${createCardLine("Guests", guest.total_guests || 1)}
+            ${createCardLine("Phone", guest.phone || "-")}
+            ${createCardLine("Check-In", guest.check_in_time || "-")}
+          `
+        );
+
+        currentGuestsState.textContent = `${reports.current_guests.length} guest${reports.current_guests.length === 1 ? "" : "s"} currently in-house.`;
+        renderSimpleCards(
+          currentGuestsList,
+          reports.current_guests,
+          "No current guests found.",
+          (guest) => `
+            <h3 class="text-base font-semibold text-ocean">${guest.name}</h3>
+            ${createCardLine("Room", guest.room_number || "-")}
+            ${createCardLine("Guests", guest.total_guests || 1)}
+            ${createCardLine("Phone", guest.phone || "-")}
+            ${createCardLine("Expected Check-Out", guest.expected_check_out_date || "-")}
+          `
+        );
+
+        checkoutsTodayState.textContent = `${reports.checkouts_today.length} check-out${reports.checkouts_today.length === 1 ? "" : "s"} today.`;
+        renderSimpleCards(
+          checkoutsTodayList,
+          reports.checkouts_today,
+          "No guests checked out today.",
+          (guest) => `
+            <h3 class="text-base font-semibold text-ocean">${guest.name}</h3>
+            ${createCardLine("Room", guest.room_number || "-")}
+            ${createCardLine("Phone", guest.phone || "-")}
+            ${createCardLine("Checked Out", guest.check_out_time || "-")}
+          `
+        );
+
+        guestRegisterState.textContent = `${reports.guest_register.length} guest register row${reports.guest_register.length === 1 ? "" : "s"} loaded.`;
+        renderTableRows(
+          guestRegisterTable,
+          reports.guest_register.map((guest) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean">${guest.name}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.room_number || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.phone || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.id_type || "-"} / ${guest.id_number || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.check_in_time || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.check_out_time || "-"}</td>
+            `;
+            return tr;
+          }),
+          "No guest register rows found for this date range.",
+          6
+        );
+
+        staffRegisterState.textContent = `${reports.staff.length} staff row${reports.staff.length === 1 ? "" : "s"} loaded.`;
+        renderTableRows(
+          staffRegisterTable,
+          reports.staff.map((staff) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean">${staff.full_name}</td>
+              <td class="px-3 py-3 text-slate-600">${staff.role || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${staff.phone || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${Number(staff.is_active) === 1 ? "Active" : "Inactive"}</td>
+              <td class="px-3 py-3 text-slate-600">${staff.working_since_month || "-"} ${staff.working_since_year || ""}</td>
+            `;
+            return tr;
+          }),
+          "No staff rows found.",
+          5
+        );
+      }
+
+      async function loadReports() {
+        clearError();
+
+        const token = tokenInput.value.trim();
+        const hotelId = hotelIdInput.value.trim();
+
+        if (!token) {
+          showError("Please enter your Hotel Admin token.");
+          return;
+        }
+
+        if (!hotelId) {
+          showError("Please enter the hotel ID.");
+          return;
+        }
+
+        setLoading(true);
+
+        try {
+          localStorage.setItem("hotel_admin_token", token);
+          localStorage.setItem("dashboard_hotel_id", hotelId);
+
+          const url = new URL("/api/hotel-admin/reports", window.location.origin);
+          url.searchParams.set("hotel_id", hotelId);
+          if (fromDateInput.value) {
+            url.searchParams.set("from", fromDateInput.value);
+          }
+          if (toDateInput.value) {
+            url.searchParams.set("to", toDateInput.value);
+          }
+
+          const response = await fetch(url.toString(), {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load reports");
+          }
+
+          renderReport(data);
+        } catch (error) {
+          const message = error instanceof Error ? error.message.toLowerCase() : "";
+          if (message.includes("unauthorized")) {
+            showError("Access could not be verified. Please check your Hotel Admin token.");
+          } else if (message.includes("not found")) {
+            showError("This hotel account was not found. Please check the hotel ID.");
+          } else {
+            showError("Reports are temporarily unavailable. Please try again in a minute.");
+          }
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      exportGuestRegisterButton.addEventListener("click", () => {
+        const hotelId = hotelIdInput.value.trim() || "hotel";
+        const rows = [["Guest Name", "Room Number", "Phone", "ID Type", "ID Number", "Check In", "Check Out"]];
+        for (const guest of lastReportData?.reports?.guest_register || []) {
+          rows.push([guest.name, guest.room_number, guest.phone, guest.id_type, guest.id_number, guest.check_in_time, guest.check_out_time]);
+        }
+        downloadCsv(`${hotelId}-guest-register.csv`, rows);
+      });
+
+      exportStaffButton.addEventListener("click", () => {
+        const hotelId = hotelIdInput.value.trim() || "hotel";
+        const rows = [["Staff Name", "Role", "Phone", "Status", "Working Since Month", "Working Since Year"]];
+        for (const staff of lastReportData?.reports?.staff || []) {
+          rows.push([staff.full_name, staff.role, staff.phone, Number(staff.is_active) === 1 ? "Active" : "Inactive", staff.working_since_month, staff.working_since_year]);
+        }
+        downloadCsv(`${hotelId}-staff-register.csv`, rows);
+      });
+
+      reportsForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await loadReports();
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      hotelIdInput.value = params.get("hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
+      tokenInput.value = localStorage.getItem("hotel_admin_token") || "";
+      fromDateInput.value = formatDateOffset(29);
+      toDateInput.value = formatDateOffset(0);
+    </script>
+  </body>
+</html>
