@@ -14,8 +14,41 @@ function badRequest(message) {
   return json({ error: message }, { status: 400 });
 }
 
+function isIsoDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 function isSafeId(value) {
   return typeof value === "string" && /^[a-z0-9]{16,64}$/i.test(value.trim());
+}
+
+function diffInDays(fromDate, toDate) {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.ceil((toDate.getTime() - fromDate.getTime()) / msPerDay);
+}
+
+function getSubscriptionMeta(subscriptionEndDate, isActive) {
+  if (!isIsoDate(subscriptionEndDate)) {
+    return {
+      days_until_expiry: null,
+      payment_reminder_active: false,
+      payment_reminder_message: null,
+    };
+  }
+
+  const today = new Date();
+  const todayDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  const endDate = new Date(`${subscriptionEndDate}T00:00:00Z`);
+  const daysUntilExpiry = diffInDays(todayDate, endDate);
+  const reminderActive = Boolean(isActive) && daysUntilExpiry >= 0 && daysUntilExpiry <= 15;
+
+  return {
+    days_until_expiry: daysUntilExpiry,
+    payment_reminder_active: reminderActive,
+    payment_reminder_message: reminderActive
+      ? `Your free trial ends in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"}. Please complete your subscription payment.`
+      : null,
+  };
 }
 
 function requireHotelAdmin(request, env) {
@@ -26,6 +59,53 @@ function requireHotelAdmin(request, env) {
   }
 
   return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
+}
+
+export async function onRequestGet(context) {
+  if (!requireHotelAdmin(context.request, context.env)) {
+    return unauthorized();
+  }
+
+  const url = new URL(context.request.url);
+  const hotelId = url.searchParams.get("hotel_id");
+
+  if (!isSafeId(hotelId)) {
+    return badRequest("Valid hotel_id is required");
+  }
+
+  const hotel = await context.env.DB.prepare(
+    `SELECT
+       h.id,
+       h.name,
+       h.contact,
+       h.address,
+       h.total_rooms,
+       h.occupied_rooms,
+       h.subscription_start_date,
+       h.subscription_end_date,
+       h.is_active,
+       hs.email AS admin_email,
+       hs.phone AS admin_phone
+     FROM hotels h
+     LEFT JOIN hotel_staff hs
+       ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
+     WHERE h.id = ?1
+     LIMIT 1`
+  )
+    .bind(hotelId.trim())
+    .first();
+
+  if (!hotel) {
+    return json({ error: "Hotel not found" }, { status: 404 });
+  }
+
+  return json({
+    ok: true,
+    hotel: {
+      ...hotel,
+      ...getSubscriptionMeta(hotel.subscription_end_date, hotel.is_active),
+    },
+  });
 }
 
 export async function onRequestPut(context) {
@@ -82,6 +162,6 @@ export const onRequestOptions = async () =>
   new Response(null, {
     status: 204,
     headers: {
-      allow: "PUT, OPTIONS",
+      allow: "GET, PUT, OPTIONS",
     },
   });

@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Admin | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              midnight: "#081421",
+              tide: "#143047",
+              foam: "#edf4f7",
+              sand: "#ecd9b3",
+              ember: "#e49a66",
+              mint: "#8ec6b3",
+            },
+            boxShadow: {
+              dashboard: "0 28px 80px rgba(8, 20, 33, 0.16)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(20,48,71,0.16),_transparent_38%),linear-gradient(180deg,#f5f8fb_0%,#eef2f6_100%)]">
+      <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-tide/70">Hotels In Alibaug SaaS</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-midnight sm:text-4xl">Super Admin Console</h1>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+              Create hotel tenants, assign custom hotel IDs like <span class="font-semibold text-midnight">DolphinHouse0001</span>, and track which trial accounts need payment follow-up.
+            </p>
+          </div>
+          <div class="rounded-3xl bg-midnight px-5 py-4 text-sand shadow-dashboard">
+            <p class="text-xs uppercase tracking-[0.24em] text-sand/70">Trial policy</p>
+            <p class="mt-2 text-sm leading-6 text-sand/90">Every new hotel gets a 3-month free trial automatically. Payment reminders begin 15 days before expiry.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-8 xl:grid-cols-[1fr_1.2fr]">
+          <section class="rounded-[2rem] bg-white p-6 shadow-dashboard sm:p-8">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-midnight">Add Hotel</h2>
+                <p class="mt-2 text-sm text-slate-600">Create a tenant, hotel admin record, and trial window in one step.</p>
+              </div>
+              <div class="rounded-2xl bg-foam px-4 py-3 text-right text-xs text-slate-500">
+                <div class="font-semibold uppercase tracking-[0.24em] text-tide">Trial</div>
+                <div class="mt-1 text-sm font-medium text-midnight">3 months from creation date</div>
+              </div>
+            </div>
+
+            <form id="hotelForm" class="mt-8 space-y-5">
+              <div>
+                <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+                <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="Paste your Super Admin token">
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+                  <input id="hotelName" name="name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="Dolphin House">
+                </div>
+                <div>
+                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                  <input id="hotelId" name="hotel_id" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="DolphinHouse0001">
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="mobileNumber" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+                  <input id="mobileNumber" name="mobile_number" type="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="+91-98XXXXXXXX">
+                </div>
+                <div>
+                  <label for="gmailId" class="mb-2 block text-sm font-medium text-slate-700">Gmail ID</label>
+                  <input id="gmailId" name="gmail_id" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="booking@gmail.com">
+                </div>
+              </div>
+
+              <div>
+                <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Address <span class="text-slate-400">(optional)</span></label>
+                <textarea id="address" name="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="Property address or locality"></textarea>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="totalRooms" class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
+                  <input id="totalRooms" name="total_rooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10">
+                </div>
+                <div>
+                  <label for="occupiedRooms" class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
+                  <input id="occupiedRooms" name="occupied_rooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10">
+                </div>
+              </div>
+
+              <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+              <div id="formSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+
+              <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-midnight px-5 py-4 text-base font-semibold text-white transition hover:bg-tide focus:outline-none focus:ring-4 focus:ring-midnight/10 disabled:opacity-70">
+                <span id="submitText">Create Hotel</span>
+                <span id="submitSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              </button>
+            </form>
+          </section>
+
+          <section class="rounded-[2rem] bg-white p-6 shadow-dashboard sm:p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 class="text-2xl font-semibold text-midnight">Tenant Overview</h2>
+                <p class="mt-2 text-sm text-slate-600">See active trial windows, pending payment follow-up, and hotel admin contacts.</p>
+              </div>
+              <button id="refreshButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-tide hover:text-midnight">Refresh Hotels</button>
+            </div>
+
+            <div id="listState" class="mt-6 rounded-2xl bg-foam px-4 py-3 text-sm text-slate-600">Load hotels to view trial and subscription status.</div>
+            <div id="hotelsGrid" class="mt-6 grid gap-4"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const hotelForm = document.getElementById("hotelForm");
+      const hotelNameInput = document.getElementById("hotelName");
+      const hotelIdInput = document.getElementById("hotelId");
+      const tokenInput = document.getElementById("superAdminToken");
+      const refreshButton = document.getElementById("refreshButton");
+      const hotelsGrid = document.getElementById("hotelsGrid");
+      const listState = document.getElementById("listState");
+      const formError = document.getElementById("formError");
+      const formSuccess = document.getElementById("formSuccess");
+      const submitButton = document.getElementById("submitButton");
+      const submitText = document.getElementById("submitText");
+      const submitSpinner = document.getElementById("submitSpinner");
+
+      function slugHotelId(name) {
+        const compact = name.replace(/[^a-zA-Z0-9]/g, "");
+        return compact ? compact.charAt(0).toUpperCase() + compact.slice(1) : "";
+      }
+
+      function showFormMessage(target, message) {
+        target.textContent = message;
+        target.classList.remove("hidden");
+      }
+
+      function clearFormMessages() {
+        formError.classList.add("hidden");
+        formSuccess.classList.add("hidden");
+        formError.textContent = "";
+        formSuccess.textContent = "";
+      }
+
+      function authHeaders() {
+        const token = tokenInput.value.trim();
+        return token
+          ? {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
+          : {
+              "Content-Type": "application/json",
+            };
+      }
+
+      function setSubmitting(isSubmitting) {
+        submitButton.disabled = isSubmitting;
+        submitText.textContent = isSubmitting ? "Creating Hotel..." : "Create Hotel";
+        submitSpinner.classList.toggle("hidden", !isSubmitting);
+      }
+
+      function renderHotels(hotels) {
+        hotelsGrid.innerHTML = "";
+
+        if (!hotels.length) {
+          listState.textContent = "No hotels found yet. Create your first tenant from the form.";
+          return;
+        }
+
+        listState.textContent = `${hotels.length} hotel account${hotels.length === 1 ? "" : "s"} loaded.`;
+
+        for (const hotel of hotels) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5";
+
+          const reminder = hotel.payment_reminder_active
+            ? `<div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">${hotel.payment_reminder_message}</div>`
+            : "";
+
+          const statusTone = hotel.is_active === 1 ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700";
+
+          card.innerHTML = `
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-lg font-semibold text-midnight">${hotel.name}</h3>
+                  <span class="rounded-full px-3 py-1 text-xs font-semibold ${statusTone}">${hotel.is_active === 1 ? "Active" : "Inactive"}</span>
+                </div>
+                <p class="mt-2 text-sm text-slate-500">Hotel ID: <span class="font-medium text-slate-700">${hotel.id}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Admin Gmail: <span class="font-medium text-slate-700">${hotel.admin_email || "Not set"}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Mobile: <span class="font-medium text-slate-700">${hotel.admin_phone || hotel.contact}</span></p>
+              </div>
+              <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                <p><span class="font-semibold text-midnight">Trial start:</span> ${hotel.subscription_start_date}</p>
+                <p class="mt-1"><span class="font-semibold text-midnight">Trial end:</span> ${hotel.subscription_end_date}</p>
+                <p class="mt-1"><span class="font-semibold text-midnight">Days until expiry:</span> ${hotel.days_until_expiry}</p>
+                <p class="mt-1"><span class="font-semibold text-midnight">Rooms:</span> ${hotel.occupied_rooms}/${hotel.total_rooms}</p>
+              </div>
+            </div>
+            ${reminder}
+          `;
+
+          hotelsGrid.appendChild(card);
+        }
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: text || "Unexpected response" };
+        }
+      }
+
+      async function loadHotels() {
+        listState.textContent = "Loading hotels...";
+        hotelsGrid.innerHTML = "";
+
+        try {
+          const response = await fetch("/api/super-admin/manage-hotel", {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load hotels");
+          }
+
+          renderHotels(data.hotels || []);
+        } catch (error) {
+          listState.textContent = error instanceof Error ? error.message : "Unable to load hotels";
+        }
+      }
+
+      hotelNameInput.addEventListener("input", () => {
+        if (!hotelIdInput.dataset.userEdited) {
+          const base = slugHotelId(hotelNameInput.value);
+          hotelIdInput.value = base ? `${base}0001` : "";
+        }
+      });
+
+      hotelIdInput.addEventListener("input", () => {
+        hotelIdInput.dataset.userEdited = "true";
+      });
+
+      hotelForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearFormMessages();
+        setSubmitting(true);
+
+        try {
+          const payload = {
+            hotel_id: document.getElementById("hotelId").value.trim(),
+            name: document.getElementById("hotelName").value.trim(),
+            mobile_number: document.getElementById("mobileNumber").value.trim(),
+            gmail_id: document.getElementById("gmailId").value.trim(),
+            address: document.getElementById("address").value.trim(),
+            total_rooms: Number(document.getElementById("totalRooms").value || "0"),
+            occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
+          };
+
+          const response = await fetch("/api/super-admin/manage-hotel", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to create hotel");
+          }
+
+          showFormMessage(
+            formSuccess,
+            `${data.hotel.name} created. Trial runs until ${data.hotel.subscription_end_date}.`
+          );
+          hotelForm.reset();
+          hotelIdInput.dataset.userEdited = "";
+          await loadHotels();
+        } catch (error) {
+          showFormMessage(formError, error instanceof Error ? error.message : "Unable to create hotel");
+        } finally {
+          setSubmitting(false);
+        }
+      });
+
+      refreshButton.addEventListener("click", loadHotels);
+    </script>
+  </body>
+</html>
