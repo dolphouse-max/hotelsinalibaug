@@ -59,6 +59,25 @@ function requireHotelAdmin(request, env) {
   return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
+async function getTableColumns(db, tableName) {
+  const { results } = await db.prepare(`PRAGMA table_info(${tableName})`).all();
+  return new Set((results || []).map((column) => column.name));
+}
+
+function selectColumn(columns, columnName) {
+  return columns.has(columnName) ? columnName : `NULL AS ${columnName}`;
+}
+
+function databaseErrorMessage(error, fallbackMessage) {
+  const message = error instanceof Error ? error.message : fallbackMessage;
+
+  if (/no such table|no such column/i.test(message)) {
+    return "Database schema is out of date. Re-run the latest guest-checkin/schema.sql on D1.";
+  }
+
+  return message;
+}
+
 function normalizeStaffPayload(payload) {
   const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
   const staffId = typeof payload.staff_id === "string" ? payload.staff_id.trim() : typeof payload.id === "string" ? payload.id.trim() : "";
@@ -128,51 +147,68 @@ export async function onRequestGet(context) {
     return unauthorized();
   }
 
-  const url = new URL(context.request.url);
-  const hotelId = url.searchParams.get("hotel_id");
+  try {
+    const url = new URL(context.request.url);
+    const hotelId = url.searchParams.get("hotel_id");
 
-  if (!isSafeId(hotelId)) {
-    return badRequest("Valid hotel_id is required");
-  }
+    if (!isSafeId(hotelId)) {
+      return badRequest("Valid hotel_id is required");
+    }
 
-  const { results } = await context.env.DB.prepare(
-    `SELECT
-       id,
-       hotel_id,
-       full_name,
-       age,
-       sex,
-       working_since_month,
-       working_since_year,
-       email,
-       phone,
-       whatsapp_phone,
-       address_line_1,
-       address_city,
-       address_pin_code,
-       vehicle_type,
-       vehicle_number,
-       role,
-       is_active,
-       google_drive_file_id_front,
-       google_drive_file_id_back,
-       created_at,
-       updated_at
+    const columns = await getTableColumns(context.env.DB, "hotel_staff");
+    const selectedColumns = [
+      "id",
+      "hotel_id",
+      "full_name",
+      "age",
+      "sex",
+      "working_since_month",
+      "working_since_year",
+      "email",
+      "phone",
+      "whatsapp_phone",
+      "address_line_1",
+      "address_city",
+      "address_pin_code",
+      "vehicle_type",
+      "vehicle_number",
+      "role",
+      "is_active",
+      "google_drive_file_id_front",
+      "google_drive_file_id_back",
+      "created_at",
+      "updated_at",
+    ]
+      .map((columnName) => selectColumn(columns, columnName))
+      .join(",\n       ");
+
+    const roleColumn = columns.has("role") ? "role" : "'staff'";
+    const nameColumn = columns.has("full_name") ? "full_name" : "id";
+
+    const { results } = await context.env.DB.prepare(
+      `SELECT
+       ${selectedColumns}
      FROM hotel_staff
      WHERE hotel_id = ?1
      ORDER BY
-       CASE role
+       CASE ${roleColumn}
          WHEN 'admin' THEN 0
          WHEN 'manager' THEN 1
          WHEN 'frontdesk' THEN 2
          ELSE 3
        END,
-       full_name ASC`
-  )
-    .bind(hotelId.trim())
-    .all();
+       ${nameColumn} ASC`
+    )
+      .bind(hotelId.trim())
+      .all();
 
-  return json({ ok: true, staff: results || [] });
+    return json({ ok: true, staff: results || [] });
+  } catch (error) {
+    return json(
+      { error: databaseErrorMessage(error, "Unable to load staff") },
+      { status: 500 }
+    );
+  }
 }
 
 export async function onRequestPost(context) {

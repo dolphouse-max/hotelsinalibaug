@@ -28,6 +28,25 @@ function requireHotelAdmin(request, env) {
   return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
+async function getTableColumns(db, tableName) {
+  const { results } = await db.prepare(`PRAGMA table_info(${tableName})`).all();
+  return new Set((results || []).map((column) => column.name));
+}
+
+function selectColumn(columns, columnName) {
+  return columns.has(columnName) ? columnName : `NULL AS ${columnName}`;
+}
+
+function databaseErrorMessage(error, fallbackMessage) {
+  const message = error instanceof Error ? error.message : fallbackMessage;
+
+  if (/no such table|no such column/i.test(message)) {
+    return "Database schema is out of date. Re-run the latest guest-checkin/schema.sql on D1.";
+  }
+
+  return message;
+}
+
 async function recalculateOccupiedRooms(db, hotelId) {
   const current = await db.prepare(
     `SELECT COUNT(DISTINCT room_number) AS occupied_rooms
@@ -57,59 +76,79 @@ export async function onRequestGet(context) {
     return unauthorized();
   }
 
-  const url = new URL(context.request.url);
-  const hotelId = url.searchParams.get("hotel_id");
-  const status = (url.searchParams.get("status") || "current").trim().toLowerCase();
-  const query = (url.searchParams.get("q") || "").trim().toLowerCase();
+  try {
+    const url = new URL(context.request.url);
+    const hotelId = url.searchParams.get("hotel_id");
+    const status = (url.searchParams.get("status") || "current").trim().toLowerCase();
+    const query = (url.searchParams.get("q") || "").trim().toLowerCase();
 
-  if (!isSafeId(hotelId)) {
-    return badRequest("Valid hotel_id is required");
-  }
+    if (!isSafeId(hotelId)) {
+      return badRequest("Valid hotel_id is required");
+    }
 
-  const clauses = ["hotel_id = ?1"];
-  const bindings = [hotelId.trim()];
+    const columns = await getTableColumns(context.env.DB, "guests");
+    const clauses = ["hotel_id = ?1"];
+    const bindings = [hotelId.trim()];
+    const checkoutExpression = columns.has("check_out_time")
+      ? "check_out_time"
+      : "NULL";
 
-  if (status === "current") {
-    clauses.push("check_out_time IS NULL");
-  } else if (status === "checked_out") {
-    clauses.push("check_out_time IS NOT NULL");
-  } else if (status !== "all") {
-    return badRequest("status must be current, checked_out, or all");
-  }
+    if (status === "current") {
+      clauses.push(`${checkoutExpression} IS NULL`);
+    } else if (status === "checked_out") {
+      clauses.push(`${checkoutExpression} IS NOT NULL`);
+    } else if (status !== "all") {
+      return badRequest("status must be current, checked_out, or all");
+    }
 
-  if (query) {
-    clauses.push("(lower(name) LIKE ?2 OR lower(room_number) LIKE ?2 OR lower(id) LIKE ?2 OR lower(phone) LIKE ?2)");
-    bindings.push(`%${query}%`);
-  }
+    if (query) {
+      const roomExpression = columns.has("room_number") ? "room_number" : "''";
+      clauses.push(`(lower(name) LIKE ?2 OR lower(${roomExpression}) LIKE ?2 OR lower(id) LIKE ?2 OR lower(phone) LIKE ?2)`);
+      bindings.push(`%${query}%`);
+    }
 
-  const { results } = await context.env.DB.prepare(
-    `SELECT
-       id,
-       hotel_id,
-       name,
-       age,
-       sex,
-       total_guests,
-       room_number,
-       check_in_time,
-       expected_check_out_date,
-       phone,
-       whatsapp_phone,
-       coming_from,
-       going_to,
-       id_type,
-       id_number,
-       check_out_time
+    const selectedColumns = [
+      "id",
+      "hotel_id",
+      "name",
+      "age",
+      "sex",
+      "total_guests",
+      "room_number",
+      "check_in_time",
+      "expected_check_out_date",
+      "phone",
+      "whatsapp_phone",
+      "coming_from",
+      "going_to",
+      "id_type",
+      "id_number",
+      "check_out_time",
+    ]
+      .map((columnName) => selectColumn(columns, columnName))
+      .join(",\n       ");
+
+    const checkInColumn = columns.has("check_in_time") ? "check_in_time" : "created_at";
+
+    const { results } = await context.env.DB.prepare(
+      `SELECT
+       ${selectedColumns}
      FROM guests
      WHERE ${clauses.join(" AND ")}
      ORDER BY
-       CASE WHEN check_out_time IS NULL THEN 0 ELSE 1 END,
-       check_in_time DESC`
-  )
-    .bind(...bindings)
-    .all();
+       CASE WHEN ${checkoutExpression} IS NULL THEN 0 ELSE 1 END,
+       ${checkInColumn} DESC`
+    )
+      .bind(...bindings)
+      .all();
 
-  return json({ ok: true, guests: results || [] });
+    return json({ ok: true, guests: results || [] });
+  } catch (error) {
+    return json(
+      { error: databaseErrorMessage(error, "Unable to load current guests") },
+      { status: 500 }
+    );
+  }
 }
 
 export async function onRequestPost(context) {
