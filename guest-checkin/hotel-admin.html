@@ -24,6 +24,7 @@
         },
       };
     </script>
+    <script src="qrcode.js"></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-900">
     <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(23,50,74,0.18),_transparent_36%),linear-gradient(180deg,#f6f8fb_0%,#eef2f6_100%)]">
@@ -271,7 +272,7 @@
           <section class="space-y-6">
             <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
               <h2 class="text-2xl font-semibold text-ocean">Account Snapshot</h2>
-              <p class="mt-2 text-sm text-slate-600">A quick operational view of your occupancy and trial timeline.</p>
+              <p class="mt-2 text-sm text-slate-600">A quick operational view of your occupancy, account state, and trial timeline.</p>
 
               <div class="mt-6 grid gap-4 sm:grid-cols-2">
                 <div class="rounded-3xl bg-slate-50 p-5">
@@ -279,16 +280,45 @@
                   <p id="adminEmail" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
                 </div>
                 <div class="rounded-3xl bg-slate-50 p-5">
-                  <p class="text-sm font-medium text-slate-500">Trial End Date</p>
-                  <p id="trialEnd" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                  <p class="text-sm font-medium text-slate-500">Account Status</p>
+                  <div class="mt-3 flex items-center gap-3">
+                    <span id="accountStatusBadge" class="rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700">Not loaded</span>
+                    <span id="paymentStatusBadge" class="rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700">Payment status pending</span>
+                  </div>
                 </div>
                 <div class="rounded-3xl bg-slate-50 p-5">
-                  <p class="text-sm font-medium text-slate-500">Days Until Expiry</p>
-                  <p id="daysToExpiry" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                  <p class="text-sm font-medium text-slate-500">Trial Window</p>
+                  <p id="trialEnd" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                  <p id="trialWindowText" class="mt-1 text-sm text-slate-500">Start and end dates will appear here.</p>
                 </div>
                 <div class="rounded-3xl bg-slate-50 p-5">
                   <p class="text-sm font-medium text-slate-500">Room Utilization</p>
                   <p id="occupancySummary" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                  <p id="occupancyHealth" class="mt-1 text-sm text-slate-500">Occupancy guidance will appear here.</p>
+                </div>
+              </div>
+
+              <div class="mt-6 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-slate-500">Days Until Expiry</p>
+                    <p id="daysToExpiry" class="mt-2 text-3xl font-semibold text-ocean">Not loaded</p>
+                    <p id="renewalMessage" class="mt-2 text-sm text-slate-600">Renewal guidance will appear after loading the hotel.</p>
+                  </div>
+                  <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                    <p class="font-semibold text-ocean">Payment Checklist</p>
+                    <p id="paymentChecklist" class="mt-1">Load the account to see the next payment step.</p>
+                  </div>
+                </div>
+
+                <div class="mt-5">
+                  <div class="mb-2 flex items-center justify-between text-sm text-slate-500">
+                    <span>Trial progress</span>
+                    <span id="trialProgressLabel">0%</span>
+                  </div>
+                  <div class="h-3 overflow-hidden rounded-full bg-white">
+                    <div id="trialProgressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-harbor to-sunset transition-all duration-500"></div>
+                  </div>
                 </div>
               </div>
 
@@ -307,6 +337,159 @@
               <h2 class="text-2xl font-semibold text-ocean">Suggested Actions</h2>
               <div id="actionList" class="mt-5 space-y-3 text-sm text-slate-600">
                 <div class="rounded-2xl bg-slate-50 px-4 py-3">Load your hotel account to see tailored reminders and room-management suggestions.</div>
+              </div>
+            </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean">Google Drive</h2>
+                  <p class="mt-2 text-sm text-slate-600">Connect the hotel Google account so guest and staff proof files save into the Alibaug guest register folder.</p>
+                </div>
+                <div id="googleDriveBadge" class="rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700">Not loaded</div>
+              </div>
+
+              <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Connection Status</p>
+                  <p id="googleDriveStatus" class="mt-3 text-lg font-semibold text-ocean">Load the hotel account first</p>
+                  <p id="googleDriveHint" class="mt-1 text-sm text-slate-500">Connection guidance will appear here.</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Drive Folder ID</p>
+                  <p id="googleDriveFolderId" class="mt-3 break-all text-sm font-semibold text-ocean">Not available</p>
+                </div>
+              </div>
+
+              <div id="googleDriveMessage" class="mt-5 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+              <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                <button id="connectGoogleDriveButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 text-base font-semibold text-white transition hover:bg-harbor focus:outline-none focus:ring-4 focus:ring-ocean/10">
+                  Connect Google Drive
+                </button>
+                <button id="disconnectGoogleDriveButton" type="button" disabled class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-base font-semibold text-slate-700 transition hover:border-harbor hover:text-ocean disabled:cursor-not-allowed disabled:opacity-60">
+                  Disconnect Google Drive
+                </button>
+              </div>
+            </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean">Guest Check-In QR</h2>
+                  <p class="mt-2 text-sm text-slate-600">Generate a hotel-specific check-in link and QR code so guests can scan it and complete check-in on their own device.</p>
+                </div>
+                <div id="checkinLinkBadge" class="rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700">Not generated</div>
+              </div>
+
+              <div class="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                <div class="space-y-4">
+                  <div class="rounded-3xl bg-slate-50 p-5">
+                    <p class="text-sm font-medium text-slate-500">Guest Check-In Link</p>
+                    <p id="checkinLinkStatus" class="mt-3 text-lg font-semibold text-ocean">Load the hotel account first</p>
+                    <p id="checkinLinkHint" class="mt-1 text-sm text-slate-500">Generate a link to get a guest-facing QR code.</p>
+                  </div>
+
+                  <div class="rounded-3xl bg-slate-50 p-5">
+                    <label for="checkinLinkOutput" class="text-sm font-medium text-slate-500">Generated URL</label>
+                    <textarea id="checkinLinkOutput" rows="4" readonly class="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 outline-none">No check-in link generated yet.</textarea>
+                  </div>
+
+                  <div id="checkinLinkMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+                  <div class="grid gap-3 sm:grid-cols-3">
+                    <button id="generateCheckinLinkButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 text-base font-semibold text-white transition hover:bg-harbor focus:outline-none focus:ring-4 focus:ring-ocean/10">
+                      Generate Link
+                    </button>
+                    <button id="copyCheckinLinkButton" type="button" disabled class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-base font-semibold text-slate-700 transition hover:border-harbor hover:text-ocean disabled:cursor-not-allowed disabled:opacity-60">
+                      Copy Link
+                    </button>
+                    <button id="openCheckinLinkButton" type="button" disabled class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-base font-semibold text-slate-700 transition hover:border-harbor hover:text-ocean disabled:cursor-not-allowed disabled:opacity-60">
+                      Open Link
+                    </button>
+                  </div>
+                </div>
+
+                <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Scan QR Code</p>
+                  <div class="mt-4 flex min-h-[320px] items-center justify-center rounded-[1.5rem] bg-white p-5">
+                    <div id="checkinQrImage" class="hidden rounded-2xl border border-slate-200 p-3"></div>
+                    <p id="checkinQrPlaceholder" class="max-w-xs text-center text-sm leading-6 text-slate-500">Generate a hotel check-in link and the QR code will appear here for guests to scan.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean">Renewal Tracker</h2>
+                  <p class="mt-2 text-sm text-slate-600">Raise renewal requests for this hotel and keep a visible record of completed subscription payments.</p>
+                </div>
+                <div id="renewalStatusBadge" class="rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700">Not loaded</div>
+              </div>
+
+              <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Pending Requests</p>
+                  <p id="renewalPendingCount" class="mt-3 text-2xl font-semibold text-ocean">0</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Last Payment</p>
+                  <p id="renewalLastPayment" class="mt-3 text-base font-semibold text-ocean">Not loaded</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Paid Through</p>
+                  <p id="renewalPaidThrough" class="mt-3 text-base font-semibold text-ocean">Not loaded</p>
+                </div>
+              </div>
+
+              <div class="mt-6 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+                <form id="renewalRequestForm" class="space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                  <div>
+                    <h3 class="text-lg font-semibold text-ocean">Request Renewal</h3>
+                    <p class="mt-1 text-sm text-slate-600">Send a renewal request to super admin with your preferred plan duration and note.</p>
+                  </div>
+
+                  <div>
+                    <label for="renewalMonths" class="mb-2 block text-sm font-medium text-slate-700">Requested Plan</label>
+                    <select id="renewalMonths" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                      <option value="1">1 month</option>
+                      <option value="3" selected>3 months</option>
+                      <option value="6">6 months</option>
+                      <option value="12">12 months</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="renewalNote" class="mb-2 block text-sm font-medium text-slate-700">Note</label>
+                    <textarea id="renewalNote" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Add payment follow-up detail, preferred contact time, or renewal instruction"></textarea>
+                  </div>
+
+                  <div id="renewalRequestMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+                  <button id="renewalRequestButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 text-base font-semibold text-white transition hover:bg-harbor focus:outline-none focus:ring-4 focus:ring-ocean/10">
+                    Send Renewal Request
+                  </button>
+                </form>
+
+                <div class="space-y-4">
+                  <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                    <div class="flex items-center justify-between gap-3">
+                      <h3 class="text-lg font-semibold text-ocean">Request History</h3>
+                      <p id="renewalRequestsState" class="text-sm text-slate-500">Load a hotel to see requests.</p>
+                    </div>
+                    <div id="renewalRequestsList" class="mt-4 space-y-3"></div>
+                  </div>
+
+                  <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                    <div class="flex items-center justify-between gap-3">
+                      <h3 class="text-lg font-semibold text-ocean">Payment History</h3>
+                      <p id="renewalPaymentsState" class="text-sm text-slate-500">Load a hotel to see payments.</p>
+                    </div>
+                    <div id="renewalPaymentsList" class="mt-4 space-y-3"></div>
+                  </div>
+                </div>
               </div>
             </article>
 
@@ -365,12 +548,47 @@
       const hotelStatus = document.getElementById("hotelStatus");
       const subscriptionBanner = document.getElementById("subscriptionBanner");
       const adminEmail = document.getElementById("adminEmail");
+      const accountStatusBadge = document.getElementById("accountStatusBadge");
+      const paymentStatusBadge = document.getElementById("paymentStatusBadge");
       const trialEnd = document.getElementById("trialEnd");
+      const trialWindowText = document.getElementById("trialWindowText");
       const daysToExpiry = document.getElementById("daysToExpiry");
+      const renewalMessage = document.getElementById("renewalMessage");
+      const paymentChecklist = document.getElementById("paymentChecklist");
+      const trialProgressBar = document.getElementById("trialProgressBar");
+      const trialProgressLabel = document.getElementById("trialProgressLabel");
       const occupancySummary = document.getElementById("occupancySummary");
+      const occupancyHealth = document.getElementById("occupancyHealth");
       const occupancyBar = document.getElementById("occupancyBar");
       const occupancyPercent = document.getElementById("occupancyPercent");
       const actionList = document.getElementById("actionList");
+      const googleDriveBadge = document.getElementById("googleDriveBadge");
+      const googleDriveStatus = document.getElementById("googleDriveStatus");
+      const googleDriveHint = document.getElementById("googleDriveHint");
+      const googleDriveFolderId = document.getElementById("googleDriveFolderId");
+      const googleDriveMessage = document.getElementById("googleDriveMessage");
+      const connectGoogleDriveButton = document.getElementById("connectGoogleDriveButton");
+      const disconnectGoogleDriveButton = document.getElementById("disconnectGoogleDriveButton");
+      const checkinLinkBadge = document.getElementById("checkinLinkBadge");
+      const checkinLinkStatus = document.getElementById("checkinLinkStatus");
+      const checkinLinkHint = document.getElementById("checkinLinkHint");
+      const checkinLinkOutput = document.getElementById("checkinLinkOutput");
+      const checkinLinkMessage = document.getElementById("checkinLinkMessage");
+      const generateCheckinLinkButton = document.getElementById("generateCheckinLinkButton");
+      const copyCheckinLinkButton = document.getElementById("copyCheckinLinkButton");
+      const openCheckinLinkButton = document.getElementById("openCheckinLinkButton");
+      const checkinQrImage = document.getElementById("checkinQrImage");
+      const checkinQrPlaceholder = document.getElementById("checkinQrPlaceholder");
+      const renewalStatusBadge = document.getElementById("renewalStatusBadge");
+      const renewalPendingCount = document.getElementById("renewalPendingCount");
+      const renewalLastPayment = document.getElementById("renewalLastPayment");
+      const renewalPaidThrough = document.getElementById("renewalPaidThrough");
+      const renewalRequestForm = document.getElementById("renewalRequestForm");
+      const renewalRequestMessage = document.getElementById("renewalRequestMessage");
+      const renewalRequestsState = document.getElementById("renewalRequestsState");
+      const renewalRequestsList = document.getElementById("renewalRequestsList");
+      const renewalPaymentsState = document.getElementById("renewalPaymentsState");
+      const renewalPaymentsList = document.getElementById("renewalPaymentsList");
       const staffForm = document.getElementById("staffForm");
       const staffWhatsappSame = document.getElementById("staffWhatsappSame");
       const staffPhone = document.getElementById("staffPhone");
@@ -387,6 +605,9 @@
       const guestListState = document.getElementById("guestListState");
       const guestList = document.getElementById("guestList");
       let guestSearchTimeout = null;
+      let googleDriveState = null;
+      let checkinLinkState = null;
+      let renewalState = null;
 
       hotelIdInput.value = params.get("hotel_id") || "";
 
@@ -419,6 +640,57 @@
         staffSuccess.classList.add("hidden");
         staffError.textContent = "";
         staffSuccess.textContent = "";
+      }
+
+      function showGoogleDriveMessage(message, tone) {
+        googleDriveMessage.textContent = message;
+        googleDriveMessage.className = "mt-5 rounded-2xl border px-4 py-3 text-sm";
+        googleDriveMessage.classList.remove("hidden");
+
+        if (tone === "success") {
+          googleDriveMessage.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-700");
+        } else {
+          googleDriveMessage.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
+      function clearGoogleDriveMessage() {
+        googleDriveMessage.classList.add("hidden");
+        googleDriveMessage.textContent = "";
+      }
+
+      function showCheckinLinkMessage(message, tone) {
+        checkinLinkMessage.textContent = message;
+        checkinLinkMessage.className = "rounded-2xl border px-4 py-3 text-sm";
+        checkinLinkMessage.classList.remove("hidden");
+
+        if (tone === "success") {
+          checkinLinkMessage.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-700");
+        } else {
+          checkinLinkMessage.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
+      function clearCheckinLinkMessage() {
+        checkinLinkMessage.classList.add("hidden");
+        checkinLinkMessage.textContent = "";
+      }
+
+      function showRenewalRequestMessage(message, tone) {
+        renewalRequestMessage.textContent = message;
+        renewalRequestMessage.className = "rounded-2xl border px-4 py-3 text-sm";
+        renewalRequestMessage.classList.remove("hidden");
+
+        if (tone === "success") {
+          renewalRequestMessage.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-700");
+        } else {
+          renewalRequestMessage.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
+      function clearRenewalRequestMessage() {
+        renewalRequestMessage.classList.add("hidden");
+        renewalRequestMessage.textContent = "";
       }
 
       function setFileLabel(input, label, emptyText) {
@@ -460,13 +732,52 @@
         subscriptionBanner.classList.add("hidden");
         subscriptionBanner.className = "hidden rounded-2xl border px-4 py-4 text-sm";
 
-        if (!hotel.payment_reminder_active) {
+        if (hotel.payment_reminder_active) {
+          subscriptionBanner.textContent = hotel.payment_reminder_message;
+          subscriptionBanner.classList.remove("hidden");
+          subscriptionBanner.classList.add("border-amber-200", "bg-amber-50", "text-amber-900");
           return;
         }
 
-        subscriptionBanner.textContent = hotel.payment_reminder_message;
-        subscriptionBanner.classList.remove("hidden");
-        subscriptionBanner.classList.add("border-amber-200", "bg-amber-50", "text-amber-900");
+        if (typeof hotel.days_until_expiry === "number" && hotel.days_until_expiry < 0) {
+          subscriptionBanner.textContent = "The free trial has expired. Please confirm subscription payment to keep the hotel account active.";
+          subscriptionBanner.classList.remove("hidden");
+          subscriptionBanner.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
+      function setBadge(target, text, tone) {
+        target.textContent = text;
+        target.className = "rounded-full px-3 py-1 text-sm font-semibold";
+
+        if (tone === "success") {
+          target.classList.add("bg-emerald-100", "text-emerald-700");
+        } else if (tone === "warning") {
+          target.classList.add("bg-amber-100", "text-amber-800");
+        } else if (tone === "danger") {
+          target.classList.add("bg-rose-100", "text-rose-700");
+        } else {
+          target.classList.add("bg-slate-200", "text-slate-700");
+        }
+      }
+
+      function calculateTrialProgress(hotel) {
+        if (!hotel.subscription_start_date || !hotel.subscription_end_date) {
+          return 0;
+        }
+
+        const start = new Date(`${hotel.subscription_start_date}T00:00:00Z`);
+        const end = new Date(`${hotel.subscription_end_date}T00:00:00Z`);
+        const now = new Date();
+        const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        const total = end.getTime() - start.getTime();
+
+        if (Number.isNaN(total) || total <= 0) {
+          return 0;
+        }
+
+        const elapsed = today.getTime() - start.getTime();
+        return Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
       }
 
       function renderActions(hotel) {
@@ -491,6 +802,176 @@
           .join("");
       }
 
+      function renderGoogleDrive(state) {
+        googleDriveState = state;
+        googleDriveFolderId.textContent = state.googleDriveFolderId || "Not available";
+
+        if (state.googleDriveConnected) {
+          setBadge(googleDriveBadge, "Connected", "success");
+          googleDriveStatus.textContent = "Google Drive is connected";
+          googleDriveHint.textContent = "New proof files can now be saved into the hotel's connected Drive folder.";
+          disconnectGoogleDriveButton.disabled = false;
+        } else {
+          setBadge(googleDriveBadge, "Not connected", "warning");
+          googleDriveStatus.textContent = "Google Drive is not connected";
+          googleDriveHint.textContent = "Connect a Google account before relying on Drive uploads for guest and staff proofs.";
+          disconnectGoogleDriveButton.disabled = true;
+        }
+      }
+
+      function renderQrCode(value) {
+        const qr = qrcode(0, "M");
+        qr.addData(value);
+        qr.make();
+        checkinQrImage.innerHTML = qr.createSvgTag(6, 12);
+      }
+
+      function renderCheckinLink(state) {
+        checkinLinkState = state;
+        setBadge(checkinLinkBadge, "Ready", "success");
+        checkinLinkStatus.textContent = "Guest check-in link generated";
+        checkinLinkHint.textContent = "Guests can scan this QR code or open the link directly on their own phone.";
+        checkinLinkOutput.value = state.checkinUrl;
+        renderQrCode(state.checkinUrl);
+        checkinQrImage.classList.remove("hidden");
+        checkinQrPlaceholder.classList.add("hidden");
+        copyCheckinLinkButton.disabled = false;
+        openCheckinLinkButton.disabled = false;
+      }
+
+      function resetCheckinLinkUi() {
+        checkinLinkState = null;
+        setBadge(checkinLinkBadge, "Not generated", "default");
+        checkinLinkStatus.textContent = "Load the hotel account first";
+        checkinLinkHint.textContent = "Generate a link to get a guest-facing QR code.";
+        checkinLinkOutput.value = "No check-in link generated yet.";
+        checkinQrImage.innerHTML = "";
+        checkinQrImage.classList.add("hidden");
+        checkinQrPlaceholder.classList.remove("hidden");
+        copyCheckinLinkButton.disabled = true;
+        openCheckinLinkButton.disabled = true;
+      }
+
+      function renderRenewalRequests(requests) {
+        renewalRequestsList.innerHTML = "";
+
+        if (!requests.length) {
+          renewalRequestsState.textContent = "No renewal requests raised yet.";
+          return;
+        }
+
+        renewalRequestsState.textContent = `${requests.length} request${requests.length === 1 ? "" : "s"} loaded.`;
+
+        for (const request of requests) {
+          const item = document.createElement("article");
+          item.className = "rounded-2xl bg-white px-4 py-4 text-sm text-slate-600 shadow-sm";
+
+          const title = document.createElement("p");
+          title.className = "font-semibold text-ocean";
+          title.textContent = `${request.requested_months} month request`;
+
+          const meta = document.createElement("p");
+          meta.className = "mt-1";
+          meta.textContent = `Status: ${request.status} • Requested end date: ${request.requested_end_date || "Not set"}`;
+
+          const note = document.createElement("p");
+          note.className = "mt-1";
+          note.textContent = `Note: ${request.note || "No note added"}`;
+
+          const created = document.createElement("p");
+          created.className = "mt-1 text-slate-500";
+          created.textContent = `Created: ${request.created_at}`;
+
+          item.append(title, meta, note, created);
+
+          if (request.resolved_note) {
+            const resolved = document.createElement("p");
+            resolved.className = "mt-1 text-slate-500";
+            resolved.textContent = `Resolution: ${request.resolved_note}`;
+            item.appendChild(resolved);
+          }
+
+          renewalRequestsList.appendChild(item);
+        }
+      }
+
+      function renderRenewalPayments(payments) {
+        renewalPaymentsList.innerHTML = "";
+
+        if (!payments.length) {
+          renewalPaymentsState.textContent = "No subscription payments recorded yet.";
+          return;
+        }
+
+        renewalPaymentsState.textContent = `${payments.length} payment${payments.length === 1 ? "" : "s"} loaded.`;
+
+        for (const payment of payments) {
+          const item = document.createElement("article");
+          item.className = "rounded-2xl bg-white px-4 py-4 text-sm text-slate-600 shadow-sm";
+
+          const title = document.createElement("p");
+          title.className = "font-semibold text-ocean";
+          title.textContent = `${payment.currency_code} ${Number(payment.amount_paid || 0).toFixed(2)} via ${payment.payment_method}`;
+
+          const period = document.createElement("p");
+          period.className = "mt-1";
+          period.textContent = `Coverage: ${payment.period_start_date} to ${payment.period_end_date}`;
+
+          const details = document.createElement("p");
+          details.className = "mt-1";
+          details.textContent = `Plan: ${payment.plan_months} month${payment.plan_months === 1 ? "" : "s"} • Paid on ${payment.payment_date}`;
+
+          const reference = document.createElement("p");
+          reference.className = "mt-1 text-slate-500";
+          reference.textContent = `Reference: ${payment.payment_reference || "Not provided"}`;
+
+          item.append(title, period, details, reference);
+
+          if (payment.note) {
+            const note = document.createElement("p");
+            note.className = "mt-1 text-slate-500";
+            note.textContent = `Note: ${payment.note}`;
+            item.appendChild(note);
+          }
+
+          renewalPaymentsList.appendChild(item);
+        }
+      }
+
+      function resetRenewalUi() {
+        renewalState = null;
+        setBadge(renewalStatusBadge, "Not loaded", "default");
+        renewalPendingCount.textContent = "0";
+        renewalLastPayment.textContent = "Not loaded";
+        renewalPaidThrough.textContent = "Not loaded";
+        renewalRequestsState.textContent = "Load a hotel to see requests.";
+        renewalPaymentsState.textContent = "Load a hotel to see payments.";
+        renewalRequestsList.innerHTML = "";
+        renewalPaymentsList.innerHTML = "";
+      }
+
+      function renderRenewalData(data) {
+        renewalState = data;
+        renewalPendingCount.textContent = String(data.summary.pending_renewal_requests || 0);
+        renewalPaidThrough.textContent = data.hotel.subscription_end_date || "Not set";
+
+        if ((data.summary.pending_renewal_requests || 0) > 0) {
+          setBadge(renewalStatusBadge, "Action needed", "warning");
+        } else {
+          setBadge(renewalStatusBadge, "Up to date", "success");
+        }
+
+        if (data.summary.last_payment) {
+          const payment = data.summary.last_payment;
+          renewalLastPayment.textContent = `${payment.currency_code} ${Number(payment.amount_paid || 0).toFixed(2)} on ${payment.payment_date}`;
+        } else {
+          renewalLastPayment.textContent = "No payment recorded yet";
+        }
+
+        renderRenewalRequests(data.requests || []);
+        renderRenewalPayments(data.payments || []);
+      }
+
       function fillForm(hotel) {
         document.getElementById("hotelName").value = hotel.name || "";
         document.getElementById("contact").value = hotel.contact || "";
@@ -500,15 +981,127 @@
         hotelStatus.value = hotel.is_active === 1 ? "Active" : "Inactive";
         adminEmail.textContent = hotel.admin_email || "Not set";
         trialEnd.textContent = hotel.subscription_end_date || "Not set";
+        trialWindowText.textContent = hotel.subscription_start_date
+          ? `${hotel.subscription_start_date} to ${hotel.subscription_end_date || "Not set"}`
+          : "Start and end dates will appear here.";
         daysToExpiry.textContent = hotel.days_until_expiry ?? "Not available";
         occupancySummary.textContent = `${hotel.occupied_rooms}/${hotel.total_rooms}`;
+        occupancyHealth.textContent = hotel.total_rooms > 0 && hotel.occupied_rooms / hotel.total_rooms > 0.85
+          ? "High occupancy. Keep room turnover and cleaning tightly coordinated."
+          : "Occupancy is currently in a comfortable range.";
 
         const percent = hotel.total_rooms > 0 ? Math.min(100, Math.round((hotel.occupied_rooms / hotel.total_rooms) * 100)) : 0;
         occupancyBar.style.width = `${percent}%`;
         occupancyPercent.textContent = `${percent}%`;
 
+        const trialProgress = calculateTrialProgress(hotel);
+        trialProgressBar.style.width = `${trialProgress}%`;
+        trialProgressLabel.textContent = `${trialProgress}%`;
+
+        if (hotel.is_active === 1) {
+          setBadge(accountStatusBadge, "Active", "success");
+        } else {
+          setBadge(accountStatusBadge, "Inactive", "danger");
+        }
+
+        if (hotel.payment_reminder_active) {
+          setBadge(paymentStatusBadge, "Payment due soon", "warning");
+          renewalMessage.textContent = hotel.payment_reminder_message;
+          paymentChecklist.textContent = "Collect the subscription payment and confirm the renewal before the trial end date.";
+        } else if (typeof hotel.days_until_expiry === "number" && hotel.days_until_expiry < 0) {
+          setBadge(paymentStatusBadge, "Trial expired", "danger");
+          renewalMessage.textContent = "The trial period has ended. Renew immediately to avoid account interruption.";
+          paymentChecklist.textContent = "Confirm payment, extend the subscription, and recheck hotel access status.";
+        } else {
+          setBadge(paymentStatusBadge, "Trial healthy", "success");
+          renewalMessage.textContent = "No immediate payment action is required yet.";
+          paymentChecklist.textContent = "Keep tracking the trial timeline and prepare payment details before the final 15 days.";
+        }
+
         setBanner(hotel);
         renderActions(hotel);
+      }
+
+      async function loadGoogleDriveStatus() {
+        const hotelId = hotelIdInput.value.trim();
+
+        if (!hotelId) {
+          setBadge(googleDriveBadge, "Not loaded", "default");
+          googleDriveStatus.textContent = "Load the hotel account first";
+          googleDriveHint.textContent = "Connection guidance will appear here.";
+          googleDriveFolderId.textContent = "Not available";
+          disconnectGoogleDriveButton.disabled = true;
+          googleDriveState = null;
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/hotel-admin/google-drive?hotel_id=${encodeURIComponent(hotelId)}`, {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load Google Drive status");
+          }
+
+          renderGoogleDrive(data);
+        } catch (error) {
+          setBadge(googleDriveBadge, "Unavailable", "danger");
+          googleDriveStatus.textContent = "Google Drive status is unavailable";
+          googleDriveHint.textContent = error instanceof Error ? error.message : "Unable to load Google Drive status";
+          googleDriveFolderId.textContent = "Not available";
+          disconnectGoogleDriveButton.disabled = true;
+        }
+      }
+
+      async function generateCheckinLink() {
+        clearCheckinLinkMessage();
+
+        const hotelId = hotelIdInput.value.trim();
+        if (!hotelId) {
+          throw new Error("Load a hotel first before generating a check-in link.");
+        }
+
+        const response = await fetch(`/api/hotel-admin/checkin-link?hotel_id=${encodeURIComponent(hotelId)}`, {
+          headers: authHeaders(),
+        });
+        const data = await readJson(response);
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to create check-in link");
+        }
+
+        renderCheckinLink(data);
+        return data;
+      }
+
+      async function loadRenewalData() {
+        const hotelId = hotelIdInput.value.trim();
+
+        if (!hotelId) {
+          resetRenewalUi();
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/hotel-admin/subscription?hotel_id=${encodeURIComponent(hotelId)}`, {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load renewal data");
+          }
+
+          renderRenewalData(data);
+        } catch (error) {
+          setBadge(renewalStatusBadge, "Unavailable", "danger");
+          renewalRequestsState.textContent = error instanceof Error ? error.message : "Unable to load renewal data";
+          renewalPaymentsState.textContent = "Unable to load payment history.";
+          renewalRequestsList.innerHTML = "";
+          renewalPaymentsList.innerHTML = "";
+        }
       }
 
       function resetStaffForm() {
@@ -861,6 +1454,10 @@
           }
 
           fillForm(data.hotel);
+          resetCheckinLinkUi();
+          resetRenewalUi();
+          await loadGoogleDriveStatus();
+          await loadRenewalData();
           await loadStaff();
           await loadGuests();
         } catch (error) {
@@ -936,6 +1533,123 @@
       refreshStaffButton.addEventListener("click", loadStaff);
       refreshGuestsButton.addEventListener("click", loadGuests);
       staffResetButton.addEventListener("click", resetStaffForm);
+      connectGoogleDriveButton.addEventListener("click", async () => {
+        clearGoogleDriveMessage();
+
+        const hotelId = hotelIdInput.value.trim();
+        if (!hotelId) {
+          showGoogleDriveMessage("Load a hotel first before connecting Google Drive.", "error");
+          return;
+        }
+
+        try {
+          if (!googleDriveState) {
+            await loadGoogleDriveStatus();
+          }
+
+          const connectUrl = googleDriveState?.connectUrl || `/api/auth/google-init?hotel_id=${encodeURIComponent(hotelId)}`;
+          window.location.href = connectUrl;
+        } catch (error) {
+          showGoogleDriveMessage(error instanceof Error ? error.message : "Unable to start Google Drive connection.", "error");
+        }
+      });
+      disconnectGoogleDriveButton.addEventListener("click", async () => {
+        clearGoogleDriveMessage();
+
+        const hotelId = hotelIdInput.value.trim();
+        if (!hotelId) {
+          showGoogleDriveMessage("Load a hotel first before disconnecting Google Drive.", "error");
+          return;
+        }
+
+        const confirmed = window.confirm("Disconnect Google Drive for this hotel?");
+        if (!confirmed) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/hotel-admin/google-drive?hotel_id=${encodeURIComponent(hotelId)}`, {
+            method: "DELETE",
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to disconnect Google Drive");
+          }
+
+          showGoogleDriveMessage("Google Drive disconnected successfully.", "success");
+          await loadGoogleDriveStatus();
+        } catch (error) {
+          showGoogleDriveMessage(error instanceof Error ? error.message : "Unable to disconnect Google Drive.", "error");
+        }
+      });
+      generateCheckinLinkButton.addEventListener("click", async () => {
+        try {
+          await generateCheckinLink();
+          showCheckinLinkMessage("Hotel check-in link and QR code generated successfully.", "success");
+        } catch (error) {
+          showCheckinLinkMessage(error instanceof Error ? error.message : "Unable to generate check-in link.", "error");
+        }
+      });
+      copyCheckinLinkButton.addEventListener("click", async () => {
+        clearCheckinLinkMessage();
+
+        if (!checkinLinkState?.checkinUrl) {
+          showCheckinLinkMessage("Generate a check-in link first.", "error");
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(checkinLinkState.checkinUrl);
+          showCheckinLinkMessage("Check-in link copied to clipboard.", "success");
+        } catch (error) {
+          showCheckinLinkMessage(error instanceof Error ? error.message : "Unable to copy check-in link.", "error");
+        }
+      });
+      openCheckinLinkButton.addEventListener("click", () => {
+        clearCheckinLinkMessage();
+
+        if (!checkinLinkState?.checkinUrl) {
+          showCheckinLinkMessage("Generate a check-in link first.", "error");
+          return;
+        }
+
+        window.open(checkinLinkState.checkinUrl, "_blank", "noopener,noreferrer");
+      });
+      renewalRequestForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearRenewalRequestMessage();
+
+        const hotelId = hotelIdInput.value.trim();
+        if (!hotelId) {
+          showRenewalRequestMessage("Load a hotel first before sending a renewal request.", "error");
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/hotel-admin/subscription", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({
+              hotel_id: hotelId,
+              requested_months: Number(document.getElementById("renewalMonths").value),
+              note: document.getElementById("renewalNote").value.trim(),
+            }),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to send renewal request");
+          }
+
+          document.getElementById("renewalNote").value = "";
+          showRenewalRequestMessage(`Renewal request sent. Projected paid-through date: ${data.summary.projected_subscription_end_date}.`, "success");
+          await loadRenewalData();
+        } catch (error) {
+          showRenewalRequestMessage(error instanceof Error ? error.message : "Unable to send renewal request.", "error");
+        }
+      });
       staffWhatsappSame.addEventListener("change", syncStaffWhatsapp);
       staffPhone.addEventListener("input", syncStaffWhatsapp);
       staffVehicleType.addEventListener("change", syncStaffVehicle);

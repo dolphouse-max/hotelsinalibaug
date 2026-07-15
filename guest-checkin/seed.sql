@@ -1,6 +1,8 @@
 PRAGMA foreign_keys = ON;
 
 DELETE FROM police_access_logs;
+DELETE FROM hotel_subscription_payments;
+DELETE FROM hotel_renewal_requests;
 DELETE FROM guests;
 DELETE FROM hotel_staff;
 DELETE FROM hotels;

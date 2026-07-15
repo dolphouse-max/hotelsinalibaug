@@ -206,6 +206,33 @@
               <div id="listState" class="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Load hotels to view trial and subscription status.</div>
               <div id="hotelsGrid" class="mt-6 grid gap-4"></div>
             </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean-950">Renewal Queue</h2>
+                  <p class="mt-2 text-sm text-slate-600">Review hotel renewal requests, record payments, and extend subscriptions from one place.</p>
+                </div>
+                <div class="grid gap-2 sm:grid-cols-2">
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Pending Requests</p>
+                    <p id="pendingRenewalsStat" class="mt-1 text-xl font-semibold text-coral">0</p>
+                  </div>
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Recent Payments</p>
+                    <p id="recentPaymentsStat" class="mt-1 text-xl font-semibold text-ocean-950">0</p>
+                  </div>
+                </div>
+              </div>
+
+              <div id="renewalQueueState" class="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Load hotels to view pending renewal requests.</div>
+              <div id="renewalQueueList" class="mt-6 grid gap-4"></div>
+
+              <div class="mt-8">
+                <h3 class="text-lg font-semibold text-ocean-950">Recent Subscription Payments</h3>
+                <div id="recentPaymentsList" class="mt-4 grid gap-3"></div>
+              </div>
+            </article>
           </section>
         </div>
       </main>
@@ -301,6 +328,85 @@
       </article>
     </template>
 
+    <template id="renewalRequestTemplate">
+      <article class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 data-field="hotelName" class="text-lg font-semibold text-ocean-950"></h3>
+              <span data-field="requestStatus" class="rounded-full px-3 py-1 text-xs font-semibold"></span>
+            </div>
+            <p class="mt-2 text-sm text-slate-500">Hotel ID: <span data-field="hotelId" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Current subscription end: <span data-field="currentEnd" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Requested plan: <span data-field="requestedMonths" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Projected end: <span data-field="requestedEnd" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Request note: <span data-field="requestNote" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Created: <span data-field="createdAt" class="font-medium text-slate-700"></span></p>
+          </div>
+          <form data-role="paymentForm" class="w-full rounded-2xl border border-slate-200 bg-white p-4 lg:w-[24rem]">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Record Payment</p>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Amount Paid</label>
+                <input data-input="amountPaid" type="number" min="0" step="0.01" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Plan Months</label>
+                <input data-input="planMonths" type="number" min="1" max="24" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+            </div>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Payment Method</label>
+                <select data-input="paymentMethod" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                  <option value="UPI">UPI</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Card">Card</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Payment Date</label>
+                <input data-input="paymentDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+            </div>
+            <div class="mt-3">
+              <label class="mb-2 block text-sm font-medium text-slate-700">Reference</label>
+              <input data-input="paymentReference" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="UTR, invoice, receipt no.">
+            </div>
+            <div class="mt-3">
+              <label class="mb-2 block text-sm font-medium text-slate-700">Admin Note</label>
+              <textarea data-input="paymentNote" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Optional payment or renewal note"></textarea>
+            </div>
+            <div data-role="paymentMessage" class="mt-3 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-ocean-900">
+                Record Payment
+              </button>
+              <button type="button" data-action="dismissRequest" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Dismiss
+              </button>
+            </div>
+          </form>
+        </div>
+      </article>
+    </template>
+
+    <template id="recentPaymentTemplate">
+      <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p data-field="title" class="font-semibold text-ocean-950"></p>
+            <p data-field="meta" class="mt-1 text-sm text-slate-600"></p>
+          </div>
+          <div class="text-sm text-slate-500">
+            <p data-field="coverage"></p>
+            <p data-field="reference" class="mt-1"></p>
+          </div>
+        </div>
+      </article>
+    </template>
+
     <script>
       const hotelForm = document.getElementById("hotelForm");
       const hotelNameInput = document.getElementById("hotelName");
@@ -330,6 +436,13 @@
       const subscriptionEndDateInput = document.getElementById("subscriptionEndDate");
       const activeFlagInput = document.getElementById("activeFlag");
       const hotelCardTemplate = document.getElementById("hotelCardTemplate");
+      const renewalRequestTemplate = document.getElementById("renewalRequestTemplate");
+      const recentPaymentTemplate = document.getElementById("recentPaymentTemplate");
+      const pendingRenewalsStat = document.getElementById("pendingRenewalsStat");
+      const recentPaymentsStat = document.getElementById("recentPaymentsStat");
+      const renewalQueueState = document.getElementById("renewalQueueState");
+      const renewalQueueList = document.getElementById("renewalQueueList");
+      const recentPaymentsList = document.getElementById("recentPaymentsList");
       let pendingDuplicatePayload = null;
       let pendingDuplicateHotels = [];
       let loadedHotels = [];
@@ -482,6 +595,17 @@
         }
       }
 
+      function renderInlineMessage(element, message, tone) {
+        element.textContent = message;
+        element.className = "mt-3 rounded-2xl border px-4 py-3 text-sm";
+        element.classList.remove("hidden");
+        if (tone === "success") {
+          element.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-800");
+        } else {
+          element.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
       async function readJson(response) {
         const text = await response.text();
         try {
@@ -603,6 +727,143 @@
         return article;
       }
 
+      function renderRecentPayments(payments) {
+        recentPaymentsList.innerHTML = "";
+        recentPaymentsStat.textContent = String(payments.length);
+
+        if (!payments.length) {
+          const empty = document.createElement("div");
+          empty.className = "rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600";
+          empty.textContent = "No subscription payments recorded yet.";
+          recentPaymentsList.appendChild(empty);
+          return;
+        }
+
+        for (const payment of payments) {
+          const fragment = recentPaymentTemplate.content.cloneNode(true);
+          fragment.querySelector('[data-field="title"]').textContent = `${payment.hotel_name} • ${payment.currency_code} ${Number(payment.amount_paid || 0).toFixed(2)}`;
+          fragment.querySelector('[data-field="meta"]').textContent = `${payment.plan_months} month plan via ${payment.payment_method} on ${payment.payment_date}`;
+          fragment.querySelector('[data-field="coverage"]').textContent = `Coverage: ${payment.period_start_date} to ${payment.period_end_date}`;
+          fragment.querySelector('[data-field="reference"]').textContent = `Reference: ${payment.payment_reference || "Not provided"}`;
+          recentPaymentsList.appendChild(fragment);
+        }
+      }
+
+      function renderRenewalRequestCard(request) {
+        const fragment = renewalRequestTemplate.content.cloneNode(true);
+        const article = fragment.querySelector("article");
+        const statusBadge = fragment.querySelector('[data-field="requestStatus"]');
+        const paymentForm = fragment.querySelector('[data-role="paymentForm"]');
+        const paymentMessage = fragment.querySelector('[data-role="paymentMessage"]');
+        const amountPaidInput = fragment.querySelector('[data-input="amountPaid"]');
+        const planMonthsInput = fragment.querySelector('[data-input="planMonths"]');
+        const paymentMethodInput = fragment.querySelector('[data-input="paymentMethod"]');
+        const paymentDateInput = fragment.querySelector('[data-input="paymentDate"]');
+        const paymentReferenceInput = fragment.querySelector('[data-input="paymentReference"]');
+        const paymentNoteInput = fragment.querySelector('[data-input="paymentNote"]');
+
+        fragment.querySelector('[data-field="hotelName"]').textContent = request.hotel_name;
+        fragment.querySelector('[data-field="hotelId"]').textContent = request.hotel_id;
+        fragment.querySelector('[data-field="currentEnd"]').textContent = request.subscription_end_date;
+        fragment.querySelector('[data-field="requestedMonths"]').textContent = `${request.requested_months} month${request.requested_months === 1 ? "" : "s"}`;
+        fragment.querySelector('[data-field="requestedEnd"]').textContent = request.requested_end_date || "Not set";
+        fragment.querySelector('[data-field="requestNote"]').textContent = request.note || "No note added";
+        fragment.querySelector('[data-field="createdAt"]').textContent = request.created_at;
+
+        if (request.status === "pending") {
+          statusBadge.textContent = "Pending";
+          statusBadge.className = "rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900";
+        } else if (request.status === "completed") {
+          statusBadge.textContent = "Completed";
+          statusBadge.className = "rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700";
+        } else {
+          statusBadge.textContent = "Dismissed";
+          statusBadge.className = "rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700";
+        }
+
+        amountPaidInput.value = "0";
+        planMonthsInput.value = String(request.requested_months || 3);
+        paymentDateInput.value = todayDate();
+
+        paymentForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          paymentMessage.classList.add("hidden");
+
+          try {
+            const response = await fetch("/api/super-admin/subscriptions", {
+              method: "POST",
+              headers: authHeaders(),
+              body: JSON.stringify({
+                action: "record_payment",
+                hotel_id: request.hotel_id,
+                request_id: request.id,
+                amount_paid: Number(amountPaidInput.value || "0"),
+                plan_months: Number(planMonthsInput.value || "0"),
+                payment_method: paymentMethodInput.value,
+                payment_reference: paymentReferenceInput.value.trim(),
+                payment_date: paymentDateInput.value,
+                note: paymentNoteInput.value.trim(),
+              }),
+            });
+            const data = await readJson(response);
+
+            if (!response.ok) {
+              throw new Error(data.error || "Unable to record payment");
+            }
+
+            renderInlineMessage(paymentMessage, `${request.hotel_name} renewed until ${data.hotel.subscription_end_date}.`, "success");
+            await Promise.all([loadHotels(), loadRenewalQueue()]);
+          } catch (error) {
+            renderInlineMessage(paymentMessage, error instanceof Error ? error.message : "Unable to record payment", "error");
+          }
+        });
+
+        fragment.querySelector('[data-action="dismissRequest"]').addEventListener("click", async () => {
+          paymentMessage.classList.add("hidden");
+
+          try {
+            const response = await fetch("/api/super-admin/subscriptions", {
+              method: "POST",
+              headers: authHeaders(),
+              body: JSON.stringify({
+                action: "dismiss_request",
+                request_id: request.id,
+                resolved_note: "Dismissed from renewal queue",
+              }),
+            });
+            const data = await readJson(response);
+
+            if (!response.ok) {
+              throw new Error(data.error || "Unable to dismiss request");
+            }
+
+            renderInlineMessage(paymentMessage, `Request for ${request.hotel_name} dismissed.`, "success");
+            await loadRenewalQueue();
+          } catch (error) {
+            renderInlineMessage(paymentMessage, error instanceof Error ? error.message : "Unable to dismiss request", "error");
+          }
+        });
+
+        return article;
+      }
+
+      function renderRenewalQueue(data) {
+        const pendingRequests = (data.requests || []).filter((request) => request.status === "pending");
+        renewalQueueList.innerHTML = "";
+        pendingRenewalsStat.textContent = String(data.summary.pending_requests || 0);
+
+        if (!pendingRequests.length) {
+          renewalQueueState.textContent = "No pending renewal requests right now.";
+        } else {
+          renewalQueueState.textContent = `${pendingRequests.length} pending renewal request${pendingRequests.length === 1 ? "" : "s"} need attention.`;
+          for (const request of pendingRequests) {
+            renewalQueueList.appendChild(renderRenewalRequestCard(request));
+          }
+        }
+
+        renderRecentPayments(data.payments || []);
+      }
+
       function renderHotels(hotels) {
         hotelsGrid.innerHTML = "";
         loadedHotels = hotels;
@@ -638,6 +899,30 @@
           loadedHotels = [];
           updateStats([]);
           listState.textContent = error instanceof Error ? error.message : "Unable to load hotels";
+        }
+      }
+
+      async function loadRenewalQueue() {
+        renewalQueueState.textContent = "Loading renewal queue...";
+        renewalQueueList.innerHTML = "";
+        recentPaymentsList.innerHTML = "";
+
+        try {
+          const response = await fetch("/api/super-admin/subscriptions", {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load renewal queue");
+          }
+
+          renderRenewalQueue(data);
+        } catch (error) {
+          pendingRenewalsStat.textContent = "0";
+          recentPaymentsStat.textContent = "0";
+          renewalQueueState.textContent = error instanceof Error ? error.message : "Unable to load renewal queue";
+          recentPaymentsList.innerHTML = "";
         }
       }
 
@@ -677,6 +962,7 @@
 
         try {
           await loadHotels();
+          await loadRenewalQueue();
 
           if (hotelNameInput.value.trim() && !hotelIdInput.dataset.userEdited) {
             hotelIdInput.value = suggestHotelId(hotelNameInput.value);
@@ -779,10 +1065,12 @@
       });
 
       refreshButton.addEventListener("click", loadHotels);
+      refreshButton.addEventListener("click", loadRenewalQueue);
 
       restoreToken();
       initializeDates();
       loadHotels();
+      loadRenewalQueue();
     </script>
   </body>
 </html>
