@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f2436">
     <title>Super Admin | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -10,15 +11,21 @@
         theme: {
           extend: {
             colors: {
-              midnight: "#081421",
-              tide: "#143047",
-              foam: "#edf4f7",
-              sand: "#ecd9b3",
-              ember: "#e49a66",
-              mint: "#8ec6b3",
+              ocean: {
+                950: "#08131d",
+                900: "#0f2436",
+                800: "#17344d",
+              },
+              sand: {
+                50: "#faf4ea",
+                100: "#f2e0c0",
+                200: "#e7c99a",
+              },
+              coral: "#d98d63",
+              lagoon: "#53b5c0",
             },
             boxShadow: {
-              dashboard: "0 28px 80px rgba(8, 20, 33, 0.16)",
+              resort: "0 28px 90px rgba(8, 19, 29, 0.18)",
             },
           },
         },
@@ -26,110 +33,269 @@
     </script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-900">
-    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(20,48,71,0.16),_transparent_38%),linear-gradient(180deg,#f5f8fb_0%,#eef2f6_100%)]">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,36,54,0.16),_transparent_38%),linear-gradient(180deg,#f5f8fb_0%,#edf2f6_100%)]">
       <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-tide/70">Hotels In Alibaug SaaS</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-midnight sm:text-4xl">Super Admin Console</h1>
+            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-ocean-800/70">Hotels In Alibaug SaaS</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ocean-950 sm:text-4xl">Super Admin Console</h1>
             <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-              Create hotel tenants, assign custom hotel IDs like <span class="font-semibold text-midnight">DolphinHouse0001</span>, and track which trial accounts need payment follow-up.
+              Create hotel tenants, issue hotel IDs like <span class="font-semibold text-ocean-950">DolphinHouse0001</span>, and manage trial and subscription status from one place.
             </p>
           </div>
-          <div class="rounded-3xl bg-midnight px-5 py-4 text-sand shadow-dashboard">
-            <p class="text-xs uppercase tracking-[0.24em] text-sand/70">Trial policy</p>
-            <p class="mt-2 text-sm leading-6 text-sand/90">Every new hotel gets a 3-month free trial automatically. Payment reminders begin 15 days before expiry.</p>
+          <div class="rounded-3xl bg-ocean-950 px-5 py-4 text-sand-50 shadow-resort">
+            <p class="text-xs uppercase tracking-[0.24em] text-sand-100/70">Trial policy</p>
+            <p class="mt-2 text-sm leading-6 text-sand-50/90">New hotels get a 3-month free trial. Reminder messaging begins automatically 15 days before expiry.</p>
           </div>
         </div>
 
-        <div class="grid gap-8 xl:grid-cols-[1fr_1.2fr]">
-          <section class="rounded-[2rem] bg-white p-6 shadow-dashboard sm:p-8">
-            <div class="flex items-center justify-between gap-4">
-              <div>
-                <h2 class="text-2xl font-semibold text-midnight">Add Hotel</h2>
-                <p class="mt-2 text-sm text-slate-600">Create a tenant, hotel admin record, and trial window in one step.</p>
-              </div>
-              <div class="rounded-2xl bg-foam px-4 py-3 text-right text-xs text-slate-500">
-                <div class="font-semibold uppercase tracking-[0.24em] text-tide">Trial</div>
-                <div class="mt-1 text-sm font-medium text-midnight">3 months from creation date</div>
-              </div>
-            </div>
-
-            <form id="hotelForm" class="mt-8 space-y-5">
-              <div>
-                <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
-                <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="Paste your Super Admin token">
+        <div class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <section class="space-y-8">
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean-950">Access Setup</h2>
+                  <p class="mt-2 text-sm text-slate-600">Save your Super Admin token on this device to speed up daily management.</p>
+                </div>
+                <button id="hideSetupButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                  Hide
+                </button>
               </div>
 
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div id="setupFields" class="mt-6 space-y-4">
                 <div>
-                  <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
-                  <input id="hotelName" name="name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="Dolphin House">
+                  <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+                  <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Paste SUPER_ADMIN_TOKEN">
                 </div>
-                <div>
-                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
-                  <input id="hotelId" name="hotel_id" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="DolphinHouse0001">
-                </div>
+                <button id="saveTokenButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean-900">
+                  Save Token On This Device
+                </button>
               </div>
 
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div id="tokenStatus" class="mt-5 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex items-center justify-between gap-4">
                 <div>
-                  <label for="mobileNumber" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
-                  <input id="mobileNumber" name="mobile_number" type="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="+91-98XXXXXXXX">
+                  <h2 class="text-2xl font-semibold text-ocean-950">Add Hotel</h2>
+                  <p class="mt-2 text-sm text-slate-600">Create the hotel account and its admin contact in one step.</p>
                 </div>
-                <div>
-                  <label for="gmailId" class="mb-2 block text-sm font-medium text-slate-700">Gmail ID</label>
-                  <input id="gmailId" name="gmail_id" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="booking@gmail.com">
+                <div class="rounded-2xl bg-slate-50 px-4 py-3 text-right text-xs text-slate-500">
+                  <div class="font-semibold uppercase tracking-[0.24em] text-ocean-800">Trial window</div>
+                  <div class="mt-1 text-sm font-medium text-ocean-950">3 months from start date</div>
                 </div>
               </div>
 
-              <div>
-                <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Address <span class="text-slate-400">(optional)</span></label>
-                <textarea id="address" name="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10" placeholder="Property address or locality"></textarea>
-              </div>
-
-              <div class="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label for="totalRooms" class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
-                  <input id="totalRooms" name="total_rooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10">
+              <form id="hotelForm" class="mt-8 space-y-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+                    <input id="hotelName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Dolphin House">
+                  </div>
+                  <div>
+                    <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                    <input id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="DolphinHouse0001">
+                  </div>
                 </div>
-                <div>
-                  <label for="occupiedRooms" class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
-                  <input id="occupiedRooms" name="occupied_rooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-tide focus:ring-4 focus:ring-tide/10">
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label for="mobileNumber" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+                    <input id="mobileNumber" type="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="+91-98XXXXXXXX">
+                  </div>
+                  <div>
+                    <label for="gmailId" class="mb-2 block text-sm font-medium text-slate-700">Gmail ID</label>
+                    <input id="gmailId" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="booking@gmail.com">
+                  </div>
                 </div>
-              </div>
 
-              <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
-              <div id="formSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+                <div>
+                  <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Address</label>
+                  <textarea id="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Property address or locality"></textarea>
+                </div>
 
-              <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-midnight px-5 py-4 text-base font-semibold text-white transition hover:bg-tide focus:outline-none focus:ring-4 focus:ring-midnight/10 disabled:opacity-70">
-                <span id="submitText">Create Hotel</span>
-                <span id="submitSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-              </button>
-            </form>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label for="totalRooms" class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
+                    <input id="totalRooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                  </div>
+                  <div>
+                    <label for="occupiedRooms" class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
+                    <input id="occupiedRooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                  </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label for="subscriptionStartDate" class="mb-2 block text-sm font-medium text-slate-700">Subscription Start Date</label>
+                    <input id="subscriptionStartDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                  </div>
+                  <div>
+                    <label for="subscriptionEndDate" class="mb-2 block text-sm font-medium text-slate-700">Subscription End Date</label>
+                    <input id="subscriptionEndDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                  </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label for="activeFlag" class="mb-2 block text-sm font-medium text-slate-700">Account Status</label>
+                    <select id="activeFlag" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                      <option value="1">Active</option>
+                      <option value="0">Inactive</option>
+                    </select>
+                  </div>
+                  <div class="rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-600">
+                    <p class="font-semibold text-ocean-950">Reminder preview</p>
+                    <p class="mt-2">If the end date is within 15 days, payment reminders will start appearing for that hotel.</p>
+                  </div>
+                </div>
+
+                <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+                <div id="formSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+
+                <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean-950 px-5 py-4 text-base font-semibold text-white transition hover:bg-ocean-900 focus:outline-none focus:ring-4 focus:ring-ocean-950/10 disabled:opacity-70">
+                  <span id="submitText">Create Hotel</span>
+                  <span id="submitSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+                </button>
+              </form>
+            </article>
           </section>
 
-          <section class="rounded-[2rem] bg-white p-6 shadow-dashboard sm:p-8">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 class="text-2xl font-semibold text-midnight">Tenant Overview</h2>
-                <p class="mt-2 text-sm text-slate-600">See active trial windows, pending payment follow-up, and hotel admin contacts.</p>
+          <section class="space-y-8">
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean-950">Tenant Overview</h2>
+                  <p class="mt-2 text-sm text-slate-600">Review live trial windows, status, hotel contacts, and edit accounts in place.</p>
+                </div>
+                <div class="flex gap-3">
+                  <button id="refreshButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">Refresh Hotels</button>
+                </div>
               </div>
-              <button id="refreshButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-tide hover:text-midnight">Refresh Hotels</button>
-            </div>
 
-            <div id="listState" class="mt-6 rounded-2xl bg-foam px-4 py-3 text-sm text-slate-600">Load hotels to view trial and subscription status.</div>
-            <div id="hotelsGrid" class="mt-6 grid gap-4"></div>
+              <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Total Hotels</p>
+                  <p id="totalHotelsStat" class="mt-3 text-2xl font-semibold text-ocean-950">0</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Reminder Window</p>
+                  <p id="reminderHotelsStat" class="mt-3 text-2xl font-semibold text-coral">0</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Inactive Hotels</p>
+                  <p id="inactiveHotelsStat" class="mt-3 text-2xl font-semibold text-slate-700">0</p>
+                </div>
+              </div>
+
+              <div id="listState" class="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Load hotels to view trial and subscription status.</div>
+              <div id="hotelsGrid" class="mt-6 grid gap-4"></div>
+            </article>
           </section>
         </div>
       </main>
     </div>
+
+    <template id="hotelCardTemplate">
+      <article class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 data-field="name" class="text-lg font-semibold text-ocean-950"></h3>
+              <span data-field="statusBadge" class="rounded-full px-3 py-1 text-xs font-semibold"></span>
+            </div>
+            <p class="mt-2 text-sm text-slate-500">Hotel ID: <span data-field="id" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Admin Gmail: <span data-field="adminEmail" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Mobile: <span data-field="adminPhone" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Address: <span data-field="address" class="font-medium text-slate-700"></span></p>
+          </div>
+          <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <p><span class="font-semibold text-ocean-950">Trial start:</span> <span data-field="startDate"></span></p>
+            <p class="mt-1"><span class="font-semibold text-ocean-950">Trial end:</span> <span data-field="endDate"></span></p>
+            <p class="mt-1"><span class="font-semibold text-ocean-950">Days until expiry:</span> <span data-field="daysUntilExpiry"></span></p>
+            <p class="mt-1"><span class="font-semibold text-ocean-950">Rooms:</span> <span data-field="rooms"></span></p>
+          </div>
+        </div>
+        <div data-field="reminderBox" class="mt-4 hidden rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"></div>
+        <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Quick Update</p>
+            <button type="button" data-action="toggleEditor" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+              Edit
+            </button>
+          </div>
+          <form data-role="editor" class="mt-4 hidden space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+                <input data-input="name" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+                <input data-input="contact" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Address</label>
+              <textarea data-input="address" rows="2" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10"></textarea>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Admin Gmail</label>
+                <input data-input="gmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Account Status</label>
+                <select data-input="isActive" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
+                <input data-input="totalRooms" type="number" min="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
+                <input data-input="occupiedRooms" type="number" min="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Subscription Start</label>
+                <input data-input="startDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Subscription End</label>
+                <input data-input="endDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+            </div>
+            <div data-role="editorMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean-900">
+                Save Update
+              </button>
+              <button type="button" data-action="cancelEditor" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </article>
+    </template>
 
     <script>
       const hotelForm = document.getElementById("hotelForm");
       const hotelNameInput = document.getElementById("hotelName");
       const hotelIdInput = document.getElementById("hotelId");
       const tokenInput = document.getElementById("superAdminToken");
+      const saveTokenButton = document.getElementById("saveTokenButton");
+      const hideSetupButton = document.getElementById("hideSetupButton");
+      const setupFields = document.getElementById("setupFields");
+      const tokenStatus = document.getElementById("tokenStatus");
       const refreshButton = document.getElementById("refreshButton");
       const hotelsGrid = document.getElementById("hotelsGrid");
       const listState = document.getElementById("listState");
@@ -138,10 +304,53 @@
       const submitButton = document.getElementById("submitButton");
       const submitText = document.getElementById("submitText");
       const submitSpinner = document.getElementById("submitSpinner");
+      const totalHotelsStat = document.getElementById("totalHotelsStat");
+      const reminderHotelsStat = document.getElementById("reminderHotelsStat");
+      const inactiveHotelsStat = document.getElementById("inactiveHotelsStat");
+      const subscriptionStartDateInput = document.getElementById("subscriptionStartDate");
+      const subscriptionEndDateInput = document.getElementById("subscriptionEndDate");
+      const activeFlagInput = document.getElementById("activeFlag");
+      const hotelCardTemplate = document.getElementById("hotelCardTemplate");
+
+      function todayDate() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function addMonths(dateString, months) {
+        const date = new Date(`${dateString}T00:00:00Z`);
+        date.setUTCMonth(date.getUTCMonth() + months);
+        return date.toISOString().slice(0, 10);
+      }
+
+      function restoreToken() {
+        tokenInput.value = localStorage.getItem("super_admin_token") || "";
+      }
+
+      function saveToken() {
+        localStorage.setItem("super_admin_token", tokenInput.value.trim());
+      }
+
+      function setTokenMessage(message, tone) {
+        tokenStatus.textContent = message;
+        tokenStatus.className = "mt-5 rounded-2xl border px-4 py-3 text-sm";
+        tokenStatus.classList.remove("hidden");
+        if (tone === "success") {
+          tokenStatus.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-800");
+        } else {
+          tokenStatus.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
 
       function slugHotelId(name) {
         const compact = name.replace(/[^a-zA-Z0-9]/g, "");
         return compact ? compact.charAt(0).toUpperCase() + compact.slice(1) : "";
+      }
+
+      function authHeaders() {
+        const token = tokenInput.value.trim();
+        return token
+          ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+          : { "Content-Type": "application/json" };
       }
 
       function showFormMessage(target, message) {
@@ -156,26 +365,153 @@
         formSuccess.textContent = "";
       }
 
-      function authHeaders() {
-        const token = tokenInput.value.trim();
-        return token
-          ? {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            }
-          : {
-              "Content-Type": "application/json",
-            };
-      }
-
       function setSubmitting(isSubmitting) {
         submitButton.disabled = isSubmitting;
         submitText.textContent = isSubmitting ? "Creating Hotel..." : "Create Hotel";
         submitSpinner.classList.toggle("hidden", !isSubmitting);
       }
 
+      function updateStats(hotels) {
+        totalHotelsStat.textContent = String(hotels.length);
+        reminderHotelsStat.textContent = String(hotels.filter((hotel) => hotel.payment_reminder_active).length);
+        inactiveHotelsStat.textContent = String(hotels.filter((hotel) => hotel.is_active !== 1).length);
+      }
+
+      function editorMessage(element, message, tone) {
+        element.textContent = message;
+        element.className = "rounded-2xl border px-4 py-3 text-sm";
+        element.classList.remove("hidden");
+        if (tone === "success") {
+          element.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-800");
+        } else {
+          element.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: text || "Unexpected response" };
+        }
+      }
+
+      function renderHotelCard(hotel) {
+        const fragment = hotelCardTemplate.content.cloneNode(true);
+        const article = fragment.querySelector("article");
+        const statusBadge = fragment.querySelector('[data-field="statusBadge"]');
+        const reminderBox = fragment.querySelector('[data-field="reminderBox"]');
+        const editor = fragment.querySelector('[data-role="editor"]');
+        const editorMessageBox = fragment.querySelector('[data-role="editorMessage"]');
+
+        fragment.querySelector('[data-field="name"]').textContent = hotel.name;
+        fragment.querySelector('[data-field="id"]').textContent = hotel.id;
+        fragment.querySelector('[data-field="adminEmail"]').textContent = hotel.admin_email || "Not set";
+        fragment.querySelector('[data-field="adminPhone"]').textContent = hotel.admin_phone || hotel.contact || "Not set";
+        fragment.querySelector('[data-field="address"]').textContent = hotel.address || "Not set";
+        fragment.querySelector('[data-field="startDate"]').textContent = hotel.subscription_start_date;
+        fragment.querySelector('[data-field="endDate"]').textContent = hotel.subscription_end_date;
+        fragment.querySelector('[data-field="daysUntilExpiry"]').textContent = hotel.days_until_expiry ?? "Not available";
+        fragment.querySelector('[data-field="rooms"]').textContent = `${hotel.occupied_rooms}/${hotel.total_rooms}`;
+
+        if (hotel.is_active === 1) {
+          statusBadge.textContent = "Active";
+          statusBadge.className = "rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700";
+        } else {
+          statusBadge.textContent = "Inactive";
+          statusBadge.className = "rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700";
+        }
+
+        if (hotel.payment_reminder_active) {
+          reminderBox.textContent = hotel.payment_reminder_message;
+          reminderBox.classList.remove("hidden");
+        }
+
+        const nameInput = fragment.querySelector('[data-input="name"]');
+        const contactInput = fragment.querySelector('[data-input="contact"]');
+        const addressInput = fragment.querySelector('[data-input="address"]');
+        const gmailInput = fragment.querySelector('[data-input="gmail"]');
+        const isActiveInput = fragment.querySelector('[data-input="isActive"]');
+        const totalRoomsInput = fragment.querySelector('[data-input="totalRooms"]');
+        const occupiedRoomsInput = fragment.querySelector('[data-input="occupiedRooms"]');
+        const startDateInput = fragment.querySelector('[data-input="startDate"]');
+        const endDateInput = fragment.querySelector('[data-input="endDate"]');
+
+        nameInput.value = hotel.name || "";
+        contactInput.value = hotel.contact || "";
+        addressInput.value = hotel.address || "";
+        gmailInput.value = hotel.admin_email || "";
+        isActiveInput.value = String(hotel.is_active);
+        totalRoomsInput.value = hotel.total_rooms ?? 0;
+        occupiedRoomsInput.value = hotel.occupied_rooms ?? 0;
+        startDateInput.value = hotel.subscription_start_date || "";
+        endDateInput.value = hotel.subscription_end_date || "";
+
+        fragment.querySelector('[data-action="toggleEditor"]').addEventListener("click", () => {
+          editor.classList.toggle("hidden");
+          editorMessageBox.classList.add("hidden");
+          editorMessageBox.textContent = "";
+        });
+
+        fragment.querySelector('[data-action="cancelEditor"]').addEventListener("click", () => {
+          editor.classList.add("hidden");
+          editorMessageBox.classList.add("hidden");
+          editorMessageBox.textContent = "";
+          nameInput.value = hotel.name || "";
+          contactInput.value = hotel.contact || "";
+          addressInput.value = hotel.address || "";
+          gmailInput.value = hotel.admin_email || "";
+          isActiveInput.value = String(hotel.is_active);
+          totalRoomsInput.value = hotel.total_rooms ?? 0;
+          occupiedRoomsInput.value = hotel.occupied_rooms ?? 0;
+          startDateInput.value = hotel.subscription_start_date || "";
+          endDateInput.value = hotel.subscription_end_date || "";
+        });
+
+        editor.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          editorMessageBox.classList.add("hidden");
+
+          const payload = {
+            id: hotel.id,
+            hotel_id: hotel.id,
+            name: nameInput.value.trim(),
+            contact: contactInput.value.trim(),
+            gmail_id: gmailInput.value.trim(),
+            address: addressInput.value.trim(),
+            total_rooms: Number(totalRoomsInput.value || "0"),
+            occupied_rooms: Number(occupiedRoomsInput.value || "0"),
+            subscription_start_date: startDateInput.value,
+            subscription_end_date: endDateInput.value,
+            is_active: Number(isActiveInput.value),
+          };
+
+          try {
+            const response = await fetch("/api/super-admin/manage-hotel", {
+              method: "PUT",
+              headers: authHeaders(),
+              body: JSON.stringify(payload),
+            });
+            const data = await readJson(response);
+
+            if (!response.ok) {
+              throw new Error(data.error || "Unable to update hotel");
+            }
+
+            editorMessage(editorMessageBox, `${data.hotel.name} updated successfully.`, "success");
+            await loadHotels();
+          } catch (error) {
+            editorMessage(editorMessageBox, error instanceof Error ? error.message : "Unable to update hotel", "error");
+          }
+        });
+
+        return article;
+      }
+
       function renderHotels(hotels) {
         hotelsGrid.innerHTML = "";
+        updateStats(hotels);
 
         if (!hotels.length) {
           listState.textContent = "No hotels found yet. Create your first tenant from the form.";
@@ -183,49 +519,8 @@
         }
 
         listState.textContent = `${hotels.length} hotel account${hotels.length === 1 ? "" : "s"} loaded.`;
-
         for (const hotel of hotels) {
-          const card = document.createElement("article");
-          card.className = "rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5";
-
-          const reminder = hotel.payment_reminder_active
-            ? `<div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">${hotel.payment_reminder_message}</div>`
-            : "";
-
-          const statusTone = hotel.is_active === 1 ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700";
-
-          card.innerHTML = `
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="text-lg font-semibold text-midnight">${hotel.name}</h3>
-                  <span class="rounded-full px-3 py-1 text-xs font-semibold ${statusTone}">${hotel.is_active === 1 ? "Active" : "Inactive"}</span>
-                </div>
-                <p class="mt-2 text-sm text-slate-500">Hotel ID: <span class="font-medium text-slate-700">${hotel.id}</span></p>
-                <p class="mt-1 text-sm text-slate-500">Admin Gmail: <span class="font-medium text-slate-700">${hotel.admin_email || "Not set"}</span></p>
-                <p class="mt-1 text-sm text-slate-500">Mobile: <span class="font-medium text-slate-700">${hotel.admin_phone || hotel.contact}</span></p>
-              </div>
-              <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
-                <p><span class="font-semibold text-midnight">Trial start:</span> ${hotel.subscription_start_date}</p>
-                <p class="mt-1"><span class="font-semibold text-midnight">Trial end:</span> ${hotel.subscription_end_date}</p>
-                <p class="mt-1"><span class="font-semibold text-midnight">Days until expiry:</span> ${hotel.days_until_expiry}</p>
-                <p class="mt-1"><span class="font-semibold text-midnight">Rooms:</span> ${hotel.occupied_rooms}/${hotel.total_rooms}</p>
-              </div>
-            </div>
-            ${reminder}
-          `;
-
-          hotelsGrid.appendChild(card);
-        }
-      }
-
-      async function readJson(response) {
-        const text = await response.text();
-
-        try {
-          return text ? JSON.parse(text) : {};
-        } catch {
-          return { error: text || "Unexpected response" };
+          hotelsGrid.appendChild(renderHotelCard(hotel));
         }
       }
 
@@ -245,7 +540,18 @@
 
           renderHotels(data.hotels || []);
         } catch (error) {
+          updateStats([]);
           listState.textContent = error instanceof Error ? error.message : "Unable to load hotels";
+        }
+      }
+
+      function initializeDates() {
+        if (!subscriptionStartDateInput.value) {
+          subscriptionStartDateInput.value = todayDate();
+        }
+
+        if (!subscriptionEndDateInput.value) {
+          subscriptionEndDateInput.value = addMonths(subscriptionStartDateInput.value, 3);
         }
       }
 
@@ -260,6 +566,26 @@
         hotelIdInput.dataset.userEdited = "true";
       });
 
+      subscriptionStartDateInput.addEventListener("change", () => {
+        if (!subscriptionEndDateInput.dataset.userEdited) {
+          subscriptionEndDateInput.value = addMonths(subscriptionStartDateInput.value, 3);
+        }
+      });
+
+      subscriptionEndDateInput.addEventListener("input", () => {
+        subscriptionEndDateInput.dataset.userEdited = "true";
+      });
+
+      saveTokenButton.addEventListener("click", () => {
+        saveToken();
+        setTokenMessage("Super Admin token saved on this device.", "success");
+      });
+
+      hideSetupButton.addEventListener("click", () => {
+        const hidden = setupFields.classList.toggle("hidden");
+        hideSetupButton.textContent = hidden ? "Show" : "Hide";
+      });
+
       hotelForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         clearFormMessages();
@@ -267,13 +593,16 @@
 
         try {
           const payload = {
-            hotel_id: document.getElementById("hotelId").value.trim(),
-            name: document.getElementById("hotelName").value.trim(),
+            hotel_id: hotelIdInput.value.trim(),
+            name: hotelNameInput.value.trim(),
             mobile_number: document.getElementById("mobileNumber").value.trim(),
             gmail_id: document.getElementById("gmailId").value.trim(),
             address: document.getElementById("address").value.trim(),
             total_rooms: Number(document.getElementById("totalRooms").value || "0"),
             occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
+            subscription_start_date: subscriptionStartDateInput.value,
+            subscription_end_date: subscriptionEndDateInput.value,
+            is_active: Number(activeFlagInput.value),
           };
 
           const response = await fetch("/api/super-admin/manage-hotel", {
@@ -287,12 +616,12 @@
             throw new Error(data.error || "Unable to create hotel");
           }
 
-          showFormMessage(
-            formSuccess,
-            `${data.hotel.name} created. Trial runs until ${data.hotel.subscription_end_date}.`
-          );
+          showFormMessage(formSuccess, `${data.hotel.name} created. Trial runs until ${data.hotel.subscription_end_date}.`);
           hotelForm.reset();
           hotelIdInput.dataset.userEdited = "";
+          subscriptionEndDateInput.dataset.userEdited = "";
+          activeFlagInput.value = "1";
+          initializeDates();
           await loadHotels();
         } catch (error) {
           showFormMessage(formError, error instanceof Error ? error.message : "Unable to create hotel");
@@ -302,6 +631,10 @@
       });
 
       refreshButton.addEventListener("click", loadHotels);
+
+      restoreToken();
+      initializeDates();
+      loadHotels();
     </script>
   </body>
 </html>
