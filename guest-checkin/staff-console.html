@@ -3,254 +3,382 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Check-in Admin Test</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --bg: #f5f1e8;
-        --card: #fffdf9;
-        --text: #1d2a26;
-        --muted: #5a6a64;
-        --line: #d8cbb7;
-        --accent: #0d6b57;
-        --accent-strong: #0a5645;
-        --danger: #a4372f;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
-        background:
-          radial-gradient(circle at top, rgba(13, 107, 87, 0.12), transparent 35%),
-          linear-gradient(180deg, #f8f3ea 0%, var(--bg) 100%);
-        color: var(--text);
-      }
-
-      main {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 24px 16px 48px;
-      }
-
-      .hero {
-        padding: 12px 4px 20px;
-      }
-
-      h1 {
-        margin: 0 0 8px;
-        font-size: clamp(2rem, 5vw, 3.2rem);
-        line-height: 1;
-      }
-
-      .hero p,
-      .hint,
-      .status {
-        color: var(--muted);
-      }
-
-      .grid {
-        display: grid;
-        gap: 16px;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 18px;
-        box-shadow: 0 16px 40px rgba(63, 45, 20, 0.06);
-      }
-
-      h2 {
-        margin: 0 0 14px;
-        font-size: 1.2rem;
-      }
-
-      label {
-        display: block;
-        margin: 0 0 12px;
-        font-size: 0.95rem;
-      }
-
-      span {
-        display: block;
-        margin-bottom: 6px;
-      }
-
-      input,
-      select,
-      button {
-        width: 100%;
-        font: inherit;
-        border-radius: 12px;
-      }
-
-      input,
-      select {
-        padding: 12px 14px;
-        border: 1px solid var(--line);
-        background: #fff;
-        color: var(--text);
-      }
-
-      button {
-        border: 0;
-        padding: 13px 16px;
-        background: var(--accent);
-        color: #fff;
-        cursor: pointer;
-      }
-
-      button:disabled {
-        opacity: 0.65;
-        cursor: wait;
-      }
-
-      .secondary {
-        background: #efe6d6;
-        color: var(--text);
-      }
-
-      .row {
-        display: grid;
-        gap: 12px;
-      }
-
-      .status {
-        min-height: 24px;
-        white-space: pre-wrap;
-      }
-
-      .ok {
-        color: var(--accent-strong);
-      }
-
-      .error {
-        color: var(--danger);
-      }
-
-      code {
-        font-family: Consolas, "Courier New", monospace;
-        font-size: 0.9em;
-      }
-
-      @media (min-width: 700px) {
-        .row.two {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-    </style>
+    <meta name="theme-color" content="#0f2436">
+    <title>Staff Register | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: {
+                950: "#08131d",
+                900: "#0f2436",
+                800: "#17344d",
+              },
+              sand: {
+                50: "#faf4ea",
+                100: "#f2e0c0",
+                200: "#e7c99a",
+              },
+              coral: "#d98d63",
+              lagoon: "#53b5c0",
+            },
+            boxShadow: {
+              resort: "0 28px 90px rgba(8, 19, 29, 0.22)",
+            },
+          },
+        },
+      };
+    </script>
   </head>
-  <body>
-    <main>
-      <section class="hero">
-        <h1>Check-in Admin Test</h1>
-        <p>Connect a hotel to Google Drive, then submit a sample guest document upload from the same page.</p>
+  <body class="min-h-screen bg-ocean-950 text-white">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-lagoon/20 to-transparent"></div>
+      <div class="absolute -left-16 top-10 h-72 w-72 rounded-full bg-coral/20 blur-3xl"></div>
+      <div class="absolute right-0 top-48 h-80 w-80 rounded-full bg-sand-200/10 blur-3xl"></div>
+    </div>
+
+    <main class="relative mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-6 sm:px-6 sm:py-10">
+      <section class="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-resort backdrop-blur sm:p-7">
+        <div class="flex items-center gap-3">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sand-100/10 text-sand-50">
+            <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M4 20h16M7 20v-8m10 8v-8M9 8h6m-7 4h8M8 4h8a2 2 0 0 1 2 2v14H6V6a2 2 0 0 1 2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-[0.32em] text-sand-100/70">Hotels In Alibaug</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Staff Register</h1>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-3">
+          <div class="rounded-2xl border border-white/10 bg-ocean-900/75 p-4">
+            <p class="text-sm font-semibold text-sand-50">Mobile-first</p>
+            <p class="mt-2 text-sm leading-6 text-slate-300">Designed for quick staff onboarding directly from a phone or reception tablet.</p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-ocean-900/75 p-4">
+            <p class="text-sm font-semibold text-sand-50">Aadhaar-ready</p>
+            <p class="mt-2 text-sm leading-6 text-slate-300">Front and back ID proof capture is built in for common Indian ID workflows.</p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-ocean-900/75 p-4">
+            <p class="text-sm font-semibold text-sand-50">Compressed uploads</p>
+            <p class="mt-2 text-sm leading-6 text-slate-300">Images are cropped and compressed before upload to save mobile data and Drive space.</p>
+          </div>
+        </div>
       </section>
 
-      <div class="grid">
-        <section class="card">
-          <h2>Project Access</h2>
-          <div class="row">
-            <label>
-              <span>API read token</span>
-              <input id="apiToken" type="password" autocomplete="off" placeholder="Bearer token for protected test APIs">
-            </label>
-            <button id="healthButton" type="button" class="secondary">Check backend health</button>
-            <div id="healthStatus" class="status"></div>
+      <section class="mt-6 rounded-[2rem] bg-sand-50 p-5 text-slate-900 shadow-resort sm:p-7">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Hotel Staff Form</p>
+            <h2 class="mt-2 text-2xl font-semibold text-ocean-900">Add or register a staff member</h2>
           </div>
-        </section>
-
-        <section class="card">
-          <h2>Google Drive Connect</h2>
-          <div class="row">
-            <label>
-              <span>Hotel ID</span>
-              <input id="hotelId" type="text" autocomplete="off" placeholder="hotelalibaug0001">
-            </label>
-            <button id="connectButton" type="button">Connect hotel to Google Drive</button>
-            <button id="statusButton" type="button" class="secondary">Check Drive status</button>
-            <button id="linkButton" type="button" class="secondary">Generate guest link</button>
-            <div id="driveStatus" class="status hint"></div>
-            <div id="linkStatus" class="status hint"></div>
+          <div class="rounded-2xl bg-ocean-900 px-4 py-3 text-sm text-sand-50">
+            <p class="font-semibold">Hotel ID</p>
+            <p id="hotelLabel" class="mt-1 break-all text-sand-100/80">Not set</p>
           </div>
-        </section>
+        </div>
 
-        <section class="card">
-          <h2>Guest Upload Test</h2>
-          <form id="uploadForm">
-            <div class="row two">
-              <label>
-                <span>Guest name</span>
-                <input name="name" type="text" required>
-              </label>
-              <label>
-                <span>Phone</span>
-                <input name="phone" type="tel" required>
-              </label>
+        <div id="setupPanel" class="mt-5 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Access Setup</h3>
+              <p class="mt-1 text-sm text-slate-600">Save your Hotel ID and Hotel Admin token for this device.</p>
             </div>
-            <div class="row two">
-              <label>
-                <span>ID type</span>
-                <select name="id_type" required>
-                  <option value="aadhaar">Aadhaar</option>
-                  <option value="passport">Passport</option>
-                  <option value="driving_licence">Driving Licence</option>
-                  <option value="voter_id">Voter ID</option>
-                </select>
-              </label>
-              <label>
-                <span>ID number</span>
-                <input name="id_number" type="text" required>
-              </label>
+            <button id="toggleSetupButton" type="button" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+              Hide
+            </button>
+          </div>
+          <div id="setupFields" class="mt-4 grid gap-4">
+            <div>
+              <label for="hotelIdInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelIdInput" type="text" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="hotelalibaug0001">
             </div>
-            <label>
-              <span>ID image or PDF</span>
-              <input name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>
-            </label>
-            <button id="uploadButton" type="submit">Upload guest document</button>
-          </form>
-          <p class="hint">This posts to <code>/api/guests/upload</code> using <code>multipart/form-data</code>.</p>
-          <div id="uploadStatus" class="status"></div>
-        </section>
-      </div>
+            <div>
+              <label for="adminTokenInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="adminTokenInput" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Paste HOTEL_ADMIN_TOKEN">
+            </div>
+            <button id="saveSetupButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean-800">
+              Save Setup
+            </button>
+          </div>
+        </div>
+
+        <div id="statusBanner" class="mt-5 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+        <form id="staffForm" class="mt-6 space-y-5">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="fullName" class="mb-2 block text-sm font-medium text-slate-700">Name</label>
+              <input id="fullName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div>
+              <label for="age" class="mb-2 block text-sm font-medium text-slate-700">Age</label>
+              <input id="age" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Sex</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Male">Male</button>
+                <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Female">Female</button>
+                <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Other">Other</button>
+              </div>
+              <input id="sex" type="hidden" value="Male">
+            </div>
+            <div>
+              <label for="role" class="mb-2 block text-sm font-medium text-slate-700">Role</label>
+              <select id="role" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <option value="staff">Staff</option>
+                <option value="frontdesk">Frontdesk</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="workingSinceMonth" class="mb-2 block text-sm font-medium text-slate-700">Working Since Month</label>
+              <select id="workingSinceMonth" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <option>January</option>
+                <option>February</option>
+                <option>March</option>
+                <option>April</option>
+                <option>May</option>
+                <option>June</option>
+                <option>July</option>
+                <option>August</option>
+                <option>September</option>
+                <option>October</option>
+                <option>November</option>
+                <option>December</option>
+              </select>
+            </div>
+            <div>
+              <label for="workingSinceYear" class="mb-2 block text-sm font-medium text-slate-700">Working Since Year</label>
+              <input id="workingSinceYear" type="number" min="1900" value="2026" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+          </div>
+
+          <div class="space-y-4 rounded-[1.5rem] border border-slate-200 bg-white/70 p-4">
+            <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Address</h3>
+            <div>
+              <label for="addressLine1" class="mb-2 block text-sm font-medium text-slate-700">First Line</label>
+              <input id="addressLine1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="addressCity" class="mb-2 block text-sm font-medium text-slate-700">City</label>
+                <input id="addressCity" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="addressPinCode" class="mb-2 block text-sm font-medium text-slate-700">Pin Code</label>
+                <input id="addressPinCode" inputmode="numeric" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+              <input id="phone" type="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label for="whatsappPhone" class="block text-sm font-medium text-slate-700">WhatsApp Number</label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-500">
+                  <input id="sameWhatsapp" type="checkbox" checked class="h-4 w-4 rounded border-slate-300 text-lagoon focus:ring-lagoon">
+                  Same as mobile
+                </label>
+              </div>
+              <input id="whatsappPhone" type="tel" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="email" class="mb-2 block text-sm font-medium text-slate-700">Email ID <span class="text-slate-400">(optional)</span></label>
+              <input id="email" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div>
+              <label for="vehicleType" class="mb-2 block text-sm font-medium text-slate-700">Vehicle</label>
+              <select id="vehicleType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <option value="None">None</option>
+                <option value="Car">Car</option>
+                <option value="Motor Bike">Motor Bike</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="vehicleNumberWrap" class="hidden">
+            <label for="vehicleNumber" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Number</label>
+            <input id="vehicleNumber" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Front</label>
+              <label class="flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
+                <svg viewBox="0 0 24 24" class="h-10 w-10 text-lagoon" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M12 16V6m0 0-4 4m4-4 4 4M5 18.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="mt-3 text-sm font-medium text-ocean-900">Capture front side</span>
+                <span class="mt-1 text-xs text-slate-500">Camera or gallery</span>
+                <input id="frontFile" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+              </label>
+              <p id="frontFileName" class="mt-2 text-sm text-slate-500">No front image selected yet.</p>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Back</label>
+              <label class="flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
+                <svg viewBox="0 0 24 24" class="h-10 w-10 text-lagoon" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M12 16V6m0 0-4 4m4-4 4 4M5 18.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="mt-3 text-sm font-medium text-ocean-900">Capture back side</span>
+                <span class="mt-1 text-xs text-slate-500">Camera or gallery</span>
+                <input id="backFile" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+              </label>
+              <p id="backFileName" class="mt-2 text-sm text-slate-500">No back image selected yet.</p>
+            </div>
+          </div>
+
+          <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+
+          <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean-900 px-5 py-4 text-base font-semibold text-white transition hover:bg-ocean-800 disabled:opacity-70">
+            <span id="buttonText">Save Staff Record</span>
+            <span id="buttonSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+          </button>
+        </form>
+      </section>
     </main>
 
+    <div id="successModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ocean-950/70 px-4 backdrop-blur-sm">
+      <div class="w-full max-w-md rounded-[2rem] bg-sand-50 p-7 text-center text-slate-900 shadow-resort">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <svg viewBox="0 0 24 24" class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m5 13 4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="mt-5 text-2xl font-semibold text-ocean-900">Staff Saved</h3>
+        <p id="successMessage" class="mt-3 text-sm leading-6 text-slate-600"></p>
+        <button id="closeModalButton" type="button" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 font-semibold text-white transition hover:bg-ocean-800">
+          Done
+        </button>
+      </div>
+    </div>
+
     <script>
-      const apiTokenInput = document.getElementById("apiToken");
-      const hotelIdInput = document.getElementById("hotelId");
-      const healthButton = document.getElementById("healthButton");
-      const connectButton = document.getElementById("connectButton");
-      const statusButton = document.getElementById("statusButton");
-      const linkButton = document.getElementById("linkButton");
-      const uploadButton = document.getElementById("uploadButton");
-      const uploadForm = document.getElementById("uploadForm");
-      const healthStatus = document.getElementById("healthStatus");
-      const driveStatus = document.getElementById("driveStatus");
-      const linkStatus = document.getElementById("linkStatus");
-      const uploadStatus = document.getElementById("uploadStatus");
+      const hotelIdInput = document.getElementById("hotelIdInput");
+      const adminTokenInput = document.getElementById("adminTokenInput");
+      const saveSetupButton = document.getElementById("saveSetupButton");
+      const toggleSetupButton = document.getElementById("toggleSetupButton");
+      const setupFields = document.getElementById("setupFields");
+      const hotelLabel = document.getElementById("hotelLabel");
+      const statusBanner = document.getElementById("statusBanner");
+      const staffForm = document.getElementById("staffForm");
+      const formError = document.getElementById("formError");
+      const submitButton = document.getElementById("submitButton");
+      const buttonText = document.getElementById("buttonText");
+      const buttonSpinner = document.getElementById("buttonSpinner");
+      const sexInput = document.getElementById("sex");
+      const sexButtons = Array.from(document.querySelectorAll(".sex-option"));
+      const phoneInput = document.getElementById("phone");
+      const whatsappPhoneInput = document.getElementById("whatsappPhone");
+      const sameWhatsappInput = document.getElementById("sameWhatsapp");
+      const vehicleTypeInput = document.getElementById("vehicleType");
+      const vehicleNumberWrap = document.getElementById("vehicleNumberWrap");
+      const vehicleNumberInput = document.getElementById("vehicleNumber");
+      const frontFileInput = document.getElementById("frontFile");
+      const backFileInput = document.getElementById("backFile");
+      const frontFileName = document.getElementById("frontFileName");
+      const backFileName = document.getElementById("backFileName");
+      const successModal = document.getElementById("successModal");
+      const successMessage = document.getElementById("successMessage");
+      const closeModalButton = document.getElementById("closeModalButton");
 
-      function tokenHeader() {
-        const token = apiTokenInput.value.trim();
-        return token ? { Authorization: `Bearer ${token}` } : {};
-      }
+      function showBanner(message, tone) {
+        statusBanner.textContent = message;
+        statusBanner.className = "mt-5 rounded-2xl border px-4 py-3 text-sm";
+        statusBanner.classList.remove("hidden");
 
-      function setStatus(element, message, isError) {
-        element.textContent = message;
-        element.className = `status ${isError ? "error" : "ok"}`;
-      }
-
-      function requireHotelId() {
-        const hotelId = hotelIdInput.value.trim();
-        if (!hotelId) {
-          throw new Error("Enter a hotel ID first.");
+        if (tone === "success") {
+          statusBanner.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-800");
+        } else {
+          statusBanner.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
         }
+      }
 
-        return hotelId;
+      function showError(message) {
+        formError.textContent = message;
+        formError.classList.remove("hidden");
+      }
+
+      function clearError() {
+        formError.textContent = "";
+        formError.classList.add("hidden");
+      }
+
+      function setSubmitting(isSubmitting) {
+        submitButton.disabled = isSubmitting;
+        buttonText.textContent = isSubmitting ? "Saving Staff..." : "Save Staff Record";
+        buttonSpinner.classList.toggle("hidden", !isSubmitting);
+      }
+
+      function readStoredConfig() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+          hotelId: params.get("hotel_id") || localStorage.getItem("staff_console_hotel_id") || "",
+          adminToken: localStorage.getItem("staff_console_admin_token") || "",
+        };
+      }
+
+      function saveStoredConfig(hotelId, adminToken) {
+        localStorage.setItem("staff_console_hotel_id", hotelId);
+        localStorage.setItem("staff_console_admin_token", adminToken);
+      }
+
+      function updateHotelLabel() {
+        hotelLabel.textContent = hotelIdInput.value.trim() || "Not set";
+      }
+
+      function setSex(value) {
+        sexInput.value = value;
+        for (const button of sexButtons) {
+          const selected = button.dataset.sex === value;
+          button.classList.toggle("bg-ocean-900", selected);
+          button.classList.toggle("text-white", selected);
+          button.classList.toggle("border-ocean-900", selected);
+          button.classList.toggle("bg-white", !selected);
+          button.classList.toggle("text-slate-700", !selected);
+        }
+      }
+
+      function syncWhatsapp() {
+        const same = sameWhatsappInput.checked;
+        whatsappPhoneInput.disabled = same;
+        whatsappPhoneInput.value = same ? phoneInput.value : whatsappPhoneInput.value;
+        whatsappPhoneInput.classList.toggle("bg-slate-50", same);
+        whatsappPhoneInput.classList.toggle("text-slate-500", same);
+      }
+
+      function syncVehicle() {
+        const showVehicle = vehicleTypeInput.value !== "None";
+        vehicleNumberWrap.classList.toggle("hidden", !showVehicle);
+        if (!showVehicle) {
+          vehicleNumberInput.value = "";
+        }
+      }
+
+      function setFileLabel(input, label, emptyText) {
+        const file = input.files && input.files[0];
+        label.textContent = file
+          ? `${file.name} • ${(file.size / 1024 / 1024).toFixed(2)} MB`
+          : emptyText;
       }
 
       async function readJson(response) {
@@ -258,130 +386,229 @@
         try {
           return text ? JSON.parse(text) : {};
         } catch {
-          return { raw: text };
+          return { error: text || "Unexpected response" };
         }
       }
 
-      healthButton.addEventListener("click", async () => {
-        healthButton.disabled = true;
-        setStatus(healthStatus, "Checking backend health...", false);
+      async function canvasToFile(canvas, sourceFile) {
+        const mimeType = sourceFile.type === "image/png" ? "image/png" : "image/jpeg";
+        const quality = mimeType === "image/png" ? undefined : 0.82;
+
+        return new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error("Unable to prepare image upload"));
+              return;
+            }
+
+            const baseName = sourceFile.name.replace(/\.[^.]+$/, "") || "staff-id";
+            const extension = mimeType === "image/png" ? "png" : "jpg";
+            resolve(new File([blob], `${baseName}-compressed.${extension}`, { type: mimeType }));
+          }, mimeType, quality);
+        });
+      }
+
+      async function compressProofFile(file) {
+        if (!file || !file.type.startsWith("image/")) {
+          return file;
+        }
+
+        const imageUrl = URL.createObjectURL(file);
 
         try {
-          const response = await fetch("/api/health", {
-            headers: tokenHeader()
+          const image = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error("Unable to read image"));
+            img.src = imageUrl;
           });
-          const data = await readJson(response);
 
-          if (!response.ok) {
-            throw new Error(data.error || "Health check failed.");
+          const targetWidth = 1600;
+          const targetHeight = 1000;
+          const sourceRatio = image.width / image.height;
+          const targetRatio = targetWidth / targetHeight;
+
+          let sx = 0;
+          let sy = 0;
+          let sw = image.width;
+          let sh = image.height;
+
+          if (sourceRatio > targetRatio) {
+            sw = image.height * targetRatio;
+            sx = (image.width - sw) / 2;
+          } else {
+            sh = image.width / targetRatio;
+            sy = (image.height - sh) / 2;
           }
 
-          setStatus(
-            healthStatus,
-            `OK. Hotels: ${data.database.hotels}, Guests: ${data.database.guests}, Redirect URI configured: ${data.googleDrive.redirectUriConfigured}`,
-            false
-          );
-        } catch (error) {
-          setStatus(healthStatus, error.message || "Health check failed.", true);
-        } finally {
-          healthButton.disabled = false;
-        }
-      });
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const context = canvas.getContext("2d");
 
-      connectButton.addEventListener("click", () => {
-        try {
-          const hotelId = requireHotelId();
-          window.location.href = `/api/auth/google-init?hotel_id=${encodeURIComponent(hotelId)}`;
-        } catch (error) {
-          setStatus(driveStatus, error.message || "Unable to start Google OAuth.", true);
-        }
-      });
-
-      statusButton.addEventListener("click", async () => {
-        statusButton.disabled = true;
-        setStatus(driveStatus, "Checking Google Drive status...", false);
-
-        try {
-          const hotelId = requireHotelId();
-          const response = await fetch(`/api/auth/google-status?hotel_id=${encodeURIComponent(hotelId)}`, {
-            headers: tokenHeader()
-          });
-          const data = await readJson(response);
-
-          if (!response.ok) {
-            throw new Error(data.error || "Unable to fetch Google Drive status.");
+          if (!context) {
+            throw new Error("Unable to prepare image upload");
           }
 
-          setStatus(
-            driveStatus,
-            data.googleDriveConnected
-              ? `Connected. Folder ID: ${data.googleDriveFolderId}`
-              : "Not connected yet.",
-            false
-          );
-        } catch (error) {
-          setStatus(driveStatus, error.message || "Unable to fetch Google Drive status.", true);
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, targetWidth, targetHeight);
+          context.drawImage(image, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+
+          return await canvasToFile(canvas, file);
         } finally {
-          statusButton.disabled = false;
+          URL.revokeObjectURL(imageUrl);
         }
+      }
+
+      function buildPayload() {
+        const hotelId = hotelIdInput.value.trim();
+        const adminToken = adminTokenInput.value.trim();
+
+        if (!hotelId) {
+          throw new Error("Please save the Hotel ID first.");
+        }
+
+        if (!adminToken) {
+          throw new Error("Please save the Hotel Admin token first.");
+        }
+
+        return {
+          hotelId,
+          adminToken,
+          fullName: document.getElementById("fullName").value.trim(),
+          age: document.getElementById("age").value.trim(),
+          sex: sexInput.value,
+          role: document.getElementById("role").value,
+          workingSinceMonth: document.getElementById("workingSinceMonth").value,
+          workingSinceYear: document.getElementById("workingSinceYear").value.trim(),
+          addressLine1: document.getElementById("addressLine1").value.trim(),
+          addressCity: document.getElementById("addressCity").value.trim(),
+          addressPinCode: document.getElementById("addressPinCode").value.trim(),
+          phone: phoneInput.value.trim(),
+          whatsappPhone: whatsappPhoneInput.value.trim(),
+          sameWhatsapp: sameWhatsappInput.checked,
+          email: document.getElementById("email").value.trim(),
+          vehicleType: vehicleTypeInput.value,
+          vehicleNumber: vehicleNumberInput.value.trim(),
+        };
+      }
+
+      async function buildFormData() {
+        const payload = buildPayload();
+        const frontFile = frontFileInput.files && frontFileInput.files[0];
+        const backFile = backFileInput.files && backFileInput.files[0];
+
+        if (!frontFile || !backFile) {
+          throw new Error("Please upload both front and back ID proofs.");
+        }
+
+        const formData = new FormData();
+        formData.set("hotel_id", payload.hotelId);
+        formData.set("full_name", payload.fullName);
+        formData.set("age", payload.age);
+        formData.set("sex", payload.sex);
+        formData.set("role", payload.role);
+        formData.set("working_since_month", payload.workingSinceMonth);
+        formData.set("working_since_year", payload.workingSinceYear);
+        formData.set("address_line_1", payload.addressLine1);
+        formData.set("address_city", payload.addressCity);
+        formData.set("address_pin_code", payload.addressPinCode);
+        formData.set("phone", payload.phone);
+        formData.set("whatsapp_phone", payload.whatsappPhone);
+        formData.set("whatsapp_same_as_mobile", payload.sameWhatsapp ? "true" : "false");
+        formData.set("email", payload.email);
+        formData.set("vehicle_type", payload.vehicleType);
+        formData.set("vehicle_number", payload.vehicleNumber);
+        formData.set("is_active", "1");
+        formData.set("id_front_file", await compressProofFile(frontFile));
+        formData.set("id_back_file", await compressProofFile(backFile));
+
+        return {
+          adminToken: payload.adminToken,
+          formData,
+        };
+      }
+
+      function resetForm() {
+        staffForm.reset();
+        setSex("Male");
+        sameWhatsappInput.checked = true;
+        syncWhatsapp();
+        vehicleTypeInput.value = "None";
+        syncVehicle();
+        frontFileName.textContent = "No front image selected yet.";
+        backFileName.textContent = "No back image selected yet.";
+      }
+
+      function initialize() {
+        const config = readStoredConfig();
+        hotelIdInput.value = config.hotelId;
+        adminTokenInput.value = config.adminToken;
+        updateHotelLabel();
+        setSex("Male");
+        syncWhatsapp();
+        syncVehicle();
+      }
+
+      saveSetupButton.addEventListener("click", () => {
+        saveStoredConfig(hotelIdInput.value.trim(), adminTokenInput.value.trim());
+        updateHotelLabel();
+        showBanner("Staff console setup saved locally on this device.", "success");
       });
 
-      linkButton.addEventListener("click", async () => {
-        linkButton.disabled = true;
-        setStatus(linkStatus, "Generating secure guest link...", false);
-
-        try {
-          const hotelId = requireHotelId();
-          const response = await fetch(`/api/auth/checkin-link?hotel_id=${encodeURIComponent(hotelId)}`, {
-            headers: tokenHeader()
-          });
-          const data = await readJson(response);
-
-          if (!response.ok) {
-            throw new Error(data.error || "Unable to generate check-in link.");
-          }
-
-          setStatus(linkStatus, data.checkinUrl, false);
-        } catch (error) {
-          setStatus(linkStatus, error.message || "Unable to generate check-in link.", true);
-        } finally {
-          linkButton.disabled = false;
-        }
+      toggleSetupButton.addEventListener("click", () => {
+        const hidden = setupFields.classList.toggle("hidden");
+        toggleSetupButton.textContent = hidden ? "Show" : "Hide";
       });
 
-      uploadForm.addEventListener("submit", async (event) => {
+      hotelIdInput.addEventListener("input", updateHotelLabel);
+      phoneInput.addEventListener("input", syncWhatsapp);
+      sameWhatsappInput.addEventListener("change", syncWhatsapp);
+      vehicleTypeInput.addEventListener("change", syncVehicle);
+      frontFileInput.addEventListener("change", () => setFileLabel(frontFileInput, frontFileName, "No front image selected yet."));
+      backFileInput.addEventListener("change", () => setFileLabel(backFileInput, backFileName, "No back image selected yet."));
+      closeModalButton.addEventListener("click", () => {
+        successModal.classList.add("hidden");
+        successModal.classList.remove("flex");
+      });
+
+      for (const button of sexButtons) {
+        button.addEventListener("click", () => setSex(button.dataset.sex));
+      }
+
+      staffForm.addEventListener("submit", async (event) => {
         event.preventDefault();
-        uploadButton.disabled = true;
-        setStatus(uploadStatus, "Uploading guest document...", false);
+        clearError();
+        setSubmitting(true);
 
         try {
-          const hotelId = requireHotelId();
-          const formData = new FormData(uploadForm);
-          formData.set("hotel_id", hotelId);
-
-          const response = await fetch("/api/guests/upload", {
+          const { adminToken, formData } = await buildFormData();
+          const response = await fetch("/api/hotel-admin/staff-upload", {
             method: "POST",
-            headers: tokenHeader(),
-            body: formData
+            headers: {
+              Authorization: `Bearer ${adminToken}`,
+            },
+            body: formData,
           });
           const data = await readJson(response);
 
           if (!response.ok) {
-            throw new Error(data.error || "Guest upload failed.");
+            throw new Error(data.error || "Unable to save staff record");
           }
 
-          setStatus(
-            uploadStatus,
-            `Upload complete. Guest ID: ${data.guestId}, Drive file ID: ${data.googleDriveFileId}`,
-            false
-          );
-          uploadForm.reset();
+          showBanner("Staff record saved successfully.", "success");
+          successMessage.textContent = `Staff member ${data.staff?.full_name || "record"} was saved successfully.`;
+          successModal.classList.remove("hidden");
+          successModal.classList.add("flex");
+          resetForm();
         } catch (error) {
-          setStatus(uploadStatus, error.message || "Guest upload failed.", true);
+          showError(error instanceof Error ? error.message : "Unable to save staff record");
         } finally {
-          uploadButton.disabled = false;
+          setSubmitting(false);
         }
       });
+
+      initialize();
     </script>
   </body>
 </html>
