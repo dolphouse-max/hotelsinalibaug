@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Admin | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+              shell: "#f6efe3",
+              dune: "#ead4ad",
+              breeze: "#9bc8c2",
+              sunset: "#dc8f67",
+            },
+            boxShadow: {
+              resort: "0 28px 90px rgba(11, 24, 36, 0.16)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(23,50,74,0.18),_transparent_36%),linear-gradient(180deg,#f6f8fb_0%,#eef2f6_100%)]">
+      <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-harbor/70">Hotels In Alibaug SaaS</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ocean sm:text-4xl">Hotel Admin Dashboard</h1>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+              Manage your hotel profile, keep room counts current, and stay ahead of trial expiry with clear payment reminders on your account.
+            </p>
+          </div>
+          <div class="rounded-3xl bg-ocean px-5 py-4 text-shell shadow-resort">
+            <p class="text-xs uppercase tracking-[0.24em] text-dune/70">Subscription monitor</p>
+            <p class="mt-2 text-sm leading-6 text-shell/90">Payment reminders appear automatically during the final 15 days of the free-trial window.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean">Profile Settings</h2>
+                <p class="mt-2 text-sm text-slate-600">Load your hotel record first, then update contact details and room usage.</p>
+              </div>
+              <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
+                Load Account
+              </button>
+            </div>
+
+            <form id="hotelAdminForm" class="mt-8 space-y-5">
+              <div>
+                <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+                <input id="hotelAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Paste your Hotel Admin token">
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                  <input id="hotelId" name="hotel_id" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
+                </div>
+                <div>
+                  <label for="hotelStatus" class="mb-2 block text-sm font-medium text-slate-700">Account Status</label>
+                  <input id="hotelStatus" readonly class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500 outline-none" placeholder="Load account first">
+                </div>
+              </div>
+
+              <div id="subscriptionBanner" class="hidden rounded-2xl border px-4 py-4 text-sm"></div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+                  <input id="hotelName" name="name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                </div>
+                <div>
+                  <label for="contact" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+                  <input id="contact" name="contact" type="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                </div>
+              </div>
+
+              <div>
+                <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Address</label>
+                <textarea id="address" name="address" rows="3" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="totalRooms" class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
+                  <input id="totalRooms" name="total_rooms" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                </div>
+                <div>
+                  <label for="occupiedRooms" class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
+                  <input id="occupiedRooms" name="occupied_rooms" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                </div>
+              </div>
+
+              <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+              <div id="formSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+
+              <button id="saveButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean px-5 py-4 text-base font-semibold text-white transition hover:bg-harbor focus:outline-none focus:ring-4 focus:ring-ocean/10 disabled:opacity-70">
+                <span id="saveText">Save Hotel Profile</span>
+                <span id="saveSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              </button>
+            </form>
+          </section>
+
+          <section class="space-y-6">
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <h2 class="text-2xl font-semibold text-ocean">Account Snapshot</h2>
+              <p class="mt-2 text-sm text-slate-600">A quick operational view of your occupancy and trial timeline.</p>
+
+              <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Admin Gmail</p>
+                  <p id="adminEmail" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Trial End Date</p>
+                  <p id="trialEnd" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Days Until Expiry</p>
+                  <p id="daysToExpiry" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                </div>
+                <div class="rounded-3xl bg-slate-50 p-5">
+                  <p class="text-sm font-medium text-slate-500">Room Utilization</p>
+                  <p id="occupancySummary" class="mt-3 text-lg font-semibold text-ocean">Not loaded</p>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <div class="mb-2 flex items-center justify-between text-sm text-slate-500">
+                  <span>Occupancy bar</span>
+                  <span id="occupancyPercent">0%</span>
+                </div>
+                <div class="h-4 overflow-hidden rounded-full bg-slate-200">
+                  <div id="occupancyBar" class="h-full w-0 rounded-full bg-gradient-to-r from-breeze to-sunset transition-all duration-500"></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <h2 class="text-2xl font-semibold text-ocean">Suggested Actions</h2>
+              <div id="actionList" class="mt-5 space-y-3 text-sm text-slate-600">
+                <div class="rounded-2xl bg-slate-50 px-4 py-3">Load your hotel account to see tailored reminders and room-management suggestions.</div>
+              </div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const loadButton = document.getElementById("loadButton");
+      const hotelAdminForm = document.getElementById("hotelAdminForm");
+      const formError = document.getElementById("formError");
+      const formSuccess = document.getElementById("formSuccess");
+      const saveButton = document.getElementById("saveButton");
+      const saveText = document.getElementById("saveText");
+      const saveSpinner = document.getElementById("saveSpinner");
+      const hotelStatus = document.getElementById("hotelStatus");
+      const subscriptionBanner = document.getElementById("subscriptionBanner");
+      const adminEmail = document.getElementById("adminEmail");
+      const trialEnd = document.getElementById("trialEnd");
+      const daysToExpiry = document.getElementById("daysToExpiry");
+      const occupancySummary = document.getElementById("occupancySummary");
+      const occupancyBar = document.getElementById("occupancyBar");
+      const occupancyPercent = document.getElementById("occupancyPercent");
+      const actionList = document.getElementById("actionList");
+
+      hotelIdInput.value = params.get("hotel_id") || "";
+
+      function authHeaders() {
+        const token = tokenInput.value.trim();
+        return token
+          ? {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
+          : {
+              "Content-Type": "application/json",
+            };
+      }
+
+      function showMessage(target, message) {
+        target.textContent = message;
+        target.classList.remove("hidden");
+      }
+
+      function clearMessages() {
+        formError.classList.add("hidden");
+        formSuccess.classList.add("hidden");
+        formError.textContent = "";
+        formSuccess.textContent = "";
+      }
+
+      function setSaving(isSaving) {
+        saveButton.disabled = isSaving;
+        saveText.textContent = isSaving ? "Saving Changes..." : "Save Hotel Profile";
+        saveSpinner.classList.toggle("hidden", !isSaving);
+      }
+
+      function setBanner(hotel) {
+        subscriptionBanner.classList.add("hidden");
+        subscriptionBanner.className = "hidden rounded-2xl border px-4 py-4 text-sm";
+
+        if (!hotel.payment_reminder_active) {
+          return;
+        }
+
+        subscriptionBanner.textContent = hotel.payment_reminder_message;
+        subscriptionBanner.classList.remove("hidden");
+        subscriptionBanner.classList.add("border-amber-200", "bg-amber-50", "text-amber-900");
+      }
+
+      function renderActions(hotel) {
+        const items = [];
+
+        if (hotel.payment_reminder_active) {
+          items.push(hotel.payment_reminder_message);
+        } else {
+          items.push("Your subscription is outside the 15-day reminder window.");
+        }
+
+        if (hotel.total_rooms > 0 && hotel.occupied_rooms / hotel.total_rooms > 0.85) {
+          items.push("Occupancy is above 85%. Consider reviewing overbooking or room turnover plans.");
+        } else {
+          items.push("Room occupancy is within a comfortable operating range.");
+        }
+
+        items.push("Keep the mobile number and address updated so staff coordination stays accurate.");
+
+        actionList.innerHTML = items
+          .map((item) => `<div class="rounded-2xl bg-slate-50 px-4 py-3">${item}</div>`)
+          .join("");
+      }
+
+      function fillForm(hotel) {
+        document.getElementById("hotelName").value = hotel.name || "";
+        document.getElementById("contact").value = hotel.contact || "";
+        document.getElementById("address").value = hotel.address || "";
+        document.getElementById("totalRooms").value = hotel.total_rooms ?? 0;
+        document.getElementById("occupiedRooms").value = hotel.occupied_rooms ?? 0;
+        hotelStatus.value = hotel.is_active === 1 ? "Active" : "Inactive";
+        adminEmail.textContent = hotel.admin_email || "Not set";
+        trialEnd.textContent = hotel.subscription_end_date || "Not set";
+        daysToExpiry.textContent = hotel.days_until_expiry ?? "Not available";
+        occupancySummary.textContent = `${hotel.occupied_rooms}/${hotel.total_rooms}`;
+
+        const percent = hotel.total_rooms > 0 ? Math.min(100, Math.round((hotel.occupied_rooms / hotel.total_rooms) * 100)) : 0;
+        occupancyBar.style.width = `${percent}%`;
+        occupancyPercent.textContent = `${percent}%`;
+
+        setBanner(hotel);
+        renderActions(hotel);
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: text || "Unexpected response" };
+        }
+      }
+
+      async function loadHotel() {
+        clearMessages();
+        const hotelId = hotelIdInput.value.trim();
+
+        if (!hotelId) {
+          showMessage(formError, "Enter a hotel ID first.");
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/hotel-admin/profile?hotel_id=${encodeURIComponent(hotelId)}`, {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load hotel profile");
+          }
+
+          fillForm(data.hotel);
+        } catch (error) {
+          showMessage(formError, error instanceof Error ? error.message : "Unable to load hotel profile");
+        }
+      }
+
+      loadButton.addEventListener("click", loadHotel);
+
+      hotelAdminForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessages();
+        setSaving(true);
+
+        try {
+          const payload = {
+            hotel_id: hotelIdInput.value.trim(),
+            name: document.getElementById("hotelName").value.trim(),
+            contact: document.getElementById("contact").value.trim(),
+            address: document.getElementById("address").value.trim(),
+            total_rooms: Number(document.getElementById("totalRooms").value || "0"),
+            occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
+          };
+
+          const response = await fetch("/api/hotel-admin/profile", {
+            method: "PUT",
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to save hotel profile");
+          }
+
+          showMessage(formSuccess, "Hotel profile updated successfully.");
+          await loadHotel();
+        } catch (error) {
+          showMessage(formError, error instanceof Error ? error.message : "Unable to save hotel profile");
+        } finally {
+          setSaving(false);
+        }
+      });
+    </script>
+  </body>
+</html>
