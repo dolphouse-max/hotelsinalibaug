@@ -115,8 +115,10 @@ export async function onRequestGet(context) {
     const guestColumns = await getTableColumns(context.env.DB, "guests");
     const staffColumns = await getTableColumns(context.env.DB, "hotel_staff");
     const logColumns = await getTableColumns(context.env.DB, "police_access_logs");
-    const roleExpression = staffColumns.has("role") ? "role" : "'staff'";
-    const activeExpression = staffColumns.has("is_active") ? "is_active" : "1";
+    const joinRoleExpression = staffColumns.has("role") ? "hs.role" : "'staff'";
+    const joinActiveExpression = staffColumns.has("is_active") ? "hs.is_active" : "1";
+    const staffRoleExpression = staffColumns.has("role") ? "role" : "'staff'";
+    const staffActiveExpression = staffColumns.has("is_active") ? "is_active" : "1";
     const currentCheckoutExpression = guestColumns.has("check_out_time") ? "check_out_time" : "NULL";
     const guestCheckInColumn = guestColumns.has("check_in_time") ? "check_in_time" : "created_at";
     const staffNameColumn = staffColumns.has("full_name") ? "full_name" : "id";
@@ -130,10 +132,10 @@ export async function onRequestGet(context) {
          h.total_rooms,
          h.occupied_rooms,
          hs.email AS admin_email,
-         hs.phone AS admin_phone
+       hs.phone AS admin_phone
        FROM hotels h
        LEFT JOIN hotel_staff hs
-         ON hs.hotel_id = h.id AND ${roleExpression} = 'admin' AND ${activeExpression} = 1
+         ON hs.hotel_id = h.id AND ${joinRoleExpression} = 'admin' AND ${joinActiveExpression} = 1
        WHERE h.id = ?1
        LIMIT 1`
     )
@@ -159,7 +161,7 @@ export async function onRequestGet(context) {
             `SELECT COUNT(*) AS count
              FROM hotel_staff
              WHERE hotel_id = ?1
-               AND ${activeExpression} = 1`
+               AND ${staffActiveExpression} = 1`
           ).bind(hotelId)
         ),
         context.env.DB.prepare(
@@ -211,7 +213,7 @@ export async function onRequestGet(context) {
            FROM hotel_staff
            WHERE hotel_id = ?1
            ORDER BY
-             CASE ${roleExpression}
+             CASE ${staffRoleExpression}
                WHEN 'admin' THEN 0
                WHEN 'manager' THEN 1
                WHEN 'frontdesk' THEN 2
