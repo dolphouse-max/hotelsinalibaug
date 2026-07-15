@@ -43,6 +43,7 @@
         </div>
 
         <div class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <div class="space-y-8">
           <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
             <div class="flex items-center justify-between gap-4">
               <div>
@@ -109,6 +110,68 @@
               </button>
             </form>
           </section>
+          <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean">Staff Management</h2>
+                <p class="mt-2 text-sm text-slate-600">Add front-desk, manager, or admin staff linked to this hotel account.</p>
+              </div>
+              <button id="refreshStaffButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
+                Refresh Staff
+              </button>
+            </div>
+
+            <form id="staffForm" class="mt-8 space-y-4">
+              <input id="staffId" type="hidden">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="staffName" class="mb-2 block text-sm font-medium text-slate-700">Full Name</label>
+                  <input id="staffName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Reception Manager">
+                </div>
+                <div>
+                  <label for="staffEmail" class="mb-2 block text-sm font-medium text-slate-700">Email</label>
+                  <input id="staffEmail" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="staff@gmail.com">
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label for="staffPhone" class="mb-2 block text-sm font-medium text-slate-700">Phone</label>
+                  <input id="staffPhone" type="tel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="+91-98XXXXXXXX">
+                </div>
+                <div>
+                  <label for="staffRole" class="mb-2 block text-sm font-medium text-slate-700">Role</label>
+                  <select id="staffRole" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <option value="staff">Staff</option>
+                    <option value="frontdesk">Frontdesk</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="staffStatus" class="mb-2 block text-sm font-medium text-slate-700">Status</label>
+                  <select id="staffStatus" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="staffError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+              <div id="staffSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+
+              <div class="grid gap-3 sm:grid-cols-2">
+                <button id="staffSubmitButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean px-5 py-4 text-base font-semibold text-white transition hover:bg-harbor focus:outline-none focus:ring-4 focus:ring-ocean/10 disabled:opacity-70">
+                  <span id="staffSubmitText">Add Staff Member</span>
+                  <span id="staffSubmitSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+                </button>
+                <button id="staffResetButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-base font-semibold text-slate-700 transition hover:border-harbor hover:text-ocean">
+                  Clear Form
+                </button>
+              </div>
+            </form>
+          </section>
+          </div>
 
           <section class="space-y-6">
             <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
@@ -151,6 +214,17 @@
                 <div class="rounded-2xl bg-slate-50 px-4 py-3">Load your hotel account to see tailored reminders and room-management suggestions.</div>
               </div>
             </article>
+
+            <article class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ocean">Current Staff</h2>
+                  <p class="mt-2 text-sm text-slate-600">Review who currently has hotel-level access and responsibilities.</p>
+                </div>
+                <div id="staffListState" class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Load a hotel to see staff.</div>
+              </div>
+              <div id="staffList" class="mt-6 grid gap-4"></div>
+            </article>
           </section>
         </div>
       </main>
@@ -164,9 +238,18 @@
       const hotelAdminForm = document.getElementById("hotelAdminForm");
       const formError = document.getElementById("formError");
       const formSuccess = document.getElementById("formSuccess");
+      const staffError = document.getElementById("staffError");
+      const staffSuccess = document.getElementById("staffSuccess");
       const saveButton = document.getElementById("saveButton");
       const saveText = document.getElementById("saveText");
       const saveSpinner = document.getElementById("saveSpinner");
+      const staffSubmitButton = document.getElementById("staffSubmitButton");
+      const staffSubmitText = document.getElementById("staffSubmitText");
+      const staffSubmitSpinner = document.getElementById("staffSubmitSpinner");
+      const refreshStaffButton = document.getElementById("refreshStaffButton");
+      const staffResetButton = document.getElementById("staffResetButton");
+      const staffListState = document.getElementById("staffListState");
+      const staffList = document.getElementById("staffList");
       const hotelStatus = document.getElementById("hotelStatus");
       const subscriptionBanner = document.getElementById("subscriptionBanner");
       const adminEmail = document.getElementById("adminEmail");
@@ -176,6 +259,7 @@
       const occupancyBar = document.getElementById("occupancyBar");
       const occupancyPercent = document.getElementById("occupancyPercent");
       const actionList = document.getElementById("actionList");
+      const staffForm = document.getElementById("staffForm");
 
       hotelIdInput.value = params.get("hotel_id") || "";
 
@@ -203,10 +287,23 @@
         formSuccess.textContent = "";
       }
 
+      function clearStaffMessages() {
+        staffError.classList.add("hidden");
+        staffSuccess.classList.add("hidden");
+        staffError.textContent = "";
+        staffSuccess.textContent = "";
+      }
+
       function setSaving(isSaving) {
         saveButton.disabled = isSaving;
         saveText.textContent = isSaving ? "Saving Changes..." : "Save Hotel Profile";
         saveSpinner.classList.toggle("hidden", !isSaving);
+      }
+
+      function setStaffSubmitting(isSubmitting) {
+        staffSubmitButton.disabled = isSubmitting;
+        staffSubmitText.textContent = isSubmitting ? "Saving Staff..." : (document.getElementById("staffId").value ? "Update Staff Member" : "Add Staff Member");
+        staffSubmitSpinner.classList.toggle("hidden", !isSubmitting);
       }
 
       function setBanner(hotel) {
@@ -264,6 +361,64 @@
         renderActions(hotel);
       }
 
+      function resetStaffForm() {
+        document.getElementById("staffId").value = "";
+        document.getElementById("staffName").value = "";
+        document.getElementById("staffEmail").value = "";
+        document.getElementById("staffPhone").value = "";
+        document.getElementById("staffRole").value = "staff";
+        document.getElementById("staffStatus").value = "1";
+        staffSubmitText.textContent = "Add Staff Member";
+      }
+
+      function renderStaff(staffMembers) {
+        staffList.innerHTML = "";
+
+        if (!staffMembers.length) {
+          staffListState.textContent = "No staff records found for this hotel yet.";
+          return;
+        }
+
+        staffListState.textContent = `${staffMembers.length} staff account${staffMembers.length === 1 ? "" : "s"} loaded.`;
+
+        for (const staff of staffMembers) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5";
+          const badgeTone = staff.is_active === 1 ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600";
+
+          card.innerHTML = `
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-lg font-semibold text-ocean">${staff.full_name}</h3>
+                  <span class="rounded-full px-3 py-1 text-xs font-semibold ${badgeTone}">${staff.is_active === 1 ? "Active" : "Inactive"}</span>
+                  <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-harbor">${staff.role}</span>
+                </div>
+                <p class="mt-2 text-sm text-slate-500">Email: <span class="font-medium text-slate-700">${staff.email}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Phone: <span class="font-medium text-slate-700">${staff.phone || "Not set"}</span></p>
+              </div>
+              <button type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean" data-edit-staff="${staff.id}">
+                Edit
+              </button>
+            </div>
+          `;
+
+          card.querySelector("[data-edit-staff]").addEventListener("click", () => {
+            document.getElementById("staffId").value = staff.id;
+            document.getElementById("staffName").value = staff.full_name;
+            document.getElementById("staffEmail").value = staff.email;
+            document.getElementById("staffPhone").value = staff.phone || "";
+            document.getElementById("staffRole").value = staff.role;
+            document.getElementById("staffStatus").value = String(staff.is_active);
+            staffSubmitText.textContent = "Update Staff Member";
+            clearStaffMessages();
+            window.scrollTo({ top: document.body.scrollHeight * 0.3, behavior: "smooth" });
+          });
+
+          staffList.appendChild(card);
+        }
+      }
+
       async function readJson(response) {
         const text = await response.text();
 
@@ -294,12 +449,43 @@
           }
 
           fillForm(data.hotel);
+          await loadStaff();
         } catch (error) {
           showMessage(formError, error instanceof Error ? error.message : "Unable to load hotel profile");
         }
       }
 
+      async function loadStaff() {
+        const hotelId = hotelIdInput.value.trim();
+
+        if (!hotelId) {
+          staffListState.textContent = "Enter a hotel ID and load the hotel to view staff.";
+          staffList.innerHTML = "";
+          return;
+        }
+
+        staffListState.textContent = "Loading staff...";
+        staffList.innerHTML = "";
+
+        try {
+          const response = await fetch(`/api/hotel-admin/staff?hotel_id=${encodeURIComponent(hotelId)}`, {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load staff");
+          }
+
+          renderStaff(data.staff || []);
+        } catch (error) {
+          staffListState.textContent = error instanceof Error ? error.message : "Unable to load staff";
+        }
+      }
+
       loadButton.addEventListener("click", loadHotel);
+      refreshStaffButton.addEventListener("click", loadStaff);
+      staffResetButton.addEventListener("click", resetStaffForm);
 
       hotelAdminForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -333,6 +519,49 @@
           showMessage(formError, error instanceof Error ? error.message : "Unable to save hotel profile");
         } finally {
           setSaving(false);
+        }
+      });
+
+      staffForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearStaffMessages();
+        setStaffSubmitting(true);
+
+        try {
+          const hotelId = hotelIdInput.value.trim();
+          if (!hotelId) {
+            throw new Error("Load a hotel first before managing staff.");
+          }
+
+          const payload = {
+            hotel_id: hotelId,
+            staff_id: document.getElementById("staffId").value.trim(),
+            full_name: document.getElementById("staffName").value.trim(),
+            email: document.getElementById("staffEmail").value.trim(),
+            phone: document.getElementById("staffPhone").value.trim(),
+            role: document.getElementById("staffRole").value,
+            is_active: Number(document.getElementById("staffStatus").value),
+          };
+
+          const isUpdate = Boolean(payload.staff_id);
+          const response = await fetch("/api/hotel-admin/staff", {
+            method: isUpdate ? "PUT" : "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to save staff member");
+          }
+
+          showMessage(staffSuccess, isUpdate ? "Staff member updated successfully." : "Staff member added successfully.");
+          resetStaffForm();
+          await loadStaff();
+        } catch (error) {
+          showMessage(staffError, error instanceof Error ? error.message : "Unable to save staff member");
+        } finally {
+          setStaffSubmitting(false);
         }
       });
     </script>
