@@ -26,9 +26,6 @@
             boxShadow: {
               resort: "0 24px 80px rgba(8, 19, 29, 0.22)",
             },
-            fontFamily: {
-              sans: ["ui-sans-serif", "system-ui", "sans-serif"],
-            },
           },
         },
       };
@@ -41,8 +38,8 @@
       <div class="absolute right-0 top-48 h-72 w-72 rounded-full bg-sand-200/10 blur-3xl"></div>
     </div>
 
-    <main class="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-10 sm:px-6 lg:px-8">
-      <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+    <main class="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-10 sm:px-6 lg:px-8">
+      <div class="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
         <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-resort backdrop-blur md:p-10">
           <div class="flex items-center gap-3 text-sand-100">
             <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-sand-100/10">
@@ -58,20 +55,20 @@
 
           <div class="mt-8 space-y-5 text-slate-200/90">
             <p class="max-w-xl text-base leading-7 text-slate-200/80 sm:text-lg">
-              Welcome to your resort arrival desk. Complete this short form to register your stay and upload a clear photo or PDF of your ID in just a minute.
+              Welcome. Please complete your stay details and capture both sides of your ID proof. This form is optimized for quick mobile entry and clear Aadhaar card photos.
             </p>
             <div class="grid gap-4 sm:grid-cols-3">
               <div class="rounded-2xl border border-white/10 bg-ocean-900/70 p-4">
-                <p class="text-sm font-medium text-sand-100">Fast mobile capture</p>
-                <p class="mt-2 text-sm leading-6 text-slate-300">Use your phone camera directly from the upload field.</p>
+                <p class="text-sm font-medium text-sand-100">Camera-friendly</p>
+                <p class="mt-2 text-sm leading-6 text-slate-300">Front and back ID photos can be taken directly from your mobile camera.</p>
               </div>
               <div class="rounded-2xl border border-white/10 bg-ocean-900/70 p-4">
-                <p class="text-sm font-medium text-sand-100">Secure processing</p>
-                <p class="mt-2 text-sm leading-6 text-slate-300">Your document is sent straight into the hotel’s secure records flow.</p>
+                <p class="text-sm font-medium text-sand-100">Structured records</p>
+                <p class="mt-2 text-sm leading-6 text-slate-300">Room, address, travel details, and identity proof are captured in one place.</p>
               </div>
               <div class="rounded-2xl border border-white/10 bg-ocean-900/70 p-4">
-                <p class="text-sm font-medium text-sand-100">Quick confirmation</p>
-                <p class="mt-2 text-sm leading-6 text-slate-300">You’ll see an instant success message after your submission completes.</p>
+                <p class="text-sm font-medium text-sand-100">Instant confirmation</p>
+                <p class="mt-2 text-sm leading-6 text-slate-300">You’ll receive an immediate confirmation after successful check-in.</p>
               </div>
             </div>
           </div>
@@ -91,15 +88,112 @@
 
           <div id="setupNotice" class="mb-5 hidden rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"></div>
 
-          <form id="checkinForm" class="space-y-4">
-            <div>
-              <label for="name" class="mb-2 block text-sm font-medium text-slate-700">Guest Name</label>
-              <input id="name" name="name" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none ring-0 transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Enter full name">
+          <form id="checkinForm" class="space-y-5">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="name" class="mb-2 block text-sm font-medium text-slate-700">Name</label>
+                <input id="name" name="name" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="age" class="mb-2 block text-sm font-medium text-slate-700">Age</label>
+                <input id="age" name="age" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
             </div>
 
-            <div>
-              <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
-              <input id="phone" name="phone" type="tel" inputmode="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none ring-0 transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="+91 98XXXXXXXX">
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label for="sex" class="mb-2 block text-sm font-medium text-slate-700">Sex</label>
+                <select id="sex" name="sex" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label for="total_guests" class="mb-2 block text-sm font-medium text-slate-700">Total Number of Guests</label>
+                <input id="total_guests" name="total_guests" type="number" min="1" value="1" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="room_number" class="mb-2 block text-sm font-medium text-slate-700">Room Number</label>
+                <input id="room_number" name="room_number" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Check-In Date & Time</label>
+                <input id="checkInPreview" readonly class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-500 outline-none" placeholder="Automatically stamped on submit">
+              </div>
+              <div>
+                <label for="expected_check_out_date" class="mb-2 block text-sm font-medium text-slate-700">Expected Check-Out Date</label>
+                <input id="expected_check_out_date" name="expected_check_out_date" type="date" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+            </div>
+
+            <div class="space-y-4 rounded-[1.5rem] border border-slate-200 bg-white/70 p-4">
+              <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Address</h3>
+              <div>
+                <label for="address_line_1" class="mb-2 block text-sm font-medium text-slate-700">First Line</label>
+                <input id="address_line_1" name="address_line_1" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="address_city" class="mb-2 block text-sm font-medium text-slate-700">City</label>
+                  <input id="address_city" name="address_city" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                </div>
+                <div>
+                  <label for="address_pin_code" class="mb-2 block text-sm font-medium text-slate-700">Pin Code</label>
+                  <input id="address_pin_code" name="address_pin_code" type="text" inputmode="numeric" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+                <input id="phone" name="phone" type="tel" inputmode="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <label for="whatsapp_phone" class="block text-sm font-medium text-slate-700">WhatsApp Number</label>
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-500">
+                    <input id="whatsapp_same_as_mobile" name="whatsapp_same_as_mobile" type="checkbox" value="true" checked class="h-4 w-4 rounded border-slate-300 text-lagoon focus:ring-lagoon">
+                    Same as mobile
+                  </label>
+                </div>
+                <input id="whatsapp_phone" name="whatsapp_phone" type="tel" inputmode="tel" disabled class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-500 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="email" class="mb-2 block text-sm font-medium text-slate-700">Email ID <span class="text-slate-400">(optional)</span></label>
+                <input id="email" name="email" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="vehicle_type" class="mb-2 block text-sm font-medium text-slate-700">Vehicle</label>
+                <select id="vehicle_type" name="vehicle_type" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                  <option value="None">None</option>
+                  <option value="Car">Car</option>
+                  <option value="Motor Bike">Motor Bike</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="vehicleNumberWrap" class="hidden">
+              <label for="vehicle_number" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Number</label>
+              <input id="vehicle_number" name="vehicle_number" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="coming_from" class="mb-2 block text-sm font-medium text-slate-700">Coming From</label>
+                <input id="coming_from" name="coming_from" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="going_to" class="mb-2 block text-sm font-medium text-slate-700">Going To</label>
+                <input id="going_to" name="going_to" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
@@ -114,21 +208,35 @@
               </div>
               <div>
                 <label for="id_number" class="mb-2 block text-sm font-medium text-slate-700">ID Number</label>
-                <input id="id_number" name="id_number" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Enter ID number">
+                <input id="id_number" name="id_number" type="text" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
               </div>
             </div>
 
-            <div>
-              <label for="file" class="mb-2 block text-sm font-medium text-slate-700">Upload ID Photo or PDF</label>
-              <label class="flex cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-7 text-center transition hover:border-lagoon hover:bg-sky-50/40">
-                <svg viewBox="0 0 24 24" class="h-10 w-10 text-lagoon" fill="none" stroke="currentColor" stroke-width="1.6">
-                  <path d="M12 16V6m0 0-4 4m4-4 4 4M5 18.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="mt-3 text-sm font-medium text-ocean-900">Tap to upload or take a photo</span>
-                <span class="mt-1 text-xs text-slate-500">JPG, PNG, HEIC-compatible camera images, or PDF up to 10 MB</span>
-                <input id="file" name="file" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
-              </label>
-              <p id="fileName" class="mt-2 text-sm text-slate-500">No file selected yet.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Front</label>
+                <label class="flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
+                  <svg viewBox="0 0 24 24" class="h-10 w-10 text-lagoon" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <path d="M12 16V6m0 0-4 4m4-4 4 4M5 18.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="mt-3 text-sm font-medium text-ocean-900">Capture front side</span>
+                  <span class="mt-1 text-xs text-slate-500">Aadhaar front or other ID front side</span>
+                  <input id="id_front_file" name="id_front_file" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+                </label>
+                <p id="frontFileName" class="mt-2 text-sm text-slate-500">No front image selected yet.</p>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Back</label>
+                <label class="flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
+                  <svg viewBox="0 0 24 24" class="h-10 w-10 text-lagoon" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <path d="M12 16V6m0 0-4 4m4-4 4 4M5 18.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="mt-3 text-sm font-medium text-ocean-900">Capture back side</span>
+                  <span class="mt-1 text-xs text-slate-500">Aadhaar back or other ID reverse side</span>
+                  <input id="id_back_file" name="id_back_file" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+                </label>
+                <p id="backFileName" class="mt-2 text-sm text-slate-500">No back image selected yet.</p>
+              </div>
             </div>
 
             <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
@@ -151,11 +259,12 @@
         </div>
         <h3 class="mt-5 text-2xl font-semibold text-ocean-900">Check-In Completed</h3>
         <p class="mt-3 text-sm leading-6 text-slate-600">
-          Thank you. Your details and ID have been submitted successfully.
+          Thank you. Your stay details and both ID proof sides have been submitted successfully.
         </p>
         <div class="mt-5 rounded-2xl bg-white px-4 py-4 text-left text-sm text-slate-600">
           <p><span class="font-semibold text-slate-900">Guest ID:</span> <span id="successGuestId"></span></p>
-          <p class="mt-2"><span class="font-semibold text-slate-900">Drive File ID:</span> <span id="successFileId" class="break-all"></span></p>
+          <p class="mt-2"><span class="font-semibold text-slate-900">Front File ID:</span> <span id="successFrontFileId" class="break-all"></span></p>
+          <p class="mt-2"><span class="font-semibold text-slate-900">Back File ID:</span> <span id="successBackFileId" class="break-all"></span></p>
         </div>
         <button id="closeModalButton" type="button" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 font-semibold text-white transition hover:bg-ocean-800">
           Done
@@ -171,15 +280,24 @@
       const hotelLabel = document.getElementById("hotelLabel");
       const setupNotice = document.getElementById("setupNotice");
       const checkinForm = document.getElementById("checkinForm");
-      const fileInput = document.getElementById("file");
-      const fileName = document.getElementById("fileName");
+      const whatsappSameAsMobile = document.getElementById("whatsapp_same_as_mobile");
+      const phoneInput = document.getElementById("phone");
+      const whatsappInput = document.getElementById("whatsapp_phone");
+      const vehicleTypeInput = document.getElementById("vehicle_type");
+      const vehicleNumberWrap = document.getElementById("vehicleNumberWrap");
+      const vehicleNumberInput = document.getElementById("vehicle_number");
+      const frontFileInput = document.getElementById("id_front_file");
+      const backFileInput = document.getElementById("id_back_file");
+      const frontFileName = document.getElementById("frontFileName");
+      const backFileName = document.getElementById("backFileName");
       const formError = document.getElementById("formError");
       const submitButton = document.getElementById("submitButton");
       const buttonText = document.getElementById("buttonText");
       const buttonSpinner = document.getElementById("buttonSpinner");
       const successModal = document.getElementById("successModal");
       const successGuestId = document.getElementById("successGuestId");
-      const successFileId = document.getElementById("successFileId");
+      const successFrontFileId = document.getElementById("successFrontFileId");
+      const successBackFileId = document.getElementById("successBackFileId");
       const closeModalButton = document.getElementById("closeModalButton");
 
       function showSetupNotice(message) {
@@ -203,6 +321,30 @@
         buttonSpinner.classList.toggle("hidden", !isSubmitting);
       }
 
+      function syncWhatsappField() {
+        const same = whatsappSameAsMobile.checked;
+        whatsappInput.disabled = same;
+        whatsappInput.value = same ? phoneInput.value : whatsappInput.value;
+        whatsappInput.classList.toggle("bg-slate-50", same);
+        whatsappInput.classList.toggle("text-slate-500", same);
+      }
+
+      function syncVehicleField() {
+        const showVehicleNumber = vehicleTypeInput.value !== "None";
+        vehicleNumberWrap.classList.toggle("hidden", !showVehicleNumber);
+        vehicleNumberInput.required = showVehicleNumber;
+        if (!showVehicleNumber) {
+          vehicleNumberInput.value = "";
+        }
+      }
+
+      function setFileLabel(input, label) {
+        const selectedFile = input.files && input.files[0];
+        label.textContent = selectedFile
+          ? `${selectedFile.name} • ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+          : label.dataset.empty;
+      }
+
       async function parseJson(response) {
         const text = await response.text();
 
@@ -213,7 +355,88 @@
         }
       }
 
+      async function canvasToFile(canvas, sourceFile) {
+        const mimeType = sourceFile.type === "image/png" ? "image/png" : "image/jpeg";
+        const quality = mimeType === "image/png" ? undefined : 0.82;
+
+        return new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error("Unable to prepare image upload"));
+              return;
+            }
+
+            const baseName = sourceFile.name.replace(/\.[^.]+$/, "") || "id-proof";
+            const extension = mimeType === "image/png" ? "png" : "jpg";
+            resolve(new File([blob], `${baseName}-compressed.${extension}`, { type: mimeType }));
+          }, mimeType, quality);
+        });
+      }
+
+      async function compressProofFile(file) {
+        if (!file || !file.type.startsWith("image/")) {
+          return file;
+        }
+
+        const imageUrl = URL.createObjectURL(file);
+
+        try {
+          const image = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error("Unable to read image"));
+            img.src = imageUrl;
+          });
+
+          const targetWidth = 1600;
+          const targetHeight = 1000;
+          const sourceRatio = image.width / image.height;
+          const targetRatio = targetWidth / targetHeight;
+
+          let sx = 0;
+          let sy = 0;
+          let sw = image.width;
+          let sh = image.height;
+
+          if (sourceRatio > targetRatio) {
+            sw = image.height * targetRatio;
+            sx = (image.width - sw) / 2;
+          } else {
+            sh = image.width / targetRatio;
+            sy = (image.height - sh) / 2;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const context = canvas.getContext("2d");
+
+          if (!context) {
+            throw new Error("Unable to prepare image upload");
+          }
+
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, targetWidth, targetHeight);
+          context.drawImage(image, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+
+          return await canvasToFile(canvas, file);
+        } finally {
+          URL.revokeObjectURL(imageUrl);
+        }
+      }
+
+      function setCheckInPreview() {
+        const now = new Date();
+        document.getElementById("checkInPreview").value = now.toLocaleString("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        });
+      }
+
       hotelLabel.textContent = hotelId || "Missing hotel";
+      frontFileName.dataset.empty = "No front image selected yet.";
+      backFileName.dataset.empty = "No back image selected yet.";
+      setCheckInPreview();
 
       if (!hotelId) {
         showSetupNotice("This page needs a hotel ID in the URL, for example ?hotel_id=hotelalibaug0001.");
@@ -223,12 +446,14 @@
         showSetupNotice("This page needs a signed access token in the URL, for example ?hotel_id=...&access=...");
       }
 
-      fileInput.addEventListener("change", () => {
-        const selectedFile = fileInput.files && fileInput.files[0];
-        fileName.textContent = selectedFile
-          ? `${selectedFile.name} • ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
-          : "No file selected yet.";
-      });
+      whatsappSameAsMobile.addEventListener("change", syncWhatsappField);
+      phoneInput.addEventListener("input", syncWhatsappField);
+      vehicleTypeInput.addEventListener("change", syncVehicleField);
+      frontFileInput.addEventListener("change", () => setFileLabel(frontFileInput, frontFileName));
+      backFileInput.addEventListener("change", () => setFileLabel(backFileInput, backFileName));
+
+      syncWhatsappField();
+      syncVehicleField();
 
       checkinForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -248,8 +473,20 @@
 
         try {
           const formData = new FormData(checkinForm);
+          const frontFile = frontFileInput.files && frontFileInput.files[0];
+          const backFile = backFileInput.files && backFileInput.files[0];
+
+          if (frontFile) {
+            formData.set("id_front_file", await compressProofFile(frontFile));
+          }
+
+          if (backFile) {
+            formData.set("id_back_file", await compressProofFile(backFile));
+          }
+
           formData.set("hotel_id", hotelId);
           formData.set("access", accessToken);
+          formData.set("whatsapp_same_as_mobile", whatsappSameAsMobile.checked ? "true" : "false");
 
           const response = await fetch("/api/checkin/submit", {
             method: "POST",
@@ -263,11 +500,16 @@
           }
 
           successGuestId.textContent = data.guestId || "-";
-          successFileId.textContent = data.googleDriveFileId || "-";
+          successFrontFileId.textContent = data.googleDriveFileIdFront || "-";
+          successBackFileId.textContent = data.googleDriveFileIdBack || "-";
           successModal.classList.remove("hidden");
           successModal.classList.add("flex");
           checkinForm.reset();
-          fileName.textContent = "No file selected yet.";
+          setCheckInPreview();
+          syncWhatsappField();
+          syncVehicleField();
+          frontFileName.textContent = frontFileName.dataset.empty;
+          backFileName.textContent = backFileName.dataset.empty;
         } catch (error) {
           showError(error instanceof Error ? error.message : "Unable to complete check-in right now.");
         } finally {

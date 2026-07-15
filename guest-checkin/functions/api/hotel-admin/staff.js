@@ -22,6 +22,33 @@ function isEmail(value) {
   return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function requireText(payload, key) {
+  const value = typeof payload[key] === "string" ? payload[key].trim() : "";
+
+  if (!value) {
+    throw new Error(`${key} is required`);
+  }
+
+  return value;
+}
+
+function optionalText(payload, key) {
+  const value = typeof payload[key] === "string" ? payload[key].trim() : "";
+  return value || null;
+}
+
+function integerOrNull(value, key, min = 0) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  if (!Number.isInteger(value) || value < min) {
+    throw new Error(`Invalid ${key}`);
+  }
+
+  return value;
+}
+
 function requireHotelAdmin(request, env) {
   const authHeader = request.headers.get("authorization");
 
@@ -35,22 +62,42 @@ function requireHotelAdmin(request, env) {
 function normalizeStaffPayload(payload) {
   const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
   const staffId = typeof payload.staff_id === "string" ? payload.staff_id.trim() : typeof payload.id === "string" ? payload.id.trim() : "";
-  const fullName = typeof payload.full_name === "string" ? payload.full_name.trim() : "";
-  const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
-  const phone = typeof payload.phone === "string" ? payload.phone.trim() : "";
+  const fullName = requireText(payload, "full_name");
+  const email = optionalText(payload, "email");
+  const phone = requireText(payload, "phone");
+  const whatsappPhone = payload.whatsapp_same_as_mobile ? phone : requireText(payload, "whatsapp_phone");
   const role = typeof payload.role === "string" ? payload.role.trim().toLowerCase() : "staff";
   const isActive = payload.is_active === false || payload.is_active === 0 ? 0 : 1;
+  const sex = requireText(payload, "sex");
+  const age = integerOrNull(payload.age, "age", 0);
+  const workingSinceMonth = requireText(payload, "working_since_month");
+  const workingSinceYear = integerOrNull(payload.working_since_year, "working_since_year", 1900);
+  const addressLine1 = requireText(payload, "address_line_1");
+  const addressCity = requireText(payload, "address_city");
+  const addressPinCode = requireText(payload, "address_pin_code");
+  const vehicleType = requireText(payload, "vehicle_type");
+  const vehicleNumber = vehicleType === "None" ? null : requireText(payload, "vehicle_number");
+  const frontFileId = optionalText(payload, "google_drive_file_id_front");
+  const backFileId = optionalText(payload, "google_drive_file_id_back");
 
   if (!isSafeId(hotelId)) {
     throw new Error("Valid hotel_id is required");
   }
 
-  if (!fullName || !isEmail(email)) {
-    throw new Error("full_name and a valid email are required");
+  if (email && !isEmail(email)) {
+    throw new Error("email must be valid");
   }
 
   if (!["admin", "manager", "frontdesk", "staff"].includes(role)) {
     throw new Error("role must be one of admin, manager, frontdesk, or staff");
+  }
+
+  if (!["Male", "Female", "Other"].includes(sex)) {
+    throw new Error("sex must be Male, Female, or Other");
+  }
+
+  if (!["None", "Car", "Motor Bike"].includes(vehicleType)) {
+    throw new Error("vehicle_type must be None, Car, or Motor Bike");
   }
 
   return {
@@ -59,8 +106,20 @@ function normalizeStaffPayload(payload) {
     fullName,
     email,
     phone,
+    whatsappPhone,
+    sex,
+    age,
+    workingSinceMonth,
+    workingSinceYear,
+    addressLine1,
+    addressCity,
+    addressPinCode,
+    vehicleType,
+    vehicleNumber,
     role,
     isActive,
+    frontFileId,
+    backFileId,
   };
 }
 
@@ -81,10 +140,22 @@ export async function onRequestGet(context) {
        id,
        hotel_id,
        full_name,
+       age,
+       sex,
+       working_since_month,
+       working_since_year,
        email,
        phone,
+       whatsapp_phone,
+       address_line_1,
+       address_city,
+       address_pin_code,
+       vehicle_type,
+       vehicle_number,
        role,
        is_active,
+       google_drive_file_id_front,
+       google_drive_file_id_back,
        created_at,
        updated_at
      FROM hotel_staff
@@ -116,17 +187,49 @@ export async function onRequestPost(context) {
 
     const result = await context.env.DB.prepare(
       `INSERT INTO hotel_staff (
-         id,
-         hotel_id,
-         full_name,
-         email,
-         phone,
-         role,
-         is_active
-       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-       RETURNING id, hotel_id, full_name, email, phone, role, is_active, created_at, updated_at`
+       id,
+       hotel_id,
+       full_name,
+       age,
+       sex,
+       working_since_month,
+       working_since_year,
+       email,
+       phone,
+        whatsapp_phone,
+       address_line_1,
+       address_city,
+       address_pin_code,
+       vehicle_type,
+       vehicle_number,
+       role,
+       is_active
+       , google_drive_file_id_front,
+       google_drive_file_id_back
+       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)
+       RETURNING id, hotel_id, full_name, age, sex, working_since_month, working_since_year, email, phone, whatsapp_phone, address_line_1, address_city, address_pin_code, vehicle_type, vehicle_number, role, is_active, google_drive_file_id_front, google_drive_file_id_back, created_at, updated_at`
     )
-      .bind(staffId, staff.hotelId, staff.fullName, staff.email, staff.phone, staff.role, staff.isActive)
+      .bind(
+        staffId,
+        staff.hotelId,
+        staff.fullName,
+        staff.age,
+        staff.sex,
+        staff.workingSinceMonth,
+        staff.workingSinceYear,
+        staff.email,
+        staff.phone,
+        staff.whatsappPhone,
+        staff.addressLine1,
+        staff.addressCity,
+        staff.addressPinCode,
+        staff.vehicleType,
+        staff.vehicleNumber,
+        staff.role,
+        staff.isActive,
+        staff.frontFileId,
+        staff.backFileId
+      )
       .first();
 
     return json({ ok: true, staff: result }, { status: 201 });
@@ -153,15 +256,47 @@ export async function onRequestPut(context) {
     const result = await context.env.DB.prepare(
       `UPDATE hotel_staff
        SET full_name = ?1,
-           email = ?2,
-           phone = ?3,
-           role = ?4,
-           is_active = ?5,
+           age = ?2,
+           sex = ?3,
+           working_since_month = ?4,
+           working_since_year = ?5,
+           email = ?6,
+           phone = ?7,
+           whatsapp_phone = ?8,
+           address_line_1 = ?9,
+           address_city = ?10,
+           address_pin_code = ?11,
+           vehicle_type = ?12,
+           vehicle_number = ?13,
+           role = ?14,
+           is_active = ?15,
+           google_drive_file_id_front = COALESCE(?16, google_drive_file_id_front),
+           google_drive_file_id_back = COALESCE(?17, google_drive_file_id_back),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?6 AND hotel_id = ?7
-       RETURNING id, hotel_id, full_name, email, phone, role, is_active, created_at, updated_at`
+       WHERE id = ?18 AND hotel_id = ?19
+       RETURNING id, hotel_id, full_name, age, sex, working_since_month, working_since_year, email, phone, whatsapp_phone, address_line_1, address_city, address_pin_code, vehicle_type, vehicle_number, role, is_active, google_drive_file_id_front, google_drive_file_id_back, created_at, updated_at`
     )
-      .bind(staff.fullName, staff.email, staff.phone, staff.role, staff.isActive, staff.staffId, staff.hotelId)
+      .bind(
+        staff.fullName,
+        staff.age,
+        staff.sex,
+        staff.workingSinceMonth,
+        staff.workingSinceYear,
+        staff.email,
+        staff.phone,
+        staff.whatsappPhone,
+        staff.addressLine1,
+        staff.addressCity,
+        staff.addressPinCode,
+        staff.vehicleType,
+        staff.vehicleNumber,
+        staff.role,
+        staff.isActive,
+        staff.frontFileId,
+        staff.backFileId,
+        staff.staffId,
+        staff.hotelId
+      )
       .first();
 
     if (!result) {

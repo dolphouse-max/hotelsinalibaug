@@ -13,7 +13,7 @@ function todayUtcDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export async function assertHotelCanAcceptGuestUploads(
+export async function assertHotelCanAcceptUploads(
   hotelId: string,
   env: Env
 ): Promise<void> {
@@ -43,4 +43,11 @@ export async function assertHotelCanAcceptGuestUploads(
   if (hotel.subscription_end_date < today) {
     throw new Error("Hotel subscription expired");
   }
+}
+
+export async function assertHotelCanAcceptGuestUploads(
+  hotelId: string,
+  env: Env
+): Promise<void> {
+  return assertHotelCanAcceptUploads(hotelId, env);
 }
