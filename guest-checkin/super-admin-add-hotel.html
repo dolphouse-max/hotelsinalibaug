@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Hotel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: {
+                950: "#08131d",
+                900: "#0f2436",
+                800: "#17344d",
+              },
+              coral: "#d98d63",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminCommon.pageChrome("Add Hotel", "Create", "Create the hotel account and its admin contact in one page. Trial dates default to a 3-month starter period."));
+      </script>
+        <div class="p-5">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            New hotels get a 3-month trial by default. You can adjust dates before creating the account.
+          </div>
+
+          <form id="hotelForm" class="mt-5 space-y-4">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            </div>
+            <div>
+              <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+              <input id="hotelName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Dolphin House">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Suggested Hotel ID</label>
+              <input id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="DolphinHouse0001">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="mobileNumber" class="mb-2 block text-sm font-medium text-slate-700">Mobile</label>
+                <input id="mobileNumber" type="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="+91-98XXXXXXXX">
+              </div>
+              <div>
+                <label for="gmailId" class="mb-2 block text-sm font-medium text-slate-700">Admin Gmail</label>
+                <input id="gmailId" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="booking@gmail.com">
+              </div>
+            </div>
+            <div>
+              <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Address</label>
+              <textarea id="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Property address or locality"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="totalRooms" class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
+                <input id="totalRooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
+              <div>
+                <label for="occupiedRooms" class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
+                <input id="occupiedRooms" type="number" min="0" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="subscriptionStartDate" class="mb-2 block text-sm font-medium text-slate-700">Start Date</label>
+                <input id="subscriptionStartDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
+              <div>
+                <label for="subscriptionEndDate" class="mb-2 block text-sm font-medium text-slate-700">End Date</label>
+                <input id="subscriptionEndDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
+            </div>
+            <div>
+              <label for="activeFlag" class="mb-2 block text-sm font-medium text-slate-700">Account Status</label>
+              <select id="activeFlag" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
+
+            <div id="formError" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div id="formSuccess" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div id="duplicatePanel" class="hidden rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+              <p class="font-semibold">Possible existing hotel found</p>
+              <p id="duplicateMessage" class="mt-2"></p>
+              <div id="duplicateList" class="mt-4 grid gap-3"></div>
+              <div class="mt-4 grid gap-3">
+                <button id="useExistingButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-amber-300 bg-white px-5 py-3 font-semibold text-amber-950">
+                  Use Existing Hotel
+                </button>
+                <button id="createAnywayButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
+                  Create Anyway
+                </button>
+              </div>
+            </div>
+
+            <button id="submitButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-4 font-semibold text-white">
+              Create Hotel
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const hotelForm = document.getElementById("hotelForm");
+      const hotelNameInput = document.getElementById("hotelName");
+      const hotelIdInput = document.getElementById("hotelId");
+      const formError = document.getElementById("formError");
+      const formSuccess = document.getElementById("formSuccess");
+      const submitButton = document.getElementById("submitButton");
+      const duplicatePanel = document.getElementById("duplicatePanel");
+      const duplicateMessage = document.getElementById("duplicateMessage");
+      const duplicateList = document.getElementById("duplicateList");
+      const useExistingButton = document.getElementById("useExistingButton");
+      const createAnywayButton = document.getElementById("createAnywayButton");
+      const subscriptionStartDateInput = document.getElementById("subscriptionStartDate");
+      const subscriptionEndDateInput = document.getElementById("subscriptionEndDate");
+      const activeFlagInput = document.getElementById("activeFlag");
+      let loadedHotels = [];
+      let pendingDuplicatePayload = null;
+      let pendingDuplicateHotels = [];
+
+      superAdminCommon.restoreToken(tokenInput);
+      subscriptionStartDateInput.value = superAdminCommon.todayDate();
+      subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
+
+      async function loadHotels() {
+        const response = await fetch("/api/super-admin/manage-hotel", {
+          headers: superAdminCommon.authHeaders(tokenInput),
+        });
+        const data = await superAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load hotels");
+        }
+        loadedHotels = data.hotels || [];
+      }
+
+      function clearFormMessages() {
+        superAdminCommon.clearMessage(formError);
+        superAdminCommon.clearMessage(formSuccess);
+        duplicatePanel.classList.add("hidden");
+        duplicateMessage.textContent = "";
+        duplicateList.innerHTML = "";
+      }
+
+      function buildCreatePayload(skipDuplicateCheck = false) {
+        const payload = {
+          hotel_id: hotelIdInput.value.trim(),
+          name: hotelNameInput.value.trim(),
+          mobile_number: document.getElementById("mobileNumber").value.trim(),
+          gmail_id: document.getElementById("gmailId").value.trim(),
+          address: document.getElementById("address").value.trim(),
+          total_rooms: Number(document.getElementById("totalRooms").value || "0"),
+          occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
+          subscription_start_date: subscriptionStartDateInput.value,
+          subscription_end_date: subscriptionEndDateInput.value,
+          is_active: Number(activeFlagInput.value),
+          auto_assign_hotel_id: true,
+        };
+
+        if (skipDuplicateCheck) {
+          payload.skip_duplicate_check = true;
+        }
+
+        return payload;
+      }
+
+      function renderDuplicatePanel(message, hotels, exactHotelIdMatch) {
+        duplicateMessage.textContent = exactHotelIdMatch
+          ? `${message} You can use the existing hotel below, or change the Hotel ID if this is a different property.`
+          : `${message} Review the existing hotel below. If it is not the same property, you can still create a new one.`;
+        duplicateList.innerHTML = "";
+
+        for (const hotel of hotels) {
+          const card = document.createElement("div");
+          card.className = "rounded-2xl border border-amber-200 bg-white px-4 py-4";
+          card.innerHTML = `
+            <p class="font-semibold text-ocean-950">${hotel.name}</p>
+            <p class="mt-2 text-slate-700">Hotel ID: <span class="font-medium">${hotel.id}</span></p>
+            <p class="mt-1 text-slate-700">Admin Gmail: <span class="font-medium">${hotel.admin_email || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Mobile: <span class="font-medium">${hotel.admin_phone || hotel.contact || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Trial End: <span class="font-medium">${hotel.subscription_end_date}</span></p>
+          `;
+          duplicateList.appendChild(card);
+        }
+
+        useExistingButton.disabled = hotels.length === 0;
+        createAnywayButton.disabled = exactHotelIdMatch;
+        createAnywayButton.textContent = exactHotelIdMatch ? "Change Hotel ID To Create New" : "Create Anyway";
+        duplicatePanel.classList.remove("hidden");
+      }
+
+      hotelNameInput.addEventListener("input", () => {
+        if (!hotelIdInput.dataset.userEdited) {
+          hotelIdInput.value = superAdminCommon.suggestHotelId(hotelNameInput.value, loadedHotels);
+        }
+      });
+
+      hotelIdInput.addEventListener("input", () => {
+        hotelIdInput.dataset.userEdited = "true";
+      });
+
+      subscriptionStartDateInput.addEventListener("change", () => {
+        if (!subscriptionEndDateInput.dataset.userEdited) {
+          subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
+        }
+      });
+
+      subscriptionEndDateInput.addEventListener("input", () => {
+        subscriptionEndDateInput.dataset.userEdited = "true";
+      });
+
+      hotelForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearFormMessages();
+        superAdminCommon.setButtonLoading(submitButton, true, "Creating...");
+
+        try {
+          superAdminCommon.saveToken(tokenInput);
+          const payload = buildCreatePayload(false);
+          const response = await fetch("/api/super-admin/manage-hotel", {
+            method: "POST",
+            headers: superAdminCommon.authHeaders(tokenInput),
+            body: JSON.stringify(payload),
+          });
+          const data = await superAdminCommon.readJson(response);
+
+          if (!response.ok) {
+            if (response.status === 409 && data.code === "duplicate_hotel") {
+              pendingDuplicatePayload = payload;
+              pendingDuplicateHotels = data.existing_hotels || [];
+              renderDuplicatePanel(data.error || "Possible duplicate hotel found.", pendingDuplicateHotels, Boolean(data.exact_hotel_id_match));
+              return;
+            }
+            throw new Error(data.error || "Unable to create hotel");
+          }
+
+          superAdminCommon.setMessage(formSuccess, `${data.hotel.name} created. Trial runs until ${data.hotel.subscription_end_date}.`, "success");
+          hotelForm.reset();
+          hotelIdInput.dataset.userEdited = "";
+          subscriptionEndDateInput.dataset.userEdited = "";
+          activeFlagInput.value = "1";
+          subscriptionStartDateInput.value = superAdminCommon.todayDate();
+          subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
+          await loadHotels();
+        } catch (error) {
+          superAdminCommon.setMessage(formError, error instanceof Error ? error.message : "Unable to create hotel", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(submitButton, false);
+        }
+      });
+
+      useExistingButton.addEventListener("click", () => {
+        if (!pendingDuplicateHotels.length) {
+          return;
+        }
+        const existing = pendingDuplicateHotels[0];
+        duplicatePanel.classList.add("hidden");
+        superAdminCommon.setMessage(formSuccess, `Using existing hotel ${existing.name} (${existing.id}). No new duplicate was created.`, "success");
+      });
+
+      createAnywayButton.addEventListener("click", async () => {
+        if (!pendingDuplicatePayload) {
+          return;
+        }
+
+        clearFormMessages();
+        superAdminCommon.setButtonLoading(createAnywayButton, true, "Creating...");
+        try {
+          const response = await fetch("/api/super-admin/manage-hotel", {
+            method: "POST",
+            headers: superAdminCommon.authHeaders(tokenInput),
+            body: JSON.stringify({ ...pendingDuplicatePayload, skip_duplicate_check: true }),
+          });
+          const data = await superAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to create hotel");
+          }
+
+          superAdminCommon.setMessage(formSuccess, `${data.hotel.name} created after duplicate review. Trial runs until ${data.hotel.subscription_end_date}.`, "success");
+          hotelForm.reset();
+          hotelIdInput.dataset.userEdited = "";
+          subscriptionEndDateInput.dataset.userEdited = "";
+          activeFlagInput.value = "1";
+          subscriptionStartDateInput.value = superAdminCommon.todayDate();
+          subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
+          pendingDuplicatePayload = null;
+          pendingDuplicateHotels = [];
+          await loadHotels();
+        } catch (error) {
+          superAdminCommon.setMessage(formError, error instanceof Error ? error.message : "Unable to create hotel", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(createAnywayButton, false);
+        }
+      });
+
+      loadHotels().catch(() => {});
+    </script>
+  </body>
+</html>

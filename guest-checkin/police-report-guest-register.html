@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Police Guest Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="police-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#111827",
+              slateblue: "#1f3b57",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f6_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(policeReportsCommon.pageChrome("Guest Register", "Register", "View guest check-in and check-out rows for the selected date range, with proof access where available."));
+      </script>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
+              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="officerName" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
+              <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+              <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+                <option value="">Load hotels after entering token</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white">Load Report</button>
+              <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div>
+              <label for="guestFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Guest</label>
+              <input id="guestFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search by guest name or mobile number">
+            </div>
+            <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+
+          <p id="guestRegisterState" class="mt-5 text-sm text-slate-600">No data loaded yet.</p>
+          <div class="mt-4 overflow-x-auto rounded-[1.5rem] border border-slate-200 bg-white">
+            <table class="min-w-full text-left text-sm">
+              <thead class="text-slate-500">
+                <tr>
+                  <th class="px-3 py-2 font-medium">Guest</th>
+                  <th class="px-3 py-2 font-medium">Room</th>
+                  <th class="px-3 py-2 font-medium">Phone</th>
+                  <th class="px-3 py-2 font-medium">ID Type</th>
+                  <th class="px-3 py-2 font-medium">Check-In</th>
+                  <th class="px-3 py-2 font-medium">Check-Out</th>
+                </tr>
+              </thead>
+              <tbody id="guestRegisterTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("policeToken");
+      const officerNameInput = document.getElementById("officerName");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const loadButton = document.getElementById("loadButton");
+      const exportButton = document.getElementById("exportButton");
+      const guestFilterInput = document.getElementById("guestFilter");
+      const errorBox = document.getElementById("errorBox");
+      const guestRegisterState = document.getElementById("guestRegisterState");
+      const guestRegisterTable = document.getElementById("guestRegisterTable");
+      let lastReportData = null;
+
+      policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+
+      async function initHotels() {
+        if (tokenInput.value.trim()) {
+          await policeReportsCommon.loadHotels(tokenInput, hotelIdInput);
+        }
+      }
+
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function applyGuestFilter(guests) {
+        const filterValue = normalizeFilterValue(guestFilterInput.value);
+        if (!filterValue) {
+          return guests;
+        }
+
+        return guests.filter((guest) => {
+          const name = normalizeFilterValue(guest.name);
+          const phone = normalizeFilterValue(guest.phone);
+          return name.includes(filterValue) || phone.includes(filterValue);
+        });
+      }
+
+      function renderGuestRegister(guests) {
+        const filteredGuests = applyGuestFilter(guests);
+        guestRegisterState.textContent = `${filteredGuests.length} guest register row${filteredGuests.length === 1 ? "" : "s"} loaded.`;
+        policeReportsCommon.renderTable(
+          guestRegisterTable,
+          filteredGuests.map((guest) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ink">${guest.name}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.room_number || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.phone || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.id_type || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.check_in_time || "-"}</td>
+              <td class="px-3 py-3 text-slate-600"><div>${guest.check_out_time || "-"}</div>${policeReportsCommon.proofButtons(guest)}</td>
+            `;
+            return tr;
+          }),
+          6,
+          "No guest register rows found for this date range."
+        );
+        policeReportsCommon.attachProofButtons(guestRegisterTable, tokenInput, officerNameInput, hotelIdInput, errorBox);
+      }
+
+      async function loadSection() {
+        policeReportsCommon.clearBox(errorBox);
+        const data = await policeReportsCommon.loadReport({ tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        renderGuestRegister(data.reports.guest_register || []);
+      }
+
+      loadButton.addEventListener("click", async () => {
+        policeReportsCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadSection();
+        } catch (error) {
+          policeReportsCommon.showBox(errorBox, error instanceof Error ? error.message : "Unable to load report", "error");
+        } finally {
+          policeReportsCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      exportButton.addEventListener("click", () => {
+        if (!lastReportData?.reports?.guest_register?.length) {
+          policeReportsCommon.showBox(errorBox, "There is no data to export yet.", "error");
+          return;
+        }
+        const rows = [["Guest Name", "Room Number", "Phone", "ID Type", "ID Number", "Check In", "Check Out"]];
+        for (const guest of applyGuestFilter(lastReportData.reports.guest_register)) {
+          rows.push([guest.name, guest.room_number, guest.phone, guest.id_type, guest.id_number, guest.check_in_time, guest.check_out_time]);
+        }
+        policeReportsCommon.downloadCsv("guest-register.csv", rows);
+      });
+
+      guestFilterInput.addEventListener("input", () => {
+        if (!lastReportData?.reports?.guest_register) {
+          return;
+        }
+        renderGuestRegister(lastReportData.reports.guest_register);
+      });
+
+      initHotels().catch(() => {});
+    </script>
+  </body>
+</html>

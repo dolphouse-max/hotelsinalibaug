@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Police Reports Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="police-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#111827",
+              slateblue: "#1f3b57",
+              signal: "#de7e4a",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f6_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(17,24,39,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#111827_0%,#1f3b57_68%,#355879_100%)] px-5 py-6 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug SaaS</p>
+          <h1 class="mt-2 text-2xl font-semibold">Police Reports</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Save the police access filters once, then open one focused report page per section on mobile.</p>
+        </div>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
+              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="officerName" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
+              <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+              <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+                <option value="">Load hotels after entering token</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <button id="saveFiltersButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white">
+              Save Report Filters
+            </button>
+            <div id="statusBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-5 grid gap-3">
+        <a href="/police-report-hotel-details.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ink">Hotel Details</p>
+          <p class="mt-1 text-sm text-slate-600">Basic hotel identity, contact details, and room occupancy snapshot.</p>
+        </a>
+        <a href="/police-report-current-guests.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ink">Current Guests</p>
+          <p class="mt-1 text-sm text-slate-600">Who is currently in-house, with proof access when available.</p>
+        </a>
+        <a href="/police-report-guest-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ink">Guest Register</p>
+          <p class="mt-1 text-sm text-slate-600">Guest history for the selected date range with proof access.</p>
+        </a>
+        <a href="/police-report-staff-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ink">Staff Register</p>
+          <p class="mt-1 text-sm text-slate-600">Hotel staff list, roles, phone numbers, and active status.</p>
+        </a>
+        <a href="/police-report-access-logs.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ink">Police Access History</p>
+          <p class="mt-1 text-sm text-slate-600">Logged access rows for the selected hotel and date range.</p>
+        </a>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("policeToken");
+      const officerNameInput = document.getElementById("officerName");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const saveFiltersButton = document.getElementById("saveFiltersButton");
+      const statusBox = document.getElementById("statusBox");
+
+      policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+
+      async function refreshHotels() {
+        try {
+          await policeReportsCommon.loadHotels(tokenInput, hotelIdInput);
+        } catch (error) {
+          policeReportsCommon.showBox(statusBox, error instanceof Error ? error.message : "Unable to load hotels", "error");
+        }
+      }
+
+      saveFiltersButton.addEventListener("click", async () => {
+        policeReportsCommon.persistFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+        policeReportsCommon.showBox(statusBox, "Report filters saved on this device.", "success");
+      });
+
+      tokenInput.addEventListener("change", refreshHotels);
+
+      if (tokenInput.value.trim()) {
+        refreshHotels();
+      }
+    </script>
+  </body>
+</html>

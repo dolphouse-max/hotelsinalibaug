@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Google Drive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Drive</span>
+      </div>
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Google Drive</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Connect the hotel Google Drive once so guest and staff document images stay in the hotel’s own account.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID">
+              </div>
+              <button id="loadButton" type="button" class="rounded-2xl bg-ocean px-5 py-3 font-semibold text-white sm:self-end">Load Status</button>
+            </div>
+          </div>
+          <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+          <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm text-slate-500">Status</p>
+            <p id="driveStatus" class="mt-1 font-semibold text-slate-900">Not loaded</p>
+            <p id="folderId" class="mt-2 break-all text-sm text-slate-600">Folder ID not available</p>
+          </div>
+
+          <div class="mt-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-amber-900">
+            Keep this connected only to the hotel’s own Google account. Police and superadmin can view proofs only through controlled in-app access, not by browsing the hotel Drive directly.
+          </div>
+
+          <div class="mt-5 grid gap-3">
+            <button id="connectButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+              Connect Google Drive
+            </button>
+            <button id="disconnectButton" type="button" disabled class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold text-slate-700 disabled:opacity-60">
+              Disconnect Google Drive
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const loadButton = document.getElementById("loadButton");
+      const connectButton = document.getElementById("connectButton");
+      const disconnectButton = document.getElementById("disconnectButton");
+      let driveState = null;
+
+      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+
+      function render(data) {
+        driveState = data;
+        document.getElementById("driveStatus").textContent = data.googleDriveConnected ? "Connected" : "Not connected";
+        document.getElementById("folderId").textContent = data.googleDriveFolderId || "Folder ID not available";
+        document.getElementById("disconnectButton").disabled = !data.googleDriveConnected;
+      }
+
+      async function loadStatus() {
+        hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
+        const response = await fetch(`/api/hotel-admin/google-drive?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`, {
+          headers: hotelAdminCommon.authHeaders(tokenInput),
+        });
+        const data = await hotelAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load Google Drive status");
+        }
+        render(data);
+      }
+
+      document.getElementById("loadButton").addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadStatus();
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      document.getElementById("connectButton").addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(connectButton, true, "Preparing...");
+        try {
+          if (!driveState) {
+            await loadStatus();
+          }
+          const url = driveState?.connectUrl || `/api/auth/google-init?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`;
+          window.location.href = url;
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+          hotelAdminCommon.setButtonLoading(connectButton, false);
+        }
+      });
+
+      document.getElementById("disconnectButton").addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(disconnectButton, true, "Disconnecting...");
+        try {
+          const response = await fetch(`/api/hotel-admin/google-drive?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`, {
+            method: "DELETE",
+            headers: hotelAdminCommon.authHeaders(tokenInput),
+          });
+          const data = await hotelAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to disconnect Google Drive");
+          }
+          await loadStatus();
+          hotelAdminCommon.setMessage(pageMessage, "Google Drive disconnected successfully.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(disconnectButton, false);
+        }
+      });
+
+      if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
+        loadStatus().catch(() => {});
+      }
+    </script>
+  </body>
+</html>

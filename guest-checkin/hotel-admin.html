@@ -6,6 +6,14 @@
     <title>Hotel Admin | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      const redirectUrl = new URL("hotel-admin-home.html", window.location.href);
+      const currentParams = new URLSearchParams(window.location.search);
+      for (const [key, value] of currentParams.entries()) {
+        redirectUrl.searchParams.set(key, value);
+      }
+      window.location.replace(redirectUrl.toString());
+    </script>
+    <script>
       tailwind.config = {
         theme: {
           extend: {

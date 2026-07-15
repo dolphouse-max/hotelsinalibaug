@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: { 950: "#08131d", 900: "#0f2436", 800: "#17344d" },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminReportsCommon.pageChrome("Hotel Register", "Register", "View the platform hotel register with contact details, room counts, and current status, then export it as CSV."));
+      </script>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div>
+              <label for="viewerName" class="mb-2 block text-sm font-medium text-slate-700">Viewer Name</label>
+              <input id="viewerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Load Report</button>
+              <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div>
+              <label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Filter Hotel / Company</label>
+              <input id="hotelFilter" list="hotelFilterOptions" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Type hotel name or hotel ID">
+              <datalist id="hotelFilterOptions"></datalist>
+            </div>
+            <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+
+          <p id="hotelRegisterState" class="mt-5 text-sm text-slate-600">No data loaded yet.</p>
+          <div class="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            Tap a hotel name to open the full hotel-level report with guests, staff, and police access history.
+          </div>
+          <div class="mt-4 overflow-x-auto rounded-[1.5rem] border border-slate-200 bg-white">
+            <table class="min-w-full text-left text-sm">
+              <thead class="text-slate-500">
+                <tr>
+                  <th class="px-3 py-2 font-medium">Hotel</th>
+                  <th class="px-3 py-2 font-medium">Hotel ID</th>
+                  <th class="px-3 py-2 font-medium">Admin Gmail</th>
+                  <th class="px-3 py-2 font-medium">Mobile</th>
+                  <th class="px-3 py-2 font-medium">Rooms</th>
+                  <th class="px-3 py-2 font-medium">Trial End</th>
+                  <th class="px-3 py-2 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody id="hotelRegisterTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const viewerNameInput = document.getElementById("viewerName");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const loadButton = document.getElementById("loadButton");
+      const exportButton = document.getElementById("exportButton");
+      const hotelFilterInput = document.getElementById("hotelFilter");
+      const hotelFilterOptions = document.getElementById("hotelFilterOptions");
+      const errorBox = document.getElementById("errorBox");
+      const hotelRegisterState = document.getElementById("hotelRegisterState");
+      const hotelRegisterTable = document.getElementById("hotelRegisterTable");
+      let lastReportData = null;
+
+      superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function hotelFilterKey(hotel) {
+        return `${hotel.name} (${hotel.id})`;
+      }
+
+      function applyHotelFilter(hotels) {
+        const filterValue = normalizeFilterValue(hotelFilterInput.value);
+        if (!filterValue) {
+          return hotels;
+        }
+
+        return hotels.filter((hotel) => {
+          const name = normalizeFilterValue(hotel.name);
+          const id = normalizeFilterValue(hotel.id);
+          const combined = normalizeFilterValue(hotelFilterKey(hotel));
+          return name.includes(filterValue) || id.includes(filterValue) || combined.includes(filterValue);
+        });
+      }
+
+      function populateHotelFilterOptions(hotels) {
+        hotelFilterOptions.innerHTML = "";
+        for (const hotel of hotels) {
+          const option = document.createElement("option");
+          option.value = hotelFilterKey(hotel);
+          hotelFilterOptions.appendChild(option);
+        }
+      }
+
+      function renderHotelRegister(hotels) {
+        const filteredHotels = applyHotelFilter(hotels);
+        hotelRegisterState.textContent = `${filteredHotels.length} hotel row${filteredHotels.length === 1 ? "" : "s"} loaded.`;
+        superAdminReportsCommon.renderTable(
+          hotelRegisterTable,
+          filteredHotels.map((hotel) => {
+            const tr = document.createElement("tr");
+            const detailUrl = new URL("/super-admin-hotel-report.html", window.location.origin);
+            detailUrl.searchParams.set("hotel_id", hotel.id);
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean-950"><a href="${detailUrl.toString()}" class="underline decoration-slate-300 underline-offset-4 hover:text-ocean-800">${hotel.name}</a></td>
+              <td class="px-3 py-3 text-slate-600">${hotel.id}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.admin_email || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.admin_phone || hotel.contact || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.occupied_rooms || 0}/${hotel.total_rooms || 0}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.subscription_end_date || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${Number(hotel.is_active) === 1 ? "Active" : "Inactive"}</td>
+            `;
+            return tr;
+          }),
+          7,
+          "No hotels found."
+        );
+      }
+
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        populateHotelFilterOptions(data.reports.hotel_register || []);
+        renderHotelRegister(data.reports.hotel_register || []);
+      }
+
+      loadButton.addEventListener("click", async () => {
+        superAdminReportsCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadReport();
+        } catch (error) {
+          superAdminReportsCommon.setMessage(errorBox, error instanceof Error ? error.message : "Unable to load report", "error");
+        } finally {
+          superAdminReportsCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      exportButton.addEventListener("click", () => {
+        if (!lastReportData?.reports?.hotel_register?.length) {
+          superAdminReportsCommon.setMessage(errorBox, "There is no data to export yet.", "error");
+          return;
+        }
+        const rows = [["Hotel Name", "Hotel ID", "Admin Gmail", "Mobile", "Occupied Rooms", "Total Rooms", "Trial Start", "Trial End", "Status"]];
+        for (const hotel of applyHotelFilter(lastReportData.reports.hotel_register)) {
+          rows.push([hotel.name, hotel.id, hotel.admin_email, hotel.admin_phone || hotel.contact, hotel.occupied_rooms, hotel.total_rooms, hotel.subscription_start_date, hotel.subscription_end_date, Number(hotel.is_active) === 1 ? "Active" : "Inactive"]);
+        }
+        superAdminReportsCommon.downloadCsv("hotel-register.csv", rows);
+      });
+
+      hotelFilterInput.addEventListener("input", () => {
+        if (!lastReportData?.reports?.hotel_register) {
+          return;
+        }
+        renderHotelRegister(lastReportData.reports.hotel_register);
+      });
+    </script>
+  </body>
+</html>

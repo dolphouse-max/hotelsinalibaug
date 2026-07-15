@@ -82,7 +82,7 @@
           </div>
         </div>
 
-        <div id="setupPanel" class="mt-5 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4">
+        <div id="setupPanel" class="mt-5 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-sm">
           <div class="flex items-center justify-between gap-3">
             <div>
               <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Device Setup</h3>
@@ -111,86 +111,106 @@
         <div id="offlineQueueBanner" class="mt-4 hidden rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"></div>
 
         <form id="checkinForm" class="mt-6 space-y-5">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label for="name" class="mb-2 block text-sm font-medium text-slate-700">Guest Name</label>
-              <input id="name" name="name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 1</p>
+              <h3 class="mt-1 text-lg font-semibold text-ocean-900">Guest basics</h3>
+              <p class="mt-1 text-sm leading-6 text-slate-600">Start with the guest’s core details exactly as they should appear in the record.</p>
             </div>
-            <div>
-              <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
-              <input id="phone" name="phone" type="tel" inputmode="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
-            </div>
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label for="age" class="mb-2 block text-sm font-medium text-slate-700">Age</label>
-              <input id="age" name="age" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
-            </div>
-            <div>
-              <label class="mb-2 block text-sm font-medium text-slate-700">Sex</label>
-              <div class="grid grid-cols-3 gap-2">
-                <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Male">Male</button>
-                <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Female">Female</button>
-                <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Other">Other</button>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="name" class="mb-2 block text-sm font-medium text-slate-700">Guest Name</label>
+                <input id="name" name="name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
               </div>
-              <input id="sex" name="sex" type="hidden" value="Male">
+              <div>
+                <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
+                <input id="phone" name="phone" type="tel" inputmode="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="age" class="mb-2 block text-sm font-medium text-slate-700">Age</label>
+                <input id="age" name="age" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Sex</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Male">Male</button>
+                  <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Female">Female</button>
+                  <button type="button" class="sex-option rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:border-lagoon" data-sex="Other">Other</button>
+                </div>
+                <input id="sex" name="sex" type="hidden" value="Male">
+              </div>
             </div>
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label for="idType" class="mb-2 block text-sm font-medium text-slate-700">ID Type</label>
-              <select id="idType" name="id_type" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
-                <option value="aadhaar">Aadhaar</option>
-                <option value="passport">Passport</option>
-                <option value="driving_licence">Driving Licence</option>
-                <option value="voter_id">Voter ID</option>
-              </select>
+          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 2</p>
+              <h3 class="mt-1 text-lg font-semibold text-ocean-900">Stay details</h3>
+              <p class="mt-1 text-sm leading-6 text-slate-600">Capture room allocation, travel direction, and expected checkout so the hotel register stays complete.</p>
             </div>
-            <div>
-              <label for="roomNumber" class="mb-2 block text-sm font-medium text-slate-700">Room Number</label>
-              <input id="roomNumber" name="room_number" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="101">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="idType" class="mb-2 block text-sm font-medium text-slate-700">ID Type</label>
+                <select id="idType" name="id_type" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                  <option value="aadhaar">Aadhaar</option>
+                  <option value="passport">Passport</option>
+                  <option value="driving_licence">Driving Licence</option>
+                  <option value="voter_id">Voter ID</option>
+                </select>
+              </div>
+              <div>
+                <label for="roomNumber" class="mb-2 block text-sm font-medium text-slate-700">Room Number</label>
+                <input id="roomNumber" name="room_number" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="101">
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Permanent Address</label>
+              <textarea id="address" name="address" rows="4" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Full permanent address"></textarea>
+            </div>
+
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="comingFrom" class="mb-2 block text-sm font-medium text-slate-700">Coming From</label>
+                <input id="comingFrom" name="coming_from" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Mumbai">
+              </div>
+              <div>
+                <label for="goingTo" class="mb-2 block text-sm font-medium text-slate-700">Going To</label>
+                <input id="goingTo" name="going_to" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Alibaug Beach">
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label for="expectedCheckOutDate" class="mb-2 block text-sm font-medium text-slate-700">Expected Check-out Date</label>
+              <input id="expectedCheckOutDate" name="expected_check_out_date" type="date" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="vehicleType" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Type</label>
+                <select id="vehicleType" name="vehicle_type" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                  <option value="None">None</option>
+                  <option value="Car">Car</option>
+                  <option value="Motor Bike">Motor Bike</option>
+                </select>
+              </div>
+              <div id="vehicleNumberWrap" class="hidden">
+                <label for="vehicleNumber" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Number</label>
+                <input id="vehicleNumber" name="vehicle_number" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="MH-06-AB-1234">
+              </div>
             </div>
           </div>
 
-          <div>
-            <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Permanent Address</label>
-            <textarea id="address" name="address" rows="4" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Full permanent address"></textarea>
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label for="comingFrom" class="mb-2 block text-sm font-medium text-slate-700">Coming From</label>
-              <input id="comingFrom" name="coming_from" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Mumbai">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 3</p>
+              <h3 class="mt-1 text-lg font-semibold text-ocean-900">ID proof capture</h3>
+              <p class="mt-1 text-sm leading-6 text-slate-600">Take clear front and back images. The app compresses them automatically before upload.</p>
             </div>
-            <div>
-              <label for="goingTo" class="mb-2 block text-sm font-medium text-slate-700">Going To</label>
-              <input id="goingTo" name="going_to" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Alibaug Beach">
-            </div>
-          </div>
-
-          <div>
-            <label for="expectedCheckOutDate" class="mb-2 block text-sm font-medium text-slate-700">Expected Check-out Date</label>
-            <input id="expectedCheckOutDate" name="expected_check_out_date" type="date" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label for="vehicleType" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Type</label>
-              <select id="vehicleType" name="vehicle_type" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
-                <option value="None">None</option>
-                <option value="Car">Car</option>
-                <option value="Motor Bike">Motor Bike</option>
-              </select>
-            </div>
-            <div id="vehicleNumberWrap" class="hidden">
-              <label for="vehicleNumber" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Number</label>
-              <input id="vehicleNumber" name="vehicle_number" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="MH-06-AB-1234">
-            </div>
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2">
             <div>
               <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Front</label>
               <label class="flex min-h-[210px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
@@ -215,6 +235,7 @@
               </label>
               <p id="backFileName" class="mt-2 text-sm text-slate-500">No back image selected yet.</p>
             </div>
+          </div>
           </div>
 
           <div id="formError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
@@ -274,6 +295,7 @@
       const vehicleTypeInput = document.getElementById("vehicleType");
       const vehicleNumberInput = document.getElementById("vehicleNumber");
       const vehicleNumberWrap = document.getElementById("vehicleNumberWrap");
+      const expectedCheckOutDateInput = document.getElementById("expectedCheckOutDate");
 
       let dbPromise;
 
@@ -650,6 +672,10 @@
         hotelIdInput.value = config.hotelId;
         apiTokenInput.value = config.apiToken;
         updateHotelLabel();
+        expectedCheckOutDateInput.min = new Date().toISOString().slice(0, 10);
+        if (!expectedCheckOutDateInput.value) {
+          expectedCheckOutDateInput.value = new Date().toISOString().slice(0, 10);
+        }
         setSex("Male");
         syncVehicleFields();
         refreshQueueBanner().catch(console.error);

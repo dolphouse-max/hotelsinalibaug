@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recent Check-Ins</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: { 950: "#08131d", 900: "#0f2436", 800: "#17344d" },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminReportsCommon.pageChrome("Recent Guest Check-Ins", "Guests", "See latest guest movement across hotels and open proof documents only when a justified audit reason is entered."));
+      </script>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div>
+              <label for="viewerName" class="mb-2 block text-sm font-medium text-slate-700">Viewer Name</label>
+              <input id="viewerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <button id="loadButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Load Report</button>
+            <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Current In-House Guests</p>
+            <p id="metricCurrentGuests" class="mt-2 text-xl font-semibold text-ocean-950">0</p>
+          </div>
+
+          <p id="checkinsState" class="mt-5 text-sm text-slate-600">No data loaded yet.</p>
+          <div id="checkinsList" class="mt-4 space-y-3"></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const viewerNameInput = document.getElementById("viewerName");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const loadButton = document.getElementById("loadButton");
+      const errorBox = document.getElementById("errorBox");
+      const metricCurrentGuests = document.getElementById("metricCurrentGuests");
+      const checkinsState = document.getElementById("checkinsState");
+      const checkinsList = document.getElementById("checkinsList");
+
+      superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+        metricCurrentGuests.textContent = data.summary.current_in_house_guests;
+        checkinsState.textContent = `${data.reports.recent_guest_checkins.length} recent guest check-in row${data.reports.recent_guest_checkins.length === 1 ? "" : "s"} loaded.`;
+        superAdminReportsCommon.renderCards(
+          checkinsList,
+          data.reports.recent_guest_checkins,
+          "No guest check-ins found for this date range.",
+          (entry) => `
+            <h3 class="text-base font-semibold text-ocean-950">${entry.name}</h3>
+            ${superAdminReportsCommon.createLine("Hotel", `${entry.hotel_name} (${entry.hotel_id})`)}
+            ${superAdminReportsCommon.createLine("Room", entry.room_number || "-")}
+            ${superAdminReportsCommon.createLine("Phone", entry.phone || "-")}
+            ${superAdminReportsCommon.createLine("Check-In", entry.check_in_time || "-")}
+            ${superAdminReportsCommon.proofButtons(entry)}
+          `
+        );
+        superAdminReportsCommon.attachProofButtons(checkinsList, tokenInput, viewerNameInput, errorBox);
+      }
+
+      loadButton.addEventListener("click", async () => {
+        superAdminReportsCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadReport();
+        } catch (error) {
+          superAdminReportsCommon.setMessage(errorBox, error instanceof Error ? error.message : "Unable to load report", "error");
+        } finally {
+          superAdminReportsCommon.setButtonLoading(loadButton, false);
+        }
+      });
+    </script>
+  </body>
+</html>

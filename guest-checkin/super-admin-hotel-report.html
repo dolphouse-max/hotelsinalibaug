@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Admin Hotel Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: { 950: "#08131d", 900: "#0f2436", 800: "#17344d" },
+              coral: "#d98d63",
+            },
+            boxShadow: {
+              resort: "0 28px 90px rgba(8, 19, 29, 0.18)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,36,54,0.16),_transparent_38%),linear-gradient(180deg,#f5f8fb_0%,#edf2f6_100%)]">
+      <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-ocean-800/70">Hotels In Alibaug SaaS</p>
+              <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ocean-950 sm:text-4xl">Hotel Drill-Down Report</h1>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                View one hotel in detail with current guests, guest register, staff register, and police access history.
+              </p>
+            </div>
+            <div class="flex gap-3">
+              <a href="/super-admin-reports-register.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Back To Hotel Register
+              </a>
+            </div>
+          </div>
+
+          <form id="reportsForm" class="mt-8 grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            </div>
+            <div>
+              <label for="viewerName" class="mb-2 block text-sm font-medium text-slate-700">Viewer Name</label>
+              <input id="viewerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Who is viewing proofs?">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" readonly>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="fromDate" class="mb-2 block text-sm font-medium text-slate-700">From</label>
+                <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+              <div>
+                <label for="toDate" class="mb-2 block text-sm font-medium text-slate-700">To</label>
+                <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              </div>
+            </div>
+            <div class="flex items-end">
+              <button id="loadButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean-950 px-5 py-4 text-base font-semibold text-white transition hover:bg-ocean-900 disabled:opacity-70">
+                <span id="loadText">Load Report</span>
+                <span id="loadSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              </button>
+            </div>
+          </form>
+
+          <div id="errorBox" class="mt-5 hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+        </section>
+
+        <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Current Guests</p>
+            <p id="metricGuests" class="mt-3 text-3xl font-semibold text-ocean-950">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Active Staff</p>
+            <p id="metricStaff" class="mt-3 text-3xl font-semibold text-ocean-950">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Occupied Rooms</p>
+            <p id="metricRooms" class="mt-3 text-3xl font-semibold text-ocean-950">0 / 0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Logged Access Rows</p>
+            <p id="metricLogs" class="mt-3 text-3xl font-semibold text-ocean-950">0</p>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <h2 class="text-2xl font-semibold text-ocean-950">Hotel Details</h2>
+            <div id="hotelDetails" class="mt-4 text-sm text-slate-600">Load a report to view hotel details.</div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Current Guests</h2>
+                <p id="currentGuestsState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+            </div>
+            <div id="currentGuestsList" class="mt-6 space-y-3"></div>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Guest Register</h2>
+                <p id="guestRegisterState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-left text-sm">
+                <thead class="text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Guest</th>
+                    <th class="px-3 py-2 font-medium">Room</th>
+                    <th class="px-3 py-2 font-medium">Phone</th>
+                    <th class="px-3 py-2 font-medium">ID Type</th>
+                    <th class="px-3 py-2 font-medium">Check-In</th>
+                    <th class="px-3 py-2 font-medium">Check-Out</th>
+                  </tr>
+                </thead>
+                <tbody id="guestRegisterTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Staff Register</h2>
+                <p id="staffRegisterState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-left text-sm">
+                <thead class="text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Staff</th>
+                    <th class="px-3 py-2 font-medium">Role</th>
+                    <th class="px-3 py-2 font-medium">Phone</th>
+                    <th class="px-3 py-2 font-medium">Email</th>
+                    <th class="px-3 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="staffRegisterTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="mt-6 rounded-[2rem] bg-white p-6 shadow-resort">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-semibold text-ocean-950">Police Access History</h2>
+              <p id="policeLogsState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+            </div>
+          </div>
+          <div class="mt-6 overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+              <thead class="text-slate-500">
+                <tr>
+                  <th class="px-3 py-2 font-medium">Officer</th>
+                  <th class="px-3 py-2 font-medium">Guest ID</th>
+                  <th class="px-3 py-2 font-medium">Accessed At</th>
+                </tr>
+              </thead>
+              <tbody id="policeLogsTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const reportsForm = document.getElementById("reportsForm");
+      const tokenInput = document.getElementById("superAdminToken");
+      const viewerNameInput = document.getElementById("viewerName");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const errorBox = document.getElementById("errorBox");
+      const loadButton = document.getElementById("loadButton");
+      const loadText = document.getElementById("loadText");
+      const loadSpinner = document.getElementById("loadSpinner");
+      const metricGuests = document.getElementById("metricGuests");
+      const metricStaff = document.getElementById("metricStaff");
+      const metricRooms = document.getElementById("metricRooms");
+      const metricLogs = document.getElementById("metricLogs");
+      const hotelDetails = document.getElementById("hotelDetails");
+      const currentGuestsState = document.getElementById("currentGuestsState");
+      const currentGuestsList = document.getElementById("currentGuestsList");
+      const guestRegisterState = document.getElementById("guestRegisterState");
+      const guestRegisterTable = document.getElementById("guestRegisterTable");
+      const staffRegisterState = document.getElementById("staffRegisterState");
+      const staffRegisterTable = document.getElementById("staffRegisterTable");
+      const policeLogsState = document.getElementById("policeLogsState");
+      const policeLogsTable = document.getElementById("policeLogsTable");
+
+      function setLoading(isLoading) {
+        loadButton.disabled = isLoading;
+        loadText.textContent = isLoading ? "Loading Report..." : "Load Report";
+        loadSpinner.classList.toggle("hidden", !isLoading);
+      }
+
+      function createLine(label, value) {
+        return `<p class="mt-1 text-sm text-slate-500">${label}: <span class="font-medium text-slate-700">${value}</span></p>`;
+      }
+
+      function renderCards(container, rows, emptyText, builder) {
+        container.innerHTML = "";
+        if (!rows.length) {
+          container.innerHTML = `<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">${emptyText}</div>`;
+          return;
+        }
+
+        for (const row of rows) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4";
+          card.innerHTML = builder(row);
+          container.appendChild(card);
+        }
+      }
+
+      function renderTable(container, rows, columns, emptyText) {
+        container.innerHTML = "";
+        if (!rows.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="${columns}" class="px-3 py-6 text-center text-sm text-slate-500">${emptyText}</td>`;
+          container.appendChild(tr);
+          return;
+        }
+
+        for (const row of rows) {
+          container.appendChild(row);
+        }
+      }
+
+      function renderReport(data) {
+        const { hotel, summary, reports } = data;
+
+        metricGuests.textContent = summary.current_in_house_guests;
+        metricStaff.textContent = summary.active_staff;
+        metricRooms.textContent = `${summary.occupied_rooms} / ${summary.total_rooms}`;
+        metricLogs.textContent = reports.police_access_logs.length;
+
+        hotelDetails.innerHTML = `
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <h3 class="text-lg font-semibold text-ocean-950">${hotel.name}</h3>
+            ${createLine("Hotel ID", hotel.id)}
+            ${createLine("Mobile", hotel.contact || "-")}
+            ${createLine("Admin Email", hotel.admin_email || "-")}
+            ${createLine("Address", hotel.address || "-")}
+            ${createLine("Rooms", `${hotel.occupied_rooms || 0}/${hotel.total_rooms || 0}`)}
+          </div>
+        `;
+
+        currentGuestsState.textContent = `${reports.current_guests.length} current guest record${reports.current_guests.length === 1 ? "" : "s"} loaded.`;
+        renderCards(
+          currentGuestsList,
+          reports.current_guests,
+          "No current guests found for this hotel.",
+          (guest) => `
+            <h3 class="text-base font-semibold text-ocean-950">${guest.name}</h3>
+            ${createLine("Room", guest.room_number || "-")}
+            ${createLine("Phone", guest.phone || "-")}
+            ${createLine("ID", `${guest.id_type || "-"} • ${guest.id_number || "-"}`)}
+            ${createLine("Check-In", guest.check_in_time || "-")}
+            ${createLine("Expected Check-Out", guest.expected_check_out_date || "-")}
+            ${superAdminReportsCommon.proofButtons(guest)}
+          `
+        );
+        superAdminReportsCommon.attachProofButtons(currentGuestsList, tokenInput, viewerNameInput, errorBox);
+
+        guestRegisterState.textContent = `${reports.guest_register.length} guest row${reports.guest_register.length === 1 ? "" : "s"} loaded.`;
+        renderTable(
+          guestRegisterTable,
+          reports.guest_register.map((guest) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean-950">${guest.name}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.room_number || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.phone || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.id_type || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.check_in_time || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${guest.check_out_time || "Current"}</td>
+            `;
+            return tr;
+          }),
+          6,
+          "No guest register rows found."
+        );
+
+        staffRegisterState.textContent = `${reports.staff_register.length} staff row${reports.staff_register.length === 1 ? "" : "s"} loaded.`;
+        renderTable(
+          staffRegisterTable,
+          reports.staff_register.map((staff) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean-950">${staff.full_name || staff.id}</td>
+              <td class="px-3 py-3 text-slate-600">${staff.role || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${staff.phone || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${staff.email || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${Number(staff.is_active) === 1 ? "Active" : "Inactive"}</td>
+            `;
+            return tr;
+          }),
+          5,
+          "No staff register rows found."
+        );
+
+        policeLogsState.textContent = `${reports.police_access_logs.length} police access row${reports.police_access_logs.length === 1 ? "" : "s"} loaded.`;
+        renderTable(
+          policeLogsTable,
+          reports.police_access_logs.map((log) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean-950">${log.officer_name}</td>
+              <td class="px-3 py-3 text-slate-600">${log.guest_id}</td>
+              <td class="px-3 py-3 text-slate-600">${log.accessed_at}</td>
+            `;
+            return tr;
+          }),
+          3,
+          "No police access logs found."
+        );
+      }
+
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        const hotelId = params.get("hotel_id") || hotelIdInput.value.trim();
+        if (!hotelId) {
+          throw new Error("hotel_id is required in the page link.");
+        }
+
+        localStorage.setItem("super_admin_token", tokenInput.value.trim());
+        localStorage.setItem("super_admin_viewer_name", viewerNameInput.value.trim());
+        localStorage.setItem("super_admin_reports_from", fromDateInput.value);
+        localStorage.setItem("super_admin_reports_to", toDateInput.value);
+
+        const url = new URL("/api/super-admin/hotel-report", window.location.origin);
+        url.searchParams.set("hotel_id", hotelId);
+        if (fromDateInput.value) {
+          url.searchParams.set("from", fromDateInput.value);
+        }
+        if (toDateInput.value) {
+          url.searchParams.set("to", toDateInput.value);
+        }
+
+        const response = await fetch(url.toString(), {
+          headers: {
+            Authorization: `Bearer ${tokenInput.value.trim()}`,
+          },
+        });
+        const data = await superAdminReportsCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load hotel report");
+        }
+        renderReport(data);
+      }
+
+      reportsForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        try {
+          await loadReport();
+        } catch (error) {
+          superAdminReportsCommon.setMessage(errorBox, error instanceof Error ? error.message : "Unable to load hotel report", "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      tokenInput.value = localStorage.getItem("super_admin_token") || "";
+      viewerNameInput.value = localStorage.getItem("super_admin_viewer_name") || "";
+      fromDateInput.value = localStorage.getItem("super_admin_reports_from") || superAdminReportsCommon.formatDateOffset(29);
+      toDateInput.value = localStorage.getItem("super_admin_reports_to") || superAdminReportsCommon.formatDateOffset(0);
+      hotelIdInput.value = params.get("hotel_id") || "";
+
+      if (hotelIdInput.value && tokenInput.value.trim() && viewerNameInput.value.trim()) {
+        setLoading(true);
+        loadReport()
+          .catch((error) => {
+            superAdminReportsCommon.setMessage(errorBox, error instanceof Error ? error.message : "Unable to load hotel report", "error");
+          })
+          .finally(() => setLoading(false));
+      }
+    </script>
+  </body>
+</html>

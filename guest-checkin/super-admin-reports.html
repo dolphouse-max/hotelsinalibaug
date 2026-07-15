@@ -33,6 +33,10 @@
     </script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-900">
+    <script>
+      const redirectUrl = new URL("super-admin-reports-home.html", window.location.href);
+      window.location.replace(redirectUrl.toString());
+    </script>
     <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,36,54,0.16),_transparent_38%),linear-gradient(180deg,#f5f8fb_0%,#edf2f6_100%)]">
       <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
@@ -54,10 +58,14 @@
             </div>
           </div>
 
-          <form id="reportsForm" class="mt-8 grid gap-4 md:grid-cols-[1.1fr_1fr_1fr_auto]">
+          <form id="reportsForm" class="mt-8 grid gap-4 md:grid-cols-[1.1fr_1fr_1fr_1fr_auto]">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
               <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            </div>
+            <div>
+              <label for="viewerName" class="mb-2 block text-sm font-medium text-slate-700">Viewer Name</label>
+              <input id="viewerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Who is viewing proofs?">
             </div>
             <div>
               <label for="fromDate" class="mb-2 block text-sm font-medium text-slate-700">From</label>
@@ -181,6 +189,7 @@
 
     <script>
       const tokenInput = document.getElementById("superAdminToken");
+      const viewerNameInput = document.getElementById("viewerName");
       const fromDateInput = document.getElementById("fromDate");
       const toDateInput = document.getElementById("toDate");
       const reportsForm = document.getElementById("reportsForm");
@@ -299,6 +308,96 @@
         URL.revokeObjectURL(url);
       }
 
+      function buildProofUrl(hotelId, guestId, side, reason) {
+        const url = new URL("/api/super-admin/guest-proof", window.location.origin);
+        url.searchParams.set("hotel_id", hotelId);
+        url.searchParams.set("guest_id", guestId);
+        url.searchParams.set("side", side);
+        url.searchParams.set("viewer_name", viewerNameInput.value.trim());
+        url.searchParams.set("reason", reason);
+        return url.toString();
+      }
+
+      async function openProofDocument(url, token) {
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.error || "Unable to open guest proof");
+          }
+
+          throw new Error("Unable to open guest proof");
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const proofWindow = window.open(objectUrl, "_blank", "noopener,noreferrer");
+        if (!proofWindow) {
+          URL.revokeObjectURL(objectUrl);
+          throw new Error("Popup was blocked while opening guest proof");
+        }
+
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      }
+
+      function proofButtons(entry) {
+        const hasFront = Boolean(entry.google_drive_file_id_front);
+        const hasBack = Boolean(entry.google_drive_file_id_back);
+
+        return `
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950 disabled:cursor-not-allowed disabled:opacity-50" data-hotel-id="${entry.hotel_id}" data-guest-id="${entry.id}" data-side="front" ${hasFront ? "" : "disabled"}>
+              View Front ID
+            </button>
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950 disabled:cursor-not-allowed disabled:opacity-50" data-hotel-id="${entry.hotel_id}" data-guest-id="${entry.id}" data-side="back" ${hasBack ? "" : "disabled"}>
+              View Back ID
+            </button>
+          </div>
+        `;
+      }
+
+      function attachProofButtons(scope) {
+        for (const button of scope.querySelectorAll(".proof-button")) {
+          button.addEventListener("click", async () => {
+            const token = tokenInput.value.trim();
+            const viewerName = viewerNameInput.value.trim();
+            const hotelId = button.dataset.hotelId;
+            const guestId = button.dataset.guestId;
+            const side = button.dataset.side;
+
+            if (!token) {
+              showError("Please enter your Super Admin token.");
+              return;
+            }
+
+            if (!viewerName) {
+              showError("Please enter the viewer name before opening guest proofs.");
+              return;
+            }
+
+            const reason = window.prompt("Enter the reason for viewing this guest proof:");
+            if (!reason || !reason.trim()) {
+              showError("A reason is required before opening guest proofs.");
+              return;
+            }
+
+            try {
+              clearError();
+              localStorage.setItem("super_admin_viewer_name", viewerName);
+              await openProofDocument(buildProofUrl(hotelId, guestId, side, reason.trim()), token);
+            } catch (error) {
+              showError(error instanceof Error ? error.message : "Unable to open guest proof.");
+            }
+          });
+        }
+      }
+
       function renderReport(data) {
         lastReportData = data;
         const { summary, reports } = data;
@@ -342,8 +441,10 @@
             ${createLine("Room", entry.room_number || "-")}
             ${createLine("Phone", entry.phone || "-")}
             ${createLine("Check-In", entry.check_in_time || "-")}
+            ${proofButtons(entry)}
           `
         );
+        attachProofButtons(checkinsList);
 
         hotelRegisterState.textContent = `${reports.hotel_register.length} hotel row${reports.hotel_register.length === 1 ? "" : "s"} loaded.`;
         renderTable(
@@ -386,9 +487,15 @@
       async function loadReports() {
         clearError();
         const token = tokenInput.value.trim();
+        const viewerName = viewerNameInput.value.trim();
 
         if (!token) {
           showError("Please enter your Super Admin token.");
+          return;
+        }
+
+        if (!viewerName) {
+          showError("Please enter the viewer name.");
           return;
         }
 
@@ -396,6 +503,7 @@
 
         try {
           localStorage.setItem("super_admin_token", token);
+          localStorage.setItem("super_admin_viewer_name", viewerName);
           const url = new URL("/api/super-admin/reports", window.location.origin);
           if (fromDateInput.value) {
             url.searchParams.set("from", fromDateInput.value);
@@ -456,6 +564,7 @@
       });
 
       tokenInput.value = localStorage.getItem("super_admin_token") || "";
+      viewerNameInput.value = localStorage.getItem("super_admin_viewer_name") || "";
       fromDateInput.value = formatDateOffset(29);
       toDateInput.value = formatDateOffset(0);
     </script>

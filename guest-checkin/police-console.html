@@ -175,6 +175,82 @@
         lookupSpinner.classList.toggle("hidden", !isLoading);
       }
 
+      function buildProofUrl(guestId, side) {
+        const url = new URL("/api/police/guest-proof", window.location.origin);
+        url.searchParams.set("hotel_id", document.getElementById("hotelId").value.trim());
+        url.searchParams.set("guest_id", guestId);
+        url.searchParams.set("side", side);
+        url.searchParams.set("officer_name", document.getElementById("officerName").value.trim());
+        return url.toString();
+      }
+
+      async function openProofDocument(url, token) {
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.error || "Unable to open guest proof");
+          }
+
+          throw new Error("Unable to open guest proof");
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const proofWindow = window.open(objectUrl, "_blank", "noopener,noreferrer");
+        if (!proofWindow) {
+          URL.revokeObjectURL(objectUrl);
+          throw new Error("Popup was blocked while opening guest proof");
+        }
+
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      }
+
+      function proofButtons(guest) {
+        const hasFront = Boolean(guest.google_drive_file_id_front);
+        const hasBack = Boolean(guest.google_drive_file_id_back);
+
+        return `
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slateblue hover:text-ink disabled:cursor-not-allowed disabled:opacity-50" data-guest-id="${guest.id}" data-side="front" ${hasFront ? "" : "disabled"}>
+              View Front ID
+            </button>
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slateblue hover:text-ink disabled:cursor-not-allowed disabled:opacity-50" data-guest-id="${guest.id}" data-side="back" ${hasBack ? "" : "disabled"}>
+              View Back ID
+            </button>
+          </div>
+        `;
+      }
+
+      function attachProofButtons(scope) {
+        for (const button of scope.querySelectorAll(".proof-button")) {
+          button.addEventListener("click", async () => {
+            const token = tokenInput.value.trim();
+            const guestId = button.dataset.guestId;
+            const side = button.dataset.side;
+
+            if (!token || !guestId || !side) {
+              showMessage(policeError, "Police token, guest, or proof side is missing.");
+              return;
+            }
+
+            try {
+              policeError.classList.add("hidden");
+              policeError.textContent = "";
+              await openProofDocument(buildProofUrl(guestId, side), token);
+            } catch (error) {
+              showMessage(policeError, error instanceof Error ? error.message : "Unable to open guest proof.");
+            }
+          });
+        }
+      }
+
       function renderResults(guests, officerName) {
         resultsList.innerHTML = "";
 
@@ -201,12 +277,15 @@
                 <p class="mt-1"><span class="font-semibold text-ink">ID Number:</span> ${guest.id_number}</p>
                 <p class="mt-1"><span class="font-semibold text-ink">Check-in:</span> ${guest.check_in_time}</p>
                 <p class="mt-1"><span class="font-semibold text-ink">Check-out:</span> ${guest.check_out_time || "Still checked in"}</p>
+                ${proofButtons(guest)}
               </div>
             </div>
           `;
 
           resultsList.appendChild(card);
         }
+
+        attachProofButtons(resultsList);
       }
 
       async function readJson(response) {

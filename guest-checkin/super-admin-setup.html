@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Admin Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: {
+                950: "#08131d",
+                900: "#0f2436",
+                800: "#17344d",
+              },
+              coral: "#d98d63",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminCommon.pageChrome("Access Setup", "Setup", "Save the superadmin token locally on this device so the mobile workflow stays quick and simple."));
+      </script>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            </div>
+            <button id="saveTokenButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
+              Save Token On This Device
+            </button>
+            <button id="verifyTokenButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Verify Token By Loading Hotels
+            </button>
+            <div id="tokenStatus" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const saveTokenButton = document.getElementById("saveTokenButton");
+      const verifyTokenButton = document.getElementById("verifyTokenButton");
+      const tokenStatus = document.getElementById("tokenStatus");
+
+      superAdminCommon.restoreToken(tokenInput);
+
+      saveTokenButton.addEventListener("click", () => {
+        superAdminCommon.saveToken(tokenInput);
+        superAdminCommon.setMessage(tokenStatus, "Superadmin token saved on this device.", "success");
+      });
+
+      verifyTokenButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(tokenStatus);
+        superAdminCommon.setButtonLoading(verifyTokenButton, true, "Verifying...");
+        try {
+          const response = await fetch("/api/super-admin/manage-hotel", {
+            headers: superAdminCommon.authHeaders(tokenInput),
+          });
+          const data = await superAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to verify token");
+          }
+          superAdminCommon.saveToken(tokenInput);
+          superAdminCommon.setMessage(tokenStatus, `Token verified. ${data.hotels?.length || 0} hotel accounts are accessible.`, "success");
+        } catch (error) {
+          superAdminCommon.setMessage(tokenStatus, error instanceof Error ? error.message : "Unable to verify token", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(verifyTokenButton, false);
+        }
+      });
+    </script>
+  </body>
+</html>

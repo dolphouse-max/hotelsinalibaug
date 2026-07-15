@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+              shell: "#f6efe3",
+              breeze: "#9bc8c2",
+              sunset: "#dc8f67",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Profile</span>
+      </div>
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Profile & Subscription</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Review your hotel account, keep contact details current, and make sure room counts stay accurate.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID">
+              </div>
+              <button id="loadButton" type="button" class="rounded-2xl bg-ocean px-5 py-3 font-semibold text-white sm:self-end">Load Hotel</button>
+            </div>
+          </div>
+          <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-sm text-slate-500">Account Status</p>
+              <p id="accountStatus" class="mt-1 font-semibold text-slate-900">Not loaded</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-sm text-slate-500">Paid Through</p>
+              <p id="paidThrough" class="mt-1 font-semibold text-slate-900">Not loaded</p>
+            </div>
+          </div>
+
+          <form id="profileForm" class="mt-5 space-y-4">
+            <div>
+              <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+              <input id="hotelName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Name">
+            </div>
+            <div>
+              <label for="contact" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
+              <input id="contact" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Mobile Number">
+            </div>
+            <div>
+              <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Hotel Address</label>
+              <textarea id="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Address"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="totalRooms" class="mb-2 block text-sm font-medium text-slate-700">Total Rooms</label>
+                <input id="totalRooms" type="number" min="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="0">
+              </div>
+              <div>
+                <label for="occupiedRooms" class="mb-2 block text-sm font-medium text-slate-700">Occupied Rooms</label>
+                <input id="occupiedRooms" type="number" min="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="0">
+              </div>
+            </div>
+            <button id="saveButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+              Save Profile
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const loadButton = document.getElementById("loadButton");
+      const saveButton = document.getElementById("saveButton");
+
+      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+
+      function fill(hotel) {
+        document.getElementById("hotelName").value = hotel.name || "";
+        document.getElementById("contact").value = hotel.contact || "";
+        document.getElementById("address").value = hotel.address || "";
+        document.getElementById("totalRooms").value = hotel.total_rooms ?? 0;
+        document.getElementById("occupiedRooms").value = hotel.occupied_rooms ?? 0;
+        document.getElementById("accountStatus").textContent = hotel.is_active === 1 ? "Active" : "Inactive";
+        document.getElementById("paidThrough").textContent = hotel.subscription_end_date || "Not set";
+      }
+
+      async function loadHotel() {
+        hotelAdminCommon.clearMessage(pageMessage);
+        const hotel = await hotelAdminCommon.loadHotelProfile(tokenInput, hotelIdInput);
+        fill(hotel);
+      }
+
+      document.getElementById("loadButton").addEventListener("click", async () => {
+        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadHotel();
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      document.getElementById("profileForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(saveButton, true, "Saving...");
+        try {
+          const response = await fetch("/api/hotel-admin/profile", {
+            method: "PUT",
+            headers: hotelAdminCommon.authHeaders(tokenInput),
+            body: JSON.stringify({
+              hotel_id: hotelIdInput.value.trim(),
+              name: document.getElementById("hotelName").value.trim(),
+              contact: document.getElementById("contact").value.trim(),
+              address: document.getElementById("address").value.trim(),
+              total_rooms: Number(document.getElementById("totalRooms").value || "0"),
+              occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
+            }),
+          });
+          const data = await hotelAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to save profile");
+          }
+          fill(data.hotel);
+          hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
+          hotelAdminCommon.setMessage(pageMessage, "Hotel profile updated successfully.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(saveButton, false);
+        }
+      });
+
+      if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
+        loadHotel().catch(() => {});
+      }
+    </script>
+  </body>
+</html>

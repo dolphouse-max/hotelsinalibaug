@@ -146,6 +146,8 @@ export async function onRequestGet(context) {
          g.room_number,
          g.phone,
          g.check_in_time,
+         g.google_drive_file_id_front,
+         g.google_drive_file_id_back,
          h.id AS hotel_id,
          h.name AS hotel_name
        FROM guests g

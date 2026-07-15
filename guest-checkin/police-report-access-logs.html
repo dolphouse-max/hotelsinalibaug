@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Police Access History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="police-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#111827",
+              slateblue: "#1f3b57",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f6_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(policeReportsCommon.pageChrome("Police Access History", "Logs", "View and export access history rows recorded for the selected hotel."));
+      </script>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
+              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="officerName" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
+              <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
+              <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+                <option value="">Load hotels after entering token</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white">Load Report</button>
+              <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Logged Access Rows</p>
+            <p id="metricLogs" class="mt-2 text-xl font-semibold text-ink">0</p>
+          </div>
+
+          <p id="policeLogsState" class="mt-5 text-sm text-slate-600">No data loaded yet.</p>
+          <div class="mt-4 overflow-x-auto rounded-[1.5rem] border border-slate-200 bg-white">
+            <table class="min-w-full text-left text-sm">
+              <thead class="text-slate-500">
+                <tr>
+                  <th class="px-3 py-2 font-medium">Officer</th>
+                  <th class="px-3 py-2 font-medium">Guest ID</th>
+                  <th class="px-3 py-2 font-medium">Accessed At</th>
+                </tr>
+              </thead>
+              <tbody id="policeLogsTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("policeToken");
+      const officerNameInput = document.getElementById("officerName");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const loadButton = document.getElementById("loadButton");
+      const exportButton = document.getElementById("exportButton");
+      const errorBox = document.getElementById("errorBox");
+      const metricLogs = document.getElementById("metricLogs");
+      const policeLogsState = document.getElementById("policeLogsState");
+      const policeLogsTable = document.getElementById("policeLogsTable");
+      let lastReportData = null;
+
+      policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+
+      async function initHotels() {
+        if (tokenInput.value.trim()) {
+          await policeReportsCommon.loadHotels(tokenInput, hotelIdInput);
+        }
+      }
+
+      function renderLogs(logs) {
+        metricLogs.textContent = logs.length;
+        policeLogsState.textContent = `${logs.length} access history row${logs.length === 1 ? "" : "s"} loaded.`;
+        policeReportsCommon.renderTable(
+          policeLogsTable,
+          logs.map((log) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ink">${log.officer_name}</td>
+              <td class="px-3 py-3 text-slate-600">${log.guest_id}</td>
+              <td class="px-3 py-3 text-slate-600">${log.accessed_at}</td>
+            `;
+            return tr;
+          }),
+          3,
+          "No police access history found."
+        );
+      }
+
+      async function loadSection() {
+        policeReportsCommon.clearBox(errorBox);
+        const data = await policeReportsCommon.loadReport({ tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        renderLogs(data.reports.police_access_logs || []);
+      }
+
+      loadButton.addEventListener("click", async () => {
+        policeReportsCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadSection();
+        } catch (error) {
+          policeReportsCommon.showBox(errorBox, error instanceof Error ? error.message : "Unable to load report", "error");
+        } finally {
+          policeReportsCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      exportButton.addEventListener("click", () => {
+        if (!lastReportData?.reports?.police_access_logs?.length) {
+          policeReportsCommon.showBox(errorBox, "There is no data to export yet.", "error");
+          return;
+        }
+        const rows = [["Officer Name", "Guest ID", "Accessed At"]];
+        for (const log of lastReportData.reports.police_access_logs) {
+          rows.push([log.officer_name, log.guest_id, log.accessed_at]);
+        }
+        policeReportsCommon.downloadCsv("police-access-history.csv", rows);
+      });
+
+      initHotels().catch(() => {});
+    </script>
+  </body>
+</html>

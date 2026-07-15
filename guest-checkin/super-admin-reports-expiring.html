@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Expiring Hotels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: { 950: "#08131d", 900: "#0f2436", 800: "#17344d" },
+              coral: "#d98d63",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminReportsCommon.pageChrome("Hotels Expiring Soon", "Expiry", "View expiring hotel subscriptions, reminder windows, and export the result as CSV."));
+      </script>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div>
+              <label for="viewerName" class="mb-2 block text-sm font-medium text-slate-700">Viewer Name</label>
+              <input id="viewerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Load Report</button>
+              <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Total Hotels</p>
+              <p id="metricHotels" class="mt-2 text-xl font-semibold text-ocean-950">0</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Reminder Window</p>
+              <p id="metricReminderHotels" class="mt-2 text-xl font-semibold text-coral">0</p>
+            </div>
+          </div>
+
+          <p id="expiringState" class="mt-5 text-sm text-slate-600">No data loaded yet.</p>
+          <div id="expiringList" class="mt-4 space-y-3"></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const viewerNameInput = document.getElementById("viewerName");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const loadButton = document.getElementById("loadButton");
+      const exportButton = document.getElementById("exportButton");
+      const errorBox = document.getElementById("errorBox");
+      const metricHotels = document.getElementById("metricHotels");
+      const metricReminderHotels = document.getElementById("metricReminderHotels");
+      const expiringState = document.getElementById("expiringState");
+      const expiringList = document.getElementById("expiringList");
+      let lastReportData = null;
+
+      superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        localStorage.setItem("super_admin_token", tokenInput.value.trim());
+        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        metricHotels.textContent = data.summary.total_hotels;
+        metricReminderHotels.textContent = data.summary.hotels_in_reminder_window;
+        expiringState.textContent = `${data.reports.expiring_hotels.length} hotel${data.reports.expiring_hotels.length === 1 ? "" : "s"} expiring within 30 days.`;
+        superAdminReportsCommon.renderCards(
+          expiringList,
+          data.reports.expiring_hotels,
+          "No hotel subscriptions are expiring within 30 days.",
+          (hotel) => `
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="text-base font-semibold text-ocean-950">${hotel.name}</h3>
+                ${superAdminReportsCommon.createLine("Hotel ID", hotel.id)}
+                ${superAdminReportsCommon.createLine("Admin Gmail", hotel.admin_email || "Not set")}
+                ${superAdminReportsCommon.createLine("Rooms", `${hotel.occupied_rooms || 0}/${hotel.total_rooms || 0}`)}
+              </div>
+              <span class="rounded-full ${Number(hotel.is_active) === 1 ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"} px-3 py-1 text-xs font-semibold">
+                ${Number(hotel.is_active) === 1 ? "Active" : "Inactive"}
+              </span>
+            </div>
+            ${superAdminReportsCommon.createLine("Trial End", hotel.subscription_end_date || "-")}
+            ${superAdminReportsCommon.createLine("Days Until Expiry", hotel.days_until_expiry ?? "-")}
+            ${hotel.payment_reminder_active ? `<div class="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">${hotel.payment_reminder_message}</div>` : ""}
+          `
+        );
+      }
+
+      loadButton.addEventListener("click", async () => {
+        superAdminReportsCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadReport();
+        } catch (error) {
+          superAdminReportsCommon.setMessage(errorBox, error instanceof Error ? error.message : "Unable to load report", "error");
+        } finally {
+          superAdminReportsCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      exportButton.addEventListener("click", () => {
+        if (!lastReportData?.reports?.expiring_hotels?.length) {
+          superAdminReportsCommon.setMessage(errorBox, "There is no data to export yet.", "error");
+          return;
+        }
+        const rows = [["Hotel Name", "Hotel ID", "Admin Gmail", "Mobile", "Occupied Rooms", "Total Rooms", "Trial End", "Status"]];
+        for (const hotel of lastReportData.reports.expiring_hotels) {
+          rows.push([hotel.name, hotel.id, hotel.admin_email, hotel.contact, hotel.occupied_rooms, hotel.total_rooms, hotel.subscription_end_date, Number(hotel.is_active) === 1 ? "Active" : "Inactive"]);
+        }
+        superAdminReportsCommon.downloadCsv("expiring-hotels.csv", rows);
+      });
+    </script>
+  </body>
+</html>

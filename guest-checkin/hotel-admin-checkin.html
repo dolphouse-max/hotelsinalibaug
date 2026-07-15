@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Guest QR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script src="qrcode.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Check-In</span>
+      </div>
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Guest QR & Link</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Generate one hotel-specific check-in link that guests can open on their own device by scanning the QR code.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID">
+              </div>
+              <button id="generateButton" type="button" class="rounded-2xl bg-ocean px-5 py-3 font-semibold text-white sm:self-end">Generate</button>
+            </div>
+          </div>
+          <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+          <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <p class="text-sm font-semibold text-ocean">Reception tip</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Open this page on the reception phone, generate the QR once, and let the guest scan it from their own phone to fill the form separately.</p>
+          </div>
+
+          <textarea id="checkinLinkOutput" rows="4" readonly class="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">No check-in link generated yet.</textarea>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <button id="copyButton" type="button" disabled class="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 disabled:opacity-60">
+              Copy Link
+            </button>
+            <button id="openButton" type="button" disabled class="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 disabled:opacity-60">
+              Open Link
+            </button>
+          </div>
+
+          <div class="mt-5 flex min-h-[320px] items-center justify-center rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+            <div id="checkinQrImage" class="hidden rounded-2xl border border-slate-200 bg-white p-3"></div>
+            <p id="checkinQrPlaceholder" class="max-w-xs text-center text-sm leading-6 text-slate-500">Generate a hotel-specific link and the QR code will appear here.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const generateButton = document.getElementById("generateButton");
+      let checkinUrl = "";
+
+      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+
+      function renderQrCode(value) {
+        const qr = qrcode(0, "M");
+        qr.addData(value);
+        qr.make();
+        document.getElementById("checkinQrImage").innerHTML = qr.createSvgTag(6, 12);
+      }
+
+      document.getElementById("generateButton").addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(generateButton, true, "Generating...");
+        try {
+          hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
+          const response = await fetch(`/api/hotel-admin/checkin-link?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`, {
+            headers: hotelAdminCommon.authHeaders(tokenInput),
+          });
+          const data = await hotelAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to create check-in link");
+          }
+
+          checkinUrl = data.checkinUrl;
+          document.getElementById("checkinLinkOutput").value = checkinUrl;
+          renderQrCode(checkinUrl);
+          document.getElementById("checkinQrImage").classList.remove("hidden");
+          document.getElementById("checkinQrPlaceholder").classList.add("hidden");
+          document.getElementById("copyButton").disabled = false;
+          document.getElementById("openButton").disabled = false;
+          hotelAdminCommon.setMessage(pageMessage, "Guest check-in QR generated successfully.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(generateButton, false);
+        }
+      });
+
+      document.getElementById("copyButton").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(checkinUrl);
+          hotelAdminCommon.setMessage(pageMessage, "Check-in link copied.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        }
+      });
+
+      document.getElementById("openButton").addEventListener("click", () => {
+        if (checkinUrl) {
+          window.open(checkinUrl, "_blank", "noopener,noreferrer");
+        }
+      });
+    </script>
+  </body>
+</html>

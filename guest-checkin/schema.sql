@@ -113,6 +113,18 @@ CREATE TABLE IF NOT EXISTS hotel_subscription_payments (
   FOREIGN KEY (renewal_request_id) REFERENCES hotel_renewal_requests(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS super_admin_proof_access_logs (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  viewer_name TEXT NOT NULL,
+  access_reason TEXT NOT NULL,
+  hotel_id TEXT NOT NULL,
+  guest_id TEXT NOT NULL,
+  document_side TEXT NOT NULL CHECK (document_side IN ('front', 'back')),
+  accessed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+  FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_hotels_is_active ON hotels(is_active);
 CREATE INDEX IF NOT EXISTS idx_hotels_subscription_end_date ON hotels(subscription_end_date);
 CREATE INDEX IF NOT EXISTS idx_hotel_staff_hotel_id ON hotel_staff(hotel_id);
@@ -126,3 +138,5 @@ CREATE INDEX IF NOT EXISTS idx_renewal_requests_hotel_id ON hotel_renewal_reques
 CREATE INDEX IF NOT EXISTS idx_renewal_requests_status ON hotel_renewal_requests(status);
 CREATE INDEX IF NOT EXISTS idx_subscription_payments_hotel_id ON hotel_subscription_payments(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_subscription_payments_payment_date ON hotel_subscription_payments(payment_date);
+CREATE INDEX IF NOT EXISTS idx_super_admin_proof_logs_hotel_id ON super_admin_proof_access_logs(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_super_admin_proof_logs_guest_id ON super_admin_proof_access_logs(guest_id);

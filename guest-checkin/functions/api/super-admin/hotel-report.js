@@ -22,14 +22,14 @@ function isIsoDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
-function requirePoliceAccess(request, env) {
+function requireSuperAdmin(request, env) {
   const authHeader = request.headers.get("authorization");
 
-  if (!env.POLICE_ACCESS_TOKEN || !authHeader?.startsWith("Bearer ")) {
+  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
     return false;
   }
 
-  return authHeader.slice("Bearer ".length).trim() === env.POLICE_ACCESS_TOKEN;
+  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
 }
 
 async function getTableColumns(db, tableName) {
@@ -62,47 +62,16 @@ async function countValue(statement) {
   return Number(row?.count || 0);
 }
 
-async function insertPoliceLogs(db, officerName, guests, logColumns) {
-  if (!guests.length) {
-    return;
-  }
-
-  const supportsHotelId = logColumns.has("hotel_id");
-  const statements = guests.map((guest) =>
-    supportsHotelId
-      ? db.prepare(
-          `INSERT INTO police_access_logs (
-             officer_name,
-             guest_id,
-             hotel_id
-           ) VALUES (?1, ?2, ?3)`
-        ).bind(officerName, guest.id, guest.hotel_id)
-      : db.prepare(
-          `INSERT INTO police_access_logs (
-             officer_name,
-             guest_id
-           ) VALUES (?1, ?2)`
-        ).bind(officerName, guest.id)
-  );
-
-  await db.batch(statements);
-}
-
 export async function onRequestGet(context) {
-  if (!requirePoliceAccess(context.request, context.env)) {
+  if (!requireSuperAdmin(context.request, context.env)) {
     return unauthorized();
   }
 
   try {
     const url = new URL(context.request.url);
-    const officerName = url.searchParams.get("officer_name")?.trim() || "";
     const hotelId = url.searchParams.get("hotel_id")?.trim() || "";
     const fromDate = url.searchParams.get("from") || formatDateOffset(29);
     const toDate = url.searchParams.get("to") || formatDateOffset(0);
-
-    if (!officerName) {
-      return badRequest("officer_name is required");
-    }
 
     if (!isSafeHotelId(hotelId)) {
       return badRequest("Valid hotel_id is required");
@@ -132,7 +101,7 @@ export async function onRequestGet(context) {
          h.total_rooms,
          h.occupied_rooms,
          hs.email AS admin_email,
-       hs.phone AS admin_phone
+         hs.phone AS admin_phone
        FROM hotels h
        LEFT JOIN hotel_staff hs
          ON hs.hotel_id = h.id AND ${joinRoleExpression} = 'admin' AND ${joinActiveExpression} = 1
@@ -252,13 +221,8 @@ export async function onRequestGet(context) {
             ).bind(hotelId).all(),
       ]);
 
-    const currentGuests = currentGuestsResult.results || [];
-    await insertPoliceLogs(context.env.DB, officerName, currentGuests, logColumns);
-
     return json({
       ok: true,
-      officer_name: officerName,
-      access_logged_for: currentGuests.length,
       filters: {
         hotel_id: hotelId,
         from: fromDate,
@@ -272,7 +236,7 @@ export async function onRequestGet(context) {
         total_rooms: Number(hotel.total_rooms || 0),
       },
       reports: {
-        current_guests: currentGuests,
+        current_guests: currentGuestsResult.results || [],
         guest_register: guestRegisterResult.results || [],
         staff_register: staffResult.results || [],
         police_access_logs: accessLogsResult.results || [],
@@ -280,7 +244,7 @@ export async function onRequestGet(context) {
     });
   } catch (error) {
     return json(
-      { error: databaseErrorMessage(error, "Unable to load police report") },
+      { error: databaseErrorMessage(error, "Unable to load hotel report") },
       { status: 500 }
     );
   }

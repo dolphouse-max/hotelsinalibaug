@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Renewal Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Renewal</span>
+      </div>
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Renewal Tracker</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Send renewal requests to superadmin and keep a simple record of pending approvals and recent payments.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID">
+              </div>
+              <button id="loadButton" type="button" class="rounded-2xl bg-ocean px-5 py-3 font-semibold text-white sm:self-end">Load</button>
+            </div>
+          </div>
+          <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-sm text-slate-500">Pending Requests</p>
+              <p id="pendingCount" class="mt-1 font-semibold text-slate-900">0</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-sm text-slate-500">Last Payment</p>
+              <p id="lastPayment" class="mt-1 font-semibold text-slate-900">Not loaded</p>
+            </div>
+          </div>
+
+          <form id="renewalForm" class="mt-5 space-y-4">
+            <div>
+              <label for="renewalMonths" class="mb-2 block text-sm font-medium text-slate-700">Renewal Duration</label>
+              <select id="renewalMonths" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                <option value="1">1 month</option>
+                <option value="3" selected>3 months</option>
+                <option value="6">6 months</option>
+                <option value="12">12 months</option>
+              </select>
+            </div>
+            <div>
+              <label for="renewalNote" class="mb-2 block text-sm font-medium text-slate-700">Note for Superadmin</label>
+              <textarea id="renewalNote" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Add any note about payment timing, plan, or follow-up"></textarea>
+            </div>
+            <button id="submitRenewalButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+              Send Renewal Request
+            </button>
+          </form>
+
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-slate-900">Request History</h2>
+            <div id="requestsList" class="mt-3 space-y-3"></div>
+          </div>
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-slate-900">Payment History</h2>
+            <div id="paymentsList" class="mt-3 space-y-3"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const loadButton = document.getElementById("loadButton");
+      const submitRenewalButton = document.getElementById("submitRenewalButton");
+
+      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+
+      function renderList(target, items, emptyText, formatter) {
+        target.innerHTML = "";
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600";
+          empty.textContent = emptyText;
+          target.appendChild(empty);
+          return;
+        }
+        for (const item of items) {
+          const card = document.createElement("article");
+          card.className = "rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-600";
+          card.innerHTML = formatter(item);
+          target.appendChild(card);
+        }
+      }
+
+      async function loadData() {
+        hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
+        const response = await fetch(`/api/hotel-admin/subscription?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`, {
+          headers: hotelAdminCommon.authHeaders(tokenInput),
+        });
+        const data = await hotelAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load renewal data");
+        }
+
+        document.getElementById("pendingCount").textContent = String(data.summary.pending_renewal_requests || 0);
+        document.getElementById("lastPayment").textContent = data.summary.last_payment
+          ? `${data.summary.last_payment.currency_code} ${Number(data.summary.last_payment.amount_paid || 0).toFixed(2)}`
+          : "No payment yet";
+
+        renderList(
+          document.getElementById("requestsList"),
+          data.requests || [],
+          "No renewal requests yet.",
+          (request) => `<p class="font-semibold text-slate-900">${request.requested_months} month request</p><p class="mt-1">Status: ${request.status}</p><p class="mt-1">Projected end: ${request.requested_end_date || "Not set"}</p><p class="mt-1">Note: ${request.note || "No note"}</p>`
+        );
+
+        renderList(
+          document.getElementById("paymentsList"),
+          data.payments || [],
+          "No payment history yet.",
+          (payment) => `<p class="font-semibold text-slate-900">${payment.currency_code} ${Number(payment.amount_paid || 0).toFixed(2)} via ${payment.payment_method}</p><p class="mt-1">Coverage: ${payment.period_start_date} to ${payment.period_end_date}</p><p class="mt-1">Reference: ${payment.payment_reference || "Not provided"}</p>`
+        );
+      }
+
+      document.getElementById("loadButton").addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        try {
+          await loadData();
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(loadButton, false);
+        }
+      });
+
+      document.getElementById("renewalForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(submitRenewalButton, true, "Sending...");
+        try {
+          const response = await fetch("/api/hotel-admin/subscription", {
+            method: "POST",
+            headers: hotelAdminCommon.authHeaders(tokenInput),
+            body: JSON.stringify({
+              hotel_id: hotelIdInput.value.trim(),
+              requested_months: Number(document.getElementById("renewalMonths").value),
+              note: document.getElementById("renewalNote").value.trim(),
+            }),
+          });
+          const data = await hotelAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to create renewal request");
+          }
+          document.getElementById("renewalNote").value = "";
+          hotelAdminCommon.setMessage(pageMessage, `Renewal request sent. Projected paid-through date: ${data.summary.projected_subscription_end_date}.`, "success");
+          await loadData();
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(submitRenewalButton, false);
+        }
+      });
+
+      if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
+        loadData().catch(() => {});
+      }
+    </script>
+  </body>
+</html>
