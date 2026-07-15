@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Police Access Console | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#111827",
+              slateblue: "#1f3b57",
+              pearl: "#f8fafc",
+              brass: "#caa96a",
+              signal: "#de7e4a",
+              pine: "#7ba89c",
+            },
+            boxShadow: {
+              console: "0 28px 90px rgba(17, 24, 39, 0.14)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(31,59,87,0.16),_transparent_36%),linear-gradient(180deg,#f8fafc_0%,#eef2f6_100%)]">
+      <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slateblue/70">Hotels In Alibaug SaaS</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Police Access Console</h1>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+              Search guest records by hotel and automatically log each officer access request for audit and compliance.
+            </p>
+          </div>
+          <div class="rounded-3xl bg-ink px-5 py-4 text-pearl shadow-console">
+            <p class="text-xs uppercase tracking-[0.24em] text-brass/70">Audit trail</p>
+            <p class="mt-2 text-sm leading-6 text-pearl/90">Every successful guest lookup is written to <span class="font-semibold">police_access_logs</span> with officer name, hotel, guest, and access time.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <section class="rounded-[2rem] bg-white p-6 shadow-console sm:p-8">
+            <h2 class="text-2xl font-semibold text-ink">Lookup Request</h2>
+            <p class="mt-2 text-sm text-slate-600">Provide officer details and a hotel ID to fetch recent guest records. Optionally narrow to a single guest ID.</p>
+
+            <form id="policeForm" class="mt-8 space-y-5">
+              <div>
+                <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
+                <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Paste police access token">
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="officerName" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
+                  <input id="officerName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Inspector Anil Patil">
+                </div>
+                <div>
+                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+                  <input id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="hotelalibaug0001">
+                </div>
+              </div>
+
+              <div>
+                <label for="guestId" class="mb-2 block text-sm font-medium text-slate-700">Guest ID <span class="text-slate-400">(optional)</span></label>
+                <input id="guestId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Leave blank to fetch all guests for this hotel">
+              </div>
+
+              <div id="policeError" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+              <div id="policeSuccess" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"></div>
+
+              <button id="lookupButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ink px-5 py-4 text-base font-semibold text-white transition hover:bg-slateblue focus:outline-none focus:ring-4 focus:ring-ink/10 disabled:opacity-70">
+                <span id="lookupText">Fetch Guest Records</span>
+                <span id="lookupSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              </button>
+            </form>
+          </section>
+
+          <section class="space-y-6">
+            <article class="rounded-[2rem] bg-white p-6 shadow-console sm:p-8">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h2 class="text-2xl font-semibold text-ink">Results</h2>
+                  <p class="mt-2 text-sm text-slate-600">Latest guest records returned for the selected hotel or guest.</p>
+                </div>
+                <div id="resultsState" class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No lookup run yet.</div>
+              </div>
+              <div id="resultsList" class="mt-6 grid gap-4"></div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const policeForm = document.getElementById("policeForm");
+      const policeError = document.getElementById("policeError");
+      const policeSuccess = document.getElementById("policeSuccess");
+      const lookupButton = document.getElementById("lookupButton");
+      const lookupText = document.getElementById("lookupText");
+      const lookupSpinner = document.getElementById("lookupSpinner");
+      const resultsState = document.getElementById("resultsState");
+      const resultsList = document.getElementById("resultsList");
+
+      function authHeader() {
+        const token = document.getElementById("policeToken").value.trim();
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      }
+
+      function showMessage(target, message) {
+        target.textContent = message;
+        target.classList.remove("hidden");
+      }
+
+      function clearMessages() {
+        policeError.classList.add("hidden");
+        policeSuccess.classList.add("hidden");
+        policeError.textContent = "";
+        policeSuccess.textContent = "";
+      }
+
+      function setLoading(isLoading) {
+        lookupButton.disabled = isLoading;
+        lookupText.textContent = isLoading ? "Fetching Records..." : "Fetch Guest Records";
+        lookupSpinner.classList.toggle("hidden", !isLoading);
+      }
+
+      function renderResults(guests, officerName) {
+        resultsList.innerHTML = "";
+
+        if (!guests.length) {
+          resultsState.textContent = `No guest records matched. Access attempt by ${officerName} was still authenticated.`;
+          return;
+        }
+
+        resultsState.textContent = `${guests.length} guest record${guests.length === 1 ? "" : "s"} returned and logged for ${officerName}.`;
+
+        for (const guest of guests) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5";
+          card.innerHTML = `
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-ink">${guest.name}</h3>
+                <p class="mt-2 text-sm text-slate-500">Guest ID: <span class="font-medium text-slate-700">${guest.id}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Hotel: <span class="font-medium text-slate-700">${guest.hotel_name} (${guest.hotel_id})</span></p>
+                <p class="mt-1 text-sm text-slate-500">Phone: <span class="font-medium text-slate-700">${guest.phone}</span></p>
+              </div>
+              <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                <p><span class="font-semibold text-ink">ID Type:</span> ${guest.id_type}</p>
+                <p class="mt-1"><span class="font-semibold text-ink">ID Number:</span> ${guest.id_number}</p>
+                <p class="mt-1"><span class="font-semibold text-ink">Check-in:</span> ${guest.check_in_time}</p>
+                <p class="mt-1"><span class="font-semibold text-ink">Check-out:</span> ${guest.check_out_time || "Still checked in"}</p>
+              </div>
+            </div>
+          `;
+
+          resultsList.appendChild(card);
+        }
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: text || "Unexpected response" };
+        }
+      }
+
+      policeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessages();
+        setLoading(true);
+        resultsList.innerHTML = "";
+        resultsState.textContent = "Fetching records...";
+
+        try {
+          const officerName = document.getElementById("officerName").value.trim();
+          const hotelId = document.getElementById("hotelId").value.trim();
+          const guestId = document.getElementById("guestId").value.trim();
+
+          const url = new URL("/api/police/access", window.location.origin);
+          url.searchParams.set("officer_name", officerName);
+          url.searchParams.set("hotel_id", hotelId);
+
+          if (guestId) {
+            url.searchParams.set("guest_id", guestId);
+          }
+
+          const response = await fetch(url.toString(), {
+            headers: authHeader(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to fetch police access records");
+          }
+
+          showMessage(policeSuccess, `${data.access_logged_for} access log entr${data.access_logged_for === 1 ? "y" : "ies"} created for ${data.officer_name}.`);
+          renderResults(data.guests || [], data.officer_name);
+        } catch (error) {
+          showMessage(policeError, error instanceof Error ? error.message : "Unable to fetch police access records");
+          resultsState.textContent = "Lookup failed.";
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>

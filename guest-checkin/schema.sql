@@ -45,9 +45,22 @@ CREATE TABLE IF NOT EXISTS guests (
   FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS police_access_logs (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  officer_name TEXT NOT NULL,
+  guest_id TEXT NOT NULL,
+  hotel_id TEXT NOT NULL,
+  accessed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_hotels_is_active ON hotels(is_active);
 CREATE INDEX IF NOT EXISTS idx_hotels_subscription_end_date ON hotels(subscription_end_date);
 CREATE INDEX IF NOT EXISTS idx_hotel_staff_hotel_id ON hotel_staff(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_hotel_staff_role ON hotel_staff(role);
 CREATE INDEX IF NOT EXISTS idx_guests_hotel_id ON guests(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_guests_check_in_time ON guests(check_in_time);
+CREATE INDEX IF NOT EXISTS idx_police_logs_hotel_id ON police_access_logs(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_police_logs_guest_id ON police_access_logs(guest_id);
+CREATE INDEX IF NOT EXISTS idx_police_logs_accessed_at ON police_access_logs(accessed_at);
