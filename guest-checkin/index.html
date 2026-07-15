@@ -184,7 +184,7 @@
                 <option value="Motor Bike">Motor Bike</option>
               </select>
             </div>
-            <div>
+            <div id="vehicleNumberWrap" class="hidden">
               <label for="vehicleNumber" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Number</label>
               <input id="vehicleNumber" name="vehicle_number" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="MH-06-AB-1234">
             </div>
@@ -271,6 +271,9 @@
       const closeModalButton = document.getElementById("closeModalButton");
       const sexInput = document.getElementById("sex");
       const sexButtons = Array.from(document.querySelectorAll(".sex-option"));
+      const vehicleTypeInput = document.getElementById("vehicleType");
+      const vehicleNumberInput = document.getElementById("vehicleNumber");
+      const vehicleNumberWrap = document.getElementById("vehicleNumberWrap");
 
       let dbPromise;
 
@@ -336,6 +339,18 @@
           button.classList.toggle("border-ocean-900", selected);
           button.classList.toggle("bg-white", !selected);
           button.classList.toggle("text-slate-700", !selected);
+        }
+      }
+
+      function syncVehicleFields() {
+        const vehicleType = vehicleTypeInput.value;
+        const needsVehicleNumber = vehicleType === "Car" || vehicleType === "Motor Bike";
+
+        vehicleNumberWrap.classList.toggle("hidden", !needsVehicleNumber);
+        vehicleNumberInput.required = needsVehicleNumber;
+
+        if (!needsVehicleNumber) {
+          vehicleNumberInput.value = "";
         }
       }
 
@@ -560,6 +575,7 @@
       function resetForm() {
         form.reset();
         setSex("Male");
+        syncVehicleFields();
         updateFileLabel(null, frontFileName, "No front image selected yet.");
         updateFileLabel(null, backFileName, "No back image selected yet.");
       }
@@ -635,6 +651,7 @@
         apiTokenInput.value = config.apiToken;
         updateHotelLabel();
         setSex("Male");
+        syncVehicleFields();
         refreshQueueBanner().catch(console.error);
         syncOfflineEntries().catch(console.error);
         registerServiceWorker();
@@ -652,6 +669,7 @@
       });
 
       hotelIdInput.addEventListener("input", updateHotelLabel);
+      vehicleTypeInput.addEventListener("change", syncVehicleFields);
       frontFileInput.addEventListener("change", () => updateFileLabel(frontFileInput.files && frontFileInput.files[0], frontFileName, "No front image selected yet."));
       backFileInput.addEventListener("change", () => updateFileLabel(backFileInput.files && backFileInput.files[0], backFileName, "No back image selected yet."));
       form.addEventListener("submit", handleSubmit);
