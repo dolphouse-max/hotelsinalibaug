@@ -96,6 +96,7 @@
     </div>
 
     <script>
+      const params = new URLSearchParams(window.location.search);
       const policeForm = document.getElementById("policeForm");
       const policeError = document.getElementById("policeError");
       const policeSuccess = document.getElementById("policeSuccess");
@@ -120,6 +121,19 @@
         policeSuccess.classList.add("hidden");
         policeError.textContent = "";
         policeSuccess.textContent = "";
+      }
+
+      function restoreContext() {
+        const hotelId = params.get("hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
+        const officerName = params.get("officer_name") || localStorage.getItem("dashboard_officer_name") || "";
+
+        if (hotelId) {
+          document.getElementById("hotelId").value = hotelId;
+        }
+
+        if (officerName) {
+          document.getElementById("officerName").value = officerName;
+        }
       }
 
       function setLoading(isLoading) {
@@ -210,6 +224,8 @@
           setLoading(false);
         }
       });
+
+      restoreContext();
     </script>
   </body>
 </html>
