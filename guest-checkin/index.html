@@ -149,8 +149,8 @@
               </select>
             </div>
             <div>
-              <label for="idNumber" class="mb-2 block text-sm font-medium text-slate-700">ID Number</label>
-              <input id="idNumber" name="id_number" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              <label for="roomNumber" class="mb-2 block text-sm font-medium text-slate-700">Room Number</label>
+              <input id="roomNumber" name="room_number" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="101">
             </div>
           </div>
 
@@ -159,9 +159,35 @@
             <textarea id="address" name="address" rows="4" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Full permanent address"></textarea>
           </div>
 
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="comingFrom" class="mb-2 block text-sm font-medium text-slate-700">Coming From</label>
+              <input id="comingFrom" name="coming_from" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Mumbai">
+            </div>
+            <div>
+              <label for="goingTo" class="mb-2 block text-sm font-medium text-slate-700">Going To</label>
+              <input id="goingTo" name="going_to" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Alibaug Beach">
+            </div>
+          </div>
+
           <div>
             <label for="expectedCheckOutDate" class="mb-2 block text-sm font-medium text-slate-700">Expected Check-out Date</label>
             <input id="expectedCheckOutDate" name="expected_check_out_date" type="date" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="vehicleType" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Type</label>
+              <select id="vehicleType" name="vehicle_type" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <option value="None">None</option>
+                <option value="Car">Car</option>
+                <option value="Motor Bike">Motor Bike</option>
+              </select>
+            </div>
+            <div>
+              <label for="vehicleNumber" class="mb-2 block text-sm font-medium text-slate-700">Vehicle Number</label>
+              <input id="vehicleNumber" name="vehicle_number" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="MH-06-AB-1234">
+            </div>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
@@ -440,9 +466,13 @@
           age: document.getElementById("age").value.trim(),
           sex: sexInput.value,
           id_type: document.getElementById("idType").value,
-          id_number: document.getElementById("idNumber").value.trim(),
+          room_number: document.getElementById("roomNumber").value.trim(),
           address: document.getElementById("address").value.trim(),
+          coming_from: document.getElementById("comingFrom").value.trim(),
+          going_to: document.getElementById("goingTo").value.trim(),
           expected_check_out_date: document.getElementById("expectedCheckOutDate").value,
+          vehicle_type: document.getElementById("vehicleType").value,
+          vehicle_number: document.getElementById("vehicleNumber").value.trim(),
         };
       }
 
@@ -455,18 +485,17 @@
         formData.set("age", payload.age);
         formData.set("sex", payload.sex);
         formData.set("total_guests", "1");
-        formData.set("room_number", "Reception");
+        formData.set("room_number", payload.room_number);
         formData.set("expected_check_out_date", payload.expected_check_out_date);
         formData.set("address_line_1", payload.address);
         formData.set("address_city", "Not Provided");
         formData.set("address_pin_code", "000000");
         formData.set("email", "");
-        formData.set("vehicle_type", "None");
-        formData.set("vehicle_number", "");
-        formData.set("coming_from", "Not Provided");
-        formData.set("going_to", "Not Provided");
+        formData.set("vehicle_type", payload.vehicle_type || "None");
+        formData.set("vehicle_number", payload.vehicle_type === "None" ? "" : payload.vehicle_number);
+        formData.set("coming_from", payload.coming_from);
+        formData.set("going_to", payload.going_to);
         formData.set("id_type", payload.id_type);
-        formData.set("id_number", payload.id_number);
         formData.set("id_front_file", frontFile);
         formData.set("id_back_file", backFile);
         return formData;

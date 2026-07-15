@@ -131,7 +131,7 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
   const comingFrom = requireText(formData, "coming_from");
   const goingTo = requireText(formData, "going_to");
   const idType = requireText(formData, "id_type");
-  const idNumber = requireText(formData, "id_number");
+  const idNumber = optionalText(formData, "id_number") || "Captured from uploaded ID proof";
   const idFrontFile = requireUploadFile(formData, "id_front_file");
   const idBackFile = requireUploadFile(formData, "id_back_file");
 
