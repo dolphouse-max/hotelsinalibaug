@@ -152,7 +152,44 @@ export async function onRequestPut(context) {
       return json({ error: "Hotel not found" }, { status: 404 });
     }
 
-    return json({ ok: true, hotel: result });
+    await context.env.DB.prepare(
+      `UPDATE hotel_staff
+       SET phone = ?1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE hotel_id = ?2 AND role = 'admin' AND is_active = 1`
+    )
+      .bind(contact, hotelId)
+      .run();
+
+    const hydrated = await context.env.DB.prepare(
+      `SELECT
+         h.id,
+         h.name,
+         h.contact,
+         h.address,
+         h.total_rooms,
+         h.occupied_rooms,
+         h.subscription_start_date,
+         h.subscription_end_date,
+         h.is_active,
+         hs.email AS admin_email,
+         hs.phone AS admin_phone
+       FROM hotels h
+       LEFT JOIN hotel_staff hs
+         ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
+       WHERE h.id = ?1
+       LIMIT 1`
+    )
+      .bind(hotelId)
+      .first();
+
+    return json({
+      ok: true,
+      hotel: {
+        ...hydrated,
+        ...getSubscriptionMeta(hydrated.subscription_end_date, hydrated.is_active),
+      },
+    });
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : "Unable to update hotel profile");
   }
