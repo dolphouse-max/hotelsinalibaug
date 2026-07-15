@@ -672,9 +672,21 @@
         subscriptionEndDateInput.dataset.userEdited = "true";
       });
 
-      saveTokenButton.addEventListener("click", () => {
+      saveTokenButton.addEventListener("click", async () => {
         saveToken();
-        setTokenMessage("Super Admin token saved on this device.", "success");
+        setTokenMessage("Super Admin token saved on this device. Loading hotels...", "success");
+
+        try {
+          await loadHotels();
+
+          if (hotelNameInput.value.trim() && !hotelIdInput.dataset.userEdited) {
+            hotelIdInput.value = suggestHotelId(hotelNameInput.value);
+          }
+
+          setTokenMessage("Super Admin token saved on this device.", "success");
+        } catch (error) {
+          setTokenMessage(error instanceof Error ? error.message : "Unable to load hotels with this token.", "error");
+        }
       });
 
       hideSetupButton.addEventListener("click", () => {
