@@ -372,13 +372,10 @@
         if (!base) {
           return "";
         }
-
-        const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const pattern = new RegExp(`^${escapedBase}(\\d{4})$`, "i");
         let maxSuffix = 0;
 
         for (const hotel of loadedHotels) {
-          const match = String(hotel.id || "").match(pattern);
+          const match = String(hotel.id || "").match(/(\d{4})$/);
           if (!match) {
             continue;
           }
@@ -432,6 +429,7 @@
           subscription_start_date: subscriptionStartDateInput.value,
           subscription_end_date: subscriptionEndDateInput.value,
           is_active: Number(activeFlagInput.value),
+          auto_assign_hotel_id: true,
         };
 
         if (skipDuplicateCheck) {

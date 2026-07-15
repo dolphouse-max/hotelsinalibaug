@@ -30,6 +30,14 @@ function isEmail(value) {
   return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function slugHotelIdBase(value) {
+  const compact = String(value || "").replace(/[^a-zA-Z0-9]/g, "");
+  const withoutTrailingDigits = compact.replace(/\d+$/, "");
+  return withoutTrailingDigits
+    ? withoutTrailingDigits.charAt(0).toUpperCase() + withoutTrailingDigits.slice(1)
+    : "";
+}
+
 function toDateOnly(date) {
   return date.toISOString().slice(0, 10);
 }
@@ -142,6 +150,68 @@ function withSubscriptionMeta(hotel) {
   };
 }
 
+async function findPotentialDuplicateHotels(env, hotel) {
+  const result = await env.DB.prepare(
+    `SELECT
+       h.id,
+       h.name,
+       h.contact,
+       h.address,
+       h.total_rooms,
+       h.occupied_rooms,
+       h.subscription_start_date,
+       h.subscription_end_date,
+       h.is_active,
+       h.created_at,
+       h.updated_at,
+       hs.full_name AS admin_name,
+       hs.email AS admin_email,
+       hs.phone AS admin_phone
+     FROM hotels h
+     LEFT JOIN hotel_staff hs
+       ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
+     WHERE h.id = ?1
+        OR lower(h.name) = lower(?2)
+        OR h.contact = ?3
+        OR lower(COALESCE(hs.email, '')) = lower(?4)
+     ORDER BY
+       CASE
+         WHEN h.id = ?1 THEN 0
+         WHEN lower(h.name) = lower(?2) AND h.contact = ?3 THEN 1
+         WHEN lower(COALESCE(hs.email, '')) = lower(?4) THEN 2
+         ELSE 3
+       END,
+       h.created_at DESC`
+  )
+    .bind(hotel.id, hotel.name, hotel.contact, hotel.gmailId)
+    .all();
+
+  return (result.results || []).map(withSubscriptionMeta);
+}
+
+async function getNextGlobalHotelSequence(env) {
+  const result = await env.DB.prepare(`SELECT id FROM hotels`).all();
+  let maxSuffix = 0;
+
+  for (const row of result.results || []) {
+    const match = String(row.id || "").match(/(\d{4})$/);
+    if (!match) {
+      continue;
+    }
+
+    const suffix = Number(match[1]);
+    if (Number.isFinite(suffix) && suffix > maxSuffix) {
+      maxSuffix = suffix;
+    }
+  }
+
+  return maxSuffix + 1;
+}
+
+function buildSequentialHotelId(base, sequence) {
+  return `${base}${String(sequence).padStart(4, "0")}`;
+}
+
 export async function onRequestGet(context) {
   if (!requireSuperAdmin(context.request, context.env)) {
     return unauthorized();
@@ -181,9 +251,38 @@ export async function onRequestPost(context) {
   try {
     const payload = await context.request.json();
     const hotel = normalizeHotelPayload(payload);
+    const skipDuplicateCheck = payload.skip_duplicate_check === true;
+    const autoAssignHotelId = payload.auto_assign_hotel_id !== false;
 
     if (hotel.occupiedRooms > hotel.totalRooms) {
       return badRequest("occupied_rooms cannot exceed total_rooms");
+    }
+
+    if (!skipDuplicateCheck) {
+      const duplicates = await findPotentialDuplicateHotels(context.env, hotel);
+      if (duplicates.length) {
+        const exactHotelIdMatch = duplicates.some((entry) => entry.id === hotel.id);
+        return json(
+          {
+            error: exactHotelIdMatch
+              ? "A hotel with this Hotel ID already exists."
+              : "A similar hotel record already exists. Please review it before creating another one.",
+            code: "duplicate_hotel",
+            exact_hotel_id_match: exactHotelIdMatch,
+            existing_hotels: duplicates,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (autoAssignHotelId) {
+      const base = slugHotelIdBase(hotel.id) || slugHotelIdBase(hotel.name);
+      if (!base) {
+        return badRequest("Unable to generate hotel_id from the provided hotel name");
+      }
+
+      hotel.id = buildSequentialHotelId(base, await getNextGlobalHotelSequence(context.env));
     }
 
     const staffId = crypto.randomUUID().replace(/-/g, "");
