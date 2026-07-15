@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f2436">
+    <title>Super Admin Reports | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: {
+                950: "#08131d",
+                900: "#0f2436",
+                800: "#17344d",
+              },
+              sand: {
+                50: "#faf4ea",
+                100: "#f2e0c0",
+                200: "#e7c99a",
+              },
+              coral: "#d98d63",
+              lagoon: "#53b5c0",
+            },
+            boxShadow: {
+              resort: "0 28px 90px rgba(8, 19, 29, 0.18)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,36,54,0.16),_transparent_38%),linear-gradient(180deg,#f5f8fb_0%,#edf2f6_100%)]">
+      <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <section class="rounded-[2rem] bg-white p-6 shadow-resort sm:p-8">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-ocean-800/70">Hotels In Alibaug SaaS</p>
+              <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ocean-950 sm:text-4xl">Super Admin Master Reports</h1>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                View platform-wide hotel growth, subscription expiry, occupancy, police access activity, and recent guest movement from one page.
+              </p>
+            </div>
+            <div class="flex gap-3">
+              <a href="/dashboard.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Dashboard
+              </a>
+              <a href="/super-admin.html" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-ocean-900">
+                Super Admin
+              </a>
+            </div>
+          </div>
+
+          <form id="reportsForm" class="mt-8 grid gap-4 md:grid-cols-[1.1fr_1fr_1fr_auto]">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            </div>
+            <div>
+              <label for="fromDate" class="mb-2 block text-sm font-medium text-slate-700">From</label>
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div>
+              <label for="toDate" class="mb-2 block text-sm font-medium text-slate-700">To</label>
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
+            </div>
+            <div class="flex items-end">
+              <button id="loadButton" type="submit" class="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-ocean-950 px-5 py-4 text-base font-semibold text-white transition hover:bg-ocean-900 disabled:opacity-70">
+                <span id="loadText">Load Reports</span>
+                <span id="loadSpinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              </button>
+            </div>
+          </form>
+
+          <div id="errorBox" class="mt-5 hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"></div>
+        </section>
+
+        <section class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Total Hotels</p>
+            <p id="metricHotels" class="mt-3 text-3xl font-semibold text-ocean-950">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Reminder Window Hotels</p>
+            <p id="metricReminderHotels" class="mt-3 text-3xl font-semibold text-coral">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Current In-House Guests</p>
+            <p id="metricCurrentGuests" class="mt-3 text-3xl font-semibold text-ocean-950">0</p>
+          </article>
+          <article class="rounded-[1.75rem] bg-white p-5 shadow-resort">
+            <p class="text-sm font-medium text-slate-500">Occupied Rooms</p>
+            <p id="metricRooms" class="mt-3 text-3xl font-semibold text-ocean-950">0 / 0</p>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Hotels Expiring Soon</h2>
+                <p id="expiringState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+              <button id="exportHotelsButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Export CSV
+              </button>
+            </div>
+            <div id="expiringList" class="mt-6 space-y-3"></div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Recent Guest Check-Ins</h2>
+                <p id="checkinsState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+            </div>
+            <div id="checkinsList" class="mt-6 space-y-3"></div>
+          </article>
+        </section>
+
+        <section class="mt-6 grid gap-6 xl:grid-cols-2">
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Hotel Register</h2>
+                <p id="hotelRegisterState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+              <button id="exportRegisterButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Export CSV
+              </button>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-left text-sm">
+                <thead class="text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Hotel</th>
+                    <th class="px-3 py-2 font-medium">Hotel ID</th>
+                    <th class="px-3 py-2 font-medium">Admin Gmail</th>
+                    <th class="px-3 py-2 font-medium">Mobile</th>
+                    <th class="px-3 py-2 font-medium">Rooms</th>
+                    <th class="px-3 py-2 font-medium">Trial End</th>
+                    <th class="px-3 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="hotelRegisterTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-ocean-950">Police Access Logs</h2>
+                <p id="policeState" class="mt-2 text-sm text-slate-600">No data loaded yet.</p>
+              </div>
+              <button id="exportPoliceButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950">
+                Export CSV
+              </button>
+            </div>
+            <div class="mt-6 overflow-x-auto">
+              <table class="min-w-full text-left text-sm">
+                <thead class="text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Officer</th>
+                    <th class="px-3 py-2 font-medium">Hotel</th>
+                    <th class="px-3 py-2 font-medium">Guest</th>
+                    <th class="px-3 py-2 font-medium">Accessed At</th>
+                  </tr>
+                </thead>
+                <tbody id="policeTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const reportsForm = document.getElementById("reportsForm");
+      const errorBox = document.getElementById("errorBox");
+      const loadButton = document.getElementById("loadButton");
+      const loadText = document.getElementById("loadText");
+      const loadSpinner = document.getElementById("loadSpinner");
+      const metricHotels = document.getElementById("metricHotels");
+      const metricReminderHotels = document.getElementById("metricReminderHotels");
+      const metricCurrentGuests = document.getElementById("metricCurrentGuests");
+      const metricRooms = document.getElementById("metricRooms");
+      const expiringState = document.getElementById("expiringState");
+      const expiringList = document.getElementById("expiringList");
+      const checkinsState = document.getElementById("checkinsState");
+      const checkinsList = document.getElementById("checkinsList");
+      const hotelRegisterState = document.getElementById("hotelRegisterState");
+      const hotelRegisterTable = document.getElementById("hotelRegisterTable");
+      const policeState = document.getElementById("policeState");
+      const policeTable = document.getElementById("policeTable");
+      const exportHotelsButton = document.getElementById("exportHotelsButton");
+      const exportRegisterButton = document.getElementById("exportRegisterButton");
+      const exportPoliceButton = document.getElementById("exportPoliceButton");
+
+      let lastReportData = null;
+
+      function formatDateOffset(daysAgo) {
+        const date = new Date();
+        date.setDate(date.getDate() - daysAgo);
+        return date.toISOString().slice(0, 10);
+      }
+
+      function setLoading(isLoading) {
+        loadButton.disabled = isLoading;
+        loadText.textContent = isLoading ? "Loading Reports..." : "Load Reports";
+        loadSpinner.classList.toggle("hidden", !isLoading);
+      }
+
+      function showError(message) {
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+      }
+
+      function clearError() {
+        errorBox.classList.add("hidden");
+        errorBox.textContent = "";
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: "Unexpected response" };
+        }
+      }
+
+      function authHeaders() {
+        return {
+          Authorization: `Bearer ${tokenInput.value.trim()}`,
+        };
+      }
+
+      function createLine(label, value) {
+        return `<p class="mt-1 text-sm text-slate-500">${label}: <span class="font-medium text-slate-700">${value}</span></p>`;
+      }
+
+      function renderCards(container, rows, emptyText, builder) {
+        container.innerHTML = "";
+        if (!rows.length) {
+          container.innerHTML = `<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">${emptyText}</div>`;
+          return;
+        }
+
+        for (const row of rows) {
+          const card = document.createElement("article");
+          card.className = "rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4";
+          card.innerHTML = builder(row);
+          container.appendChild(card);
+        }
+      }
+
+      function renderTable(container, rows, columns, emptyText) {
+        container.innerHTML = "";
+        if (!rows.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="${columns}" class="px-3 py-6 text-center text-sm text-slate-500">${emptyText}</td>`;
+          container.appendChild(tr);
+          return;
+        }
+
+        for (const row of rows) {
+          container.appendChild(row);
+        }
+      }
+
+      function downloadCsv(filename, rows) {
+        if (!rows.length) {
+          showError("There is no data to export yet.");
+          return;
+        }
+
+        const csv = rows
+          .map((row) =>
+            row
+              .map((cell) => `"${String(cell ?? "").replace(/"/g, "\"\"")}"`)
+              .join(",")
+          )
+          .join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function renderReport(data) {
+        lastReportData = data;
+        const { summary, reports } = data;
+
+        metricHotels.textContent = summary.total_hotels;
+        metricReminderHotels.textContent = summary.hotels_in_reminder_window;
+        metricCurrentGuests.textContent = summary.current_in_house_guests;
+        metricRooms.textContent = `${summary.occupied_rooms} / ${summary.total_rooms}`;
+
+        expiringState.textContent = `${reports.expiring_hotels.length} hotel${reports.expiring_hotels.length === 1 ? "" : "s"} expiring within 30 days.`;
+        renderCards(
+          expiringList,
+          reports.expiring_hotels,
+          "No hotel subscriptions are expiring within 30 days.",
+          (hotel) => `
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="text-base font-semibold text-ocean-950">${hotel.name}</h3>
+                ${createLine("Hotel ID", hotel.id)}
+                ${createLine("Admin Gmail", hotel.admin_email || "Not set")}
+                ${createLine("Rooms", `${hotel.occupied_rooms || 0}/${hotel.total_rooms || 0}`)}
+              </div>
+              <span class="rounded-full ${Number(hotel.is_active) === 1 ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"} px-3 py-1 text-xs font-semibold">
+                ${Number(hotel.is_active) === 1 ? "Active" : "Inactive"}
+              </span>
+            </div>
+            ${createLine("Trial End", hotel.subscription_end_date || "-")}
+            ${createLine("Days Until Expiry", hotel.days_until_expiry ?? "-")}
+            ${hotel.payment_reminder_active ? `<div class="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">${hotel.payment_reminder_message}</div>` : ""}
+          `
+        );
+
+        checkinsState.textContent = `${reports.recent_guest_checkins.length} recent guest check-in row${reports.recent_guest_checkins.length === 1 ? "" : "s"} loaded.`;
+        renderCards(
+          checkinsList,
+          reports.recent_guest_checkins,
+          "No guest check-ins found for this date range.",
+          (entry) => `
+            <h3 class="text-base font-semibold text-ocean-950">${entry.name}</h3>
+            ${createLine("Hotel", `${entry.hotel_name} (${entry.hotel_id})`)}
+            ${createLine("Room", entry.room_number || "-")}
+            ${createLine("Phone", entry.phone || "-")}
+            ${createLine("Check-In", entry.check_in_time || "-")}
+          `
+        );
+
+        hotelRegisterState.textContent = `${reports.hotel_register.length} hotel row${reports.hotel_register.length === 1 ? "" : "s"} loaded.`;
+        renderTable(
+          hotelRegisterTable,
+          reports.hotel_register.map((hotel) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean-950">${hotel.name}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.id}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.admin_email || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.admin_phone || hotel.contact || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.occupied_rooms || 0}/${hotel.total_rooms || 0}</td>
+              <td class="px-3 py-3 text-slate-600">${hotel.subscription_end_date || "-"}</td>
+              <td class="px-3 py-3 text-slate-600">${Number(hotel.is_active) === 1 ? "Active" : "Inactive"}</td>
+            `;
+            return tr;
+          }),
+          7,
+          "No hotels found."
+        );
+
+        policeState.textContent = `${reports.police_access_logs.length} police access row${reports.police_access_logs.length === 1 ? "" : "s"} loaded.`;
+        renderTable(
+          policeTable,
+          reports.police_access_logs.map((log) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="px-3 py-3 font-medium text-ocean-950">${log.officer_name}</td>
+              <td class="px-3 py-3 text-slate-600">${log.hotel_name} (${log.hotel_id})</td>
+              <td class="px-3 py-3 text-slate-600">${log.guest_name || log.guest_id}</td>
+              <td class="px-3 py-3 text-slate-600">${log.accessed_at}</td>
+            `;
+            return tr;
+          }),
+          4,
+          "No police access logs found."
+        );
+      }
+
+      async function loadReports() {
+        clearError();
+        const token = tokenInput.value.trim();
+
+        if (!token) {
+          showError("Please enter your Super Admin token.");
+          return;
+        }
+
+        setLoading(true);
+
+        try {
+          localStorage.setItem("super_admin_token", token);
+          const url = new URL("/api/super-admin/reports", window.location.origin);
+          if (fromDateInput.value) {
+            url.searchParams.set("from", fromDateInput.value);
+          }
+          if (toDateInput.value) {
+            url.searchParams.set("to", toDateInput.value);
+          }
+
+          const response = await fetch(url.toString(), {
+            headers: authHeaders(),
+          });
+          const data = await readJson(response);
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to load reports");
+          }
+
+          renderReport(data);
+        } catch (error) {
+          const message = error instanceof Error ? error.message.toLowerCase() : "";
+          if (message.includes("unauthorized")) {
+            showError("Access could not be verified. Please check your Super Admin token.");
+          } else {
+            showError("Master reports are temporarily unavailable. Please try again in a minute.");
+          }
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      exportHotelsButton.addEventListener("click", () => {
+        const rows = [["Hotel Name", "Hotel ID", "Admin Gmail", "Mobile", "Occupied Rooms", "Total Rooms", "Trial End", "Status"]];
+        for (const hotel of lastReportData?.reports?.expiring_hotels || []) {
+          rows.push([hotel.name, hotel.id, hotel.admin_email, hotel.contact, hotel.occupied_rooms, hotel.total_rooms, hotel.subscription_end_date, Number(hotel.is_active) === 1 ? "Active" : "Inactive"]);
+        }
+        downloadCsv("expiring-hotels.csv", rows);
+      });
+
+      exportRegisterButton.addEventListener("click", () => {
+        const rows = [["Hotel Name", "Hotel ID", "Admin Gmail", "Mobile", "Occupied Rooms", "Total Rooms", "Trial Start", "Trial End", "Status"]];
+        for (const hotel of lastReportData?.reports?.hotel_register || []) {
+          rows.push([hotel.name, hotel.id, hotel.admin_email, hotel.admin_phone || hotel.contact, hotel.occupied_rooms, hotel.total_rooms, hotel.subscription_start_date, hotel.subscription_end_date, Number(hotel.is_active) === 1 ? "Active" : "Inactive"]);
+        }
+        downloadCsv("hotel-register.csv", rows);
+      });
+
+      exportPoliceButton.addEventListener("click", () => {
+        const rows = [["Officer Name", "Hotel Name", "Hotel ID", "Guest Name", "Guest ID", "Accessed At"]];
+        for (const log of lastReportData?.reports?.police_access_logs || []) {
+          rows.push([log.officer_name, log.hotel_name, log.hotel_id, log.guest_name, log.guest_id, log.accessed_at]);
+        }
+        downloadCsv("police-access-logs.csv", rows);
+      });
+
+      reportsForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await loadReports();
+      });
+
+      tokenInput.value = localStorage.getItem("super_admin_token") || "";
+      fromDateInput.value = formatDateOffset(29);
+      toDateInput.value = formatDateOffset(0);
+    </script>
+  </body>
+</html>
