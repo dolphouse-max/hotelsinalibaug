@@ -696,6 +696,41 @@
         }
       }
 
+      function getFriendlyLoadMessage(area, error) {
+        const message = error instanceof Error ? error.message : "";
+        const normalized = message.toLowerCase();
+
+        if (normalized.includes("unauthorized")) {
+          return "Access could not be verified. Please reopen this page and try again.";
+        }
+
+        if (normalized.includes("temporarily unavailable") || normalized.includes("out of date") || normalized.includes("worker threw exception")) {
+          if (area === "staff") {
+            return "Staff records are temporarily unavailable. Please refresh in a minute.";
+          }
+
+          if (area === "guests") {
+            return "Guest records are temporarily unavailable. Please refresh in a minute.";
+          }
+
+          return "Hotel account details are temporarily unavailable. Please try again shortly.";
+        }
+
+        if (normalized.includes("not found")) {
+          return "This hotel account could not be found. Please check the hotel ID.";
+        }
+
+        if (area === "staff") {
+          return "Staff records are not available right now. Please try again.";
+        }
+
+        if (area === "guests") {
+          return "Guest records are not available right now. Please try again.";
+        }
+
+        return "Hotel account details are not available right now. Please try again.";
+      }
+
       async function canvasToFile(canvas, sourceFile) {
         const mimeType = sourceFile.type === "image/png" ? "image/png" : "image/jpeg";
         const quality = mimeType === "image/png" ? undefined : 0.82;
@@ -829,7 +864,7 @@
           await loadStaff();
           await loadGuests();
         } catch (error) {
-          showMessage(formError, error instanceof Error ? error.message : "Unable to load hotel profile");
+          showMessage(formError, getFriendlyLoadMessage("hotel", error));
         }
       }
 
@@ -857,7 +892,7 @@
 
           renderStaff(data.staff || []);
         } catch (error) {
-          staffListState.textContent = error instanceof Error ? error.message : "Unable to load staff";
+          staffListState.textContent = getFriendlyLoadMessage("staff", error);
         }
       }
 
@@ -893,7 +928,7 @@
 
           renderGuests(data.guests || []);
         } catch (error) {
-          guestListState.textContent = error instanceof Error ? error.message : "Unable to load current guests";
+          guestListState.textContent = getFriendlyLoadMessage("guests", error);
         }
       }
 
