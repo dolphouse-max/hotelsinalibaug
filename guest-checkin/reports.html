@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hotel Reports | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -40,6 +41,14 @@
             <a href="/dashboard.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
               Back To Dashboard
             </a>
+          </div>
+
+          <script>
+            document.write(hotelAdminCommon.quickNav("reports"));
+          </script>
+
+          <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page only for hotel-level reporting. Search the guest and staff tables before exporting when the data grows.
           </div>
 
           <form id="reportsForm" class="mt-8 grid gap-4 lg:grid-cols-[1.1fr_1fr_1fr_auto]">
@@ -138,6 +147,10 @@
                 Export CSV
               </button>
             </div>
+            <div class="mt-4">
+              <label for="guestRegisterFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Guest Register</label>
+              <input id="guestRegisterFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Search guest, phone, room, ID type, or ID number">
+            </div>
             <div class="mt-6 overflow-x-auto">
               <table class="min-w-full text-left text-sm">
                 <thead class="text-slate-500">
@@ -164,6 +177,10 @@
               <button id="exportStaffButton" type="button" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean">
                 Export CSV
               </button>
+            </div>
+            <div class="mt-4">
+              <label for="staffRegisterFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Staff Register</label>
+              <input id="staffRegisterFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Search staff, role, phone, or status">
             </div>
             <div class="mt-6 overflow-x-auto">
               <table class="min-w-full text-left text-sm">
@@ -207,12 +224,18 @@
       const checkoutsTodayList = document.getElementById("checkoutsTodayList");
       const guestRegisterState = document.getElementById("guestRegisterState");
       const guestRegisterTable = document.getElementById("guestRegisterTable");
+      const guestRegisterFilter = document.getElementById("guestRegisterFilter");
       const staffRegisterState = document.getElementById("staffRegisterState");
       const staffRegisterTable = document.getElementById("staffRegisterTable");
+      const staffRegisterFilter = document.getElementById("staffRegisterFilter");
       const exportGuestRegisterButton = document.getElementById("exportGuestRegisterButton");
       const exportStaffButton = document.getElementById("exportStaffButton");
 
       let lastReportData = null;
+
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
 
       function formatDateOffset(daysAgo) {
         const date = new Date();
@@ -222,6 +245,15 @@
 
       function showError(message) {
         reportsError.textContent = message;
+        reportsError.className = "mt-5 rounded-2xl border px-4 py-3 text-sm";
+        reportsError.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        reportsError.classList.remove("hidden");
+      }
+
+      function showSuccess(message) {
+        reportsError.textContent = message;
+        reportsError.className = "mt-5 rounded-2xl border px-4 py-3 text-sm";
+        reportsError.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-700");
         reportsError.classList.remove("hidden");
       }
 
@@ -314,6 +346,8 @@
       function renderReport(data) {
         lastReportData = data;
         const { hotel, summary, reports, filters } = data;
+        const guestFilterValue = normalizeFilterValue(guestRegisterFilter.value);
+        const staffFilterValue = normalizeFilterValue(staffRegisterFilter.value);
 
         metricCheckins.textContent = summary.total_checkins_in_range;
         metricCurrentGuests.textContent = summary.current_in_house_guests;
@@ -378,10 +412,19 @@
           `
         );
 
-        guestRegisterState.textContent = `${reports.guest_register.length} guest register row${reports.guest_register.length === 1 ? "" : "s"} loaded.`;
+        const filteredGuestRegister = reports.guest_register.filter((guest) => {
+          if (!guestFilterValue) {
+            return true;
+          }
+          return [guest.name, guest.room_number, guest.phone, guest.id_type, guest.id_number]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(guestFilterValue));
+        });
+
+        guestRegisterState.textContent = `${filteredGuestRegister.length} guest register row${filteredGuestRegister.length === 1 ? "" : "s"} loaded.`;
         renderTableRows(
           guestRegisterTable,
-          reports.guest_register.map((guest) => {
+          filteredGuestRegister.map((guest) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td class="px-3 py-3 font-medium text-ocean">${guest.name}</td>
@@ -397,10 +440,20 @@
           6
         );
 
-        staffRegisterState.textContent = `${reports.staff.length} staff row${reports.staff.length === 1 ? "" : "s"} loaded.`;
+        const filteredStaff = reports.staff.filter((staff) => {
+          if (!staffFilterValue) {
+            return true;
+          }
+          const status = Number(staff.is_active) === 1 ? "active" : "inactive";
+          return [staff.full_name, staff.role, staff.phone, status]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(staffFilterValue));
+        });
+
+        staffRegisterState.textContent = `${filteredStaff.length} staff row${filteredStaff.length === 1 ? "" : "s"} loaded.`;
         renderTableRows(
           staffRegisterTable,
-          reports.staff.map((staff) => {
+          filteredStaff.map((staff) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td class="px-3 py-3 font-medium text-ocean">${staff.full_name}</td>
@@ -436,7 +489,7 @@
 
         try {
           localStorage.setItem("hotel_admin_token", token);
-          localStorage.setItem("dashboard_hotel_id", hotelId);
+          hotelAdminCommon.persistContext(token, hotelId);
 
           const url = new URL("/api/hotel-admin/reports", window.location.origin);
           url.searchParams.set("hotel_id", hotelId);
@@ -474,7 +527,15 @@
       exportGuestRegisterButton.addEventListener("click", () => {
         const hotelId = hotelIdInput.value.trim() || "hotel";
         const rows = [["Guest Name", "Room Number", "Phone", "ID Type", "ID Number", "Check In", "Check Out"]];
-        for (const guest of lastReportData?.reports?.guest_register || []) {
+        for (const guest of (lastReportData?.reports?.guest_register || []).filter((guest) => {
+          const guestFilterValue = normalizeFilterValue(guestRegisterFilter.value);
+          if (!guestFilterValue) {
+            return true;
+          }
+          return [guest.name, guest.room_number, guest.phone, guest.id_type, guest.id_number]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(guestFilterValue));
+        })) {
           rows.push([guest.name, guest.room_number, guest.phone, guest.id_type, guest.id_number, guest.check_in_time, guest.check_out_time]);
         }
         downloadCsv(`${hotelId}-guest-register.csv`, rows);
@@ -483,10 +544,31 @@
       exportStaffButton.addEventListener("click", () => {
         const hotelId = hotelIdInput.value.trim() || "hotel";
         const rows = [["Staff Name", "Role", "Phone", "Status", "Working Since Month", "Working Since Year"]];
-        for (const staff of lastReportData?.reports?.staff || []) {
+        for (const staff of (lastReportData?.reports?.staff || []).filter((staff) => {
+          const staffFilterValue = normalizeFilterValue(staffRegisterFilter.value);
+          if (!staffFilterValue) {
+            return true;
+          }
+          const status = Number(staff.is_active) === 1 ? "active" : "inactive";
+          return [staff.full_name, staff.role, staff.phone, status]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(staffFilterValue));
+        })) {
           rows.push([staff.full_name, staff.role, staff.phone, Number(staff.is_active) === 1 ? "Active" : "Inactive", staff.working_since_month, staff.working_since_year]);
         }
         downloadCsv(`${hotelId}-staff-register.csv`, rows);
+      });
+
+      guestRegisterFilter.addEventListener("input", () => {
+        if (lastReportData) {
+          renderReport(lastReportData);
+        }
+      });
+
+      staffRegisterFilter.addEventListener("input", () => {
+        if (lastReportData) {
+          renderReport(lastReportData);
+        }
       });
 
       reportsForm.addEventListener("submit", async (event) => {
@@ -494,11 +576,12 @@
         await loadReports();
       });
 
-      const params = new URLSearchParams(window.location.search);
-      hotelIdInput.value = params.get("hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
-      tokenInput.value = localStorage.getItem("hotel_admin_token") || "";
+      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
       fromDateInput.value = formatDateOffset(29);
       toDateInput.value = formatDateOffset(0);
+      if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
+        showSuccess("Saved hotel context loaded. Tap Load Reports when you are ready.");
+      }
     </script>
   </body>
 </html>

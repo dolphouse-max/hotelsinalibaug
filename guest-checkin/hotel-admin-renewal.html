@@ -25,6 +25,9 @@
         <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
         <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Renewal</span>
       </div>
+      <script>
+        document.write(hotelAdminCommon.quickNav("renewal"));
+      </script>
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
           <h1 class="text-2xl font-semibold">Renewal Tracker</h1>
@@ -32,6 +35,9 @@
         </div>
 
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page only for renewal requests and checking payment history from superadmin.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>

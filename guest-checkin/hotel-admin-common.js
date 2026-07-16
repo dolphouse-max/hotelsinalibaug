@@ -115,6 +115,35 @@
     return data.hotel;
   }
 
+  function quickNav(currentPage) {
+    const pages = [
+      { id: "home", label: "Home", href: "/hotel-admin-home.html" },
+      { id: "profile", label: "Profile", href: "/hotel-admin-profile.html" },
+      { id: "drive", label: "Drive", href: "/hotel-admin-google-drive.html" },
+      { id: "checkin", label: "Guest QR", href: "/hotel-admin-checkin.html" },
+      { id: "renewal", label: "Renewal", href: "/hotel-admin-renewal.html" },
+      { id: "guests", label: "Guests", href: "/hotel-admin-guests.html" },
+      { id: "reports", label: "Reports", href: "/reports.html" },
+    ];
+
+    return `
+      <nav class="mt-4 overflow-x-auto pb-1">
+        <div class="flex gap-2">
+          ${pages.map((page) => `
+            <a
+              href="${page.href}"
+              class="whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium ${
+                page.id === currentPage
+                  ? "border-ocean bg-ocean text-white"
+                  : "border-slate-200 bg-white text-slate-700"
+              }"
+            >${page.label}</a>
+          `).join("")}
+        </div>
+      </nav>
+    `;
+  }
+
   window.hotelAdminCommon = {
     params,
     hydrateContext,
@@ -126,5 +155,6 @@
     setButtonLoading,
     safeHotelId,
     loadHotelProfile,
+    quickNav,
   };
 })();
