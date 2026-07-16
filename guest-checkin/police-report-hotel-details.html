@@ -24,7 +24,13 @@
       <script>
         document.write(policeReportsCommon.pageChrome("Hotel Details", "Hotel", "View the selected hotel’s details, occupancy snapshot, and current high-level status."));
       </script>
+        <script>
+          document.write(policeReportsCommon.quickNav("hotel"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page first when you want the hotel identity and occupancy snapshot before checking guests or logs.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
@@ -86,6 +92,7 @@
       async function initHotels() {
         if (tokenInput.value.trim()) {
           await policeReportsCommon.loadHotels(tokenInput, hotelIdInput);
+          policeReportsCommon.showBox(errorBox, "Saved police filters loaded. Tap Load Report when ready.", "success");
         }
       }
 

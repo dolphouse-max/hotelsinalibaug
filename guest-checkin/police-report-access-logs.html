@@ -24,7 +24,13 @@
       <script>
         document.write(policeReportsCommon.pageChrome("Police Access History", "Logs", "View and export access history rows recorded for the selected hotel."));
       </script>
+        <script>
+          document.write(policeReportsCommon.quickNav("logs"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Search logs by officer name or guest ID when access history becomes large.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
@@ -47,6 +53,10 @@
             <div class="grid grid-cols-2 gap-3">
               <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white">Load Report</button>
               <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div>
+              <label for="logFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Log</label>
+              <input id="logFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search by officer name or guest ID">
             </div>
             <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
@@ -81,6 +91,7 @@
       const toDateInput = document.getElementById("toDate");
       const loadButton = document.getElementById("loadButton");
       const exportButton = document.getElementById("exportButton");
+      const logFilterInput = document.getElementById("logFilter");
       const errorBox = document.getElementById("errorBox");
       const metricLogs = document.getElementById("metricLogs");
       const policeLogsState = document.getElementById("policeLogsState");
@@ -92,15 +103,34 @@
       async function initHotels() {
         if (tokenInput.value.trim()) {
           await policeReportsCommon.loadHotels(tokenInput, hotelIdInput);
+          policeReportsCommon.showBox(errorBox, "Saved police filters loaded. Tap Load Report when ready.", "success");
         }
       }
 
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function applyLogFilter(logs) {
+        const filterValue = normalizeFilterValue(logFilterInput.value);
+        if (!filterValue) {
+          return logs;
+        }
+
+        return logs.filter((log) =>
+          [log.officer_name, log.guest_id]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(filterValue))
+        );
+      }
+
       function renderLogs(logs) {
-        metricLogs.textContent = logs.length;
-        policeLogsState.textContent = `${logs.length} access history row${logs.length === 1 ? "" : "s"} loaded.`;
+        const filteredLogs = applyLogFilter(logs);
+        metricLogs.textContent = filteredLogs.length;
+        policeLogsState.textContent = `${filteredLogs.length} access history row${filteredLogs.length === 1 ? "" : "s"} loaded.`;
         policeReportsCommon.renderTable(
           policeLogsTable,
-          logs.map((log) => {
+          filteredLogs.map((log) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td class="px-3 py-3 font-medium text-ink">${log.officer_name}</td>
@@ -138,10 +168,17 @@
           return;
         }
         const rows = [["Officer Name", "Guest ID", "Accessed At"]];
-        for (const log of lastReportData.reports.police_access_logs) {
+        for (const log of applyLogFilter(lastReportData.reports.police_access_logs)) {
           rows.push([log.officer_name, log.guest_id, log.accessed_at]);
         }
         policeReportsCommon.downloadCsv("police-access-history.csv", rows);
+      });
+
+      logFilterInput.addEventListener("input", () => {
+        if (!lastReportData?.reports?.police_access_logs) {
+          return;
+        }
+        renderLogs(lastReportData.reports.police_access_logs);
       });
 
       initHotels().catch(() => {});

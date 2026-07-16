@@ -250,6 +250,34 @@
     `;
   }
 
+  function quickNav(currentPage) {
+    const pages = [
+      { id: "home", label: "Home", href: "/police-reports-home.html" },
+      { id: "hotel", label: "Hotel", href: "/police-report-hotel-details.html" },
+      { id: "current", label: "Current Guests", href: "/police-report-current-guests.html" },
+      { id: "register", label: "Guest Register", href: "/police-report-guest-register.html" },
+      { id: "staff", label: "Staff", href: "/police-report-staff-register.html" },
+      { id: "logs", label: "Logs", href: "/police-report-access-logs.html" },
+    ];
+
+    return `
+      <nav class="mt-4 overflow-x-auto pb-1">
+        <div class="flex gap-2">
+          ${pages.map((page) => `
+            <a
+              href="${page.href}"
+              class="whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium ${
+                page.id === currentPage
+                  ? "border-ink bg-ink text-white"
+                  : "border-slate-200 bg-white text-slate-700"
+              }"
+            >${page.label}</a>
+          `).join("")}
+        </div>
+      </nav>
+    `;
+  }
+
   window.policeReportsCommon = {
     params,
     formatDateOffset,
@@ -269,5 +297,6 @@
     proofButtons,
     attachProofButtons,
     pageChrome,
+    quickNav,
   };
 })();

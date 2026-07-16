@@ -24,7 +24,13 @@
       <script>
         document.write(policeReportsCommon.pageChrome("Current Guests", "Guests", "View the selected hotel’s current in-house guests and open available proof images from this page."));
       </script>
+        <script>
+          document.write(policeReportsCommon.quickNav("current"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            This page is best for live verification. It only shows guests currently checked in.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
@@ -76,6 +82,7 @@
       async function initHotels() {
         if (tokenInput.value.trim()) {
           await policeReportsCommon.loadHotels(tokenInput, hotelIdInput);
+          policeReportsCommon.showBox(errorBox, "Saved police filters loaded. Tap Load Report when ready.", "success");
         }
       }
 
