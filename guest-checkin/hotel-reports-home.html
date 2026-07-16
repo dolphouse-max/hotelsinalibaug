@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Reports Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script src="hotel-reports-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
+          <h1 class="mt-2 text-2xl font-semibold">Hotel Reports</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Save report filters once, then open one focused report page at a time on mobile.</p>
+        </div>
+        <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use one report page per task: snapshot, check-ins, current guests, check-outs, guest register, or staff register.
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <button id="saveFiltersButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">
+              Save Report Filters
+            </button>
+            <div id="statusBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-5 grid gap-3">
+        <a href="/hotel-report-snapshot.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Hotel Snapshot</p>
+          <p class="mt-1 text-sm text-slate-600">Summary metrics, room occupancy, report range, and trial status.</p>
+        </a>
+        <a href="/hotel-report-checkins.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Today's Check-Ins</p>
+          <p class="mt-1 text-sm text-slate-600">Guests checked in today for the selected hotel.</p>
+        </a>
+        <a href="/hotel-report-current-guests.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Current Guests</p>
+          <p class="mt-1 text-sm text-slate-600">All currently in-house guests for front desk review.</p>
+        </a>
+        <a href="/hotel-report-checkouts.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Today's Check-Outs</p>
+          <p class="mt-1 text-sm text-slate-600">Guests checked out today.</p>
+        </a>
+        <a href="/hotel-report-guest-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Guest Register</p>
+          <p class="mt-1 text-sm text-slate-600">Guest history with search and CSV export.</p>
+        </a>
+        <a href="/hotel-report-staff-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Staff Register</p>
+          <p class="mt-1 text-sm text-slate-600">Staff list with search and CSV export.</p>
+        </a>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const saveFiltersButton = document.getElementById("saveFiltersButton");
+      const statusBox = document.getElementById("statusBox");
+
+      hotelReportsCommon.hydrateFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
+      if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
+        hotelReportsCommon.setMessage(statusBox, "Saved hotel report filters found on this device.", "success");
+      }
+
+      saveFiltersButton.addEventListener("click", () => {
+        hotelReportsCommon.persistFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
+        hotelReportsCommon.setMessage(statusBox, "Hotel report filters saved on this device.", "success");
+      });
+    </script>
+  </body>
+</html>
