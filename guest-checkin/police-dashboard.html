@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1f3b57">
+    <title>Police Dashboard | Hotels In Alibaug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#111827",
+              slateblue: "#1f3b57",
+              signal: "#de7e4a",
+            },
+            boxShadow: {
+              resort: "0 28px 90px rgba(17, 24, 39, 0.18)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f6_100%)] text-slate-900">
+    <main class="mx-auto max-w-5xl px-4 py-6 pb-10">
+      <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-resort">
+        <div class="bg-[linear-gradient(135deg,#111827_0%,#1f3b57_68%,#355879_100%)] px-6 py-7 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
+          <h1 class="mt-2 text-3xl font-semibold">Police Dashboard</h1>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-white/80">This dashboard is only for police access and hotel compliance reporting.</p>
+        </div>
+        <div class="p-6">
+          <div class="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
+            <div>
+              <label for="hotelIdInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelIdInput" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="officerNameInput" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
+              <input id="officerNameInput" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div>
+              <label for="policeTokenInput" class="mb-2 block text-sm font-medium text-slate-700">Police Token</label>
+              <input id="policeTokenInput" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+            </div>
+            <div class="flex items-end">
+              <button id="saveContextButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white">
+                Save Context
+              </button>
+            </div>
+          </div>
+          <div id="contextMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+        </div>
+      </section>
+
+      <section class="mt-6 grid gap-5 md:grid-cols-2">
+        <a data-target="police-console.html" class="police-link rounded-[2rem] bg-white p-6 shadow-resort">
+          <p class="text-xl font-semibold text-ink">Police Console</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Look up guest access records and open proof documents with logging.</p>
+        </a>
+        <a data-target="police-reports-home.html" class="police-link rounded-[2rem] bg-white p-6 shadow-resort">
+          <p class="text-xl font-semibold text-ink">Police Reports</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Open hotel details, current guests, guest register, staff register, and access logs.</p>
+        </a>
+      </section>
+    </main>
+
+    <script>
+      const hotelIdInput = document.getElementById("hotelIdInput");
+      const officerNameInput = document.getElementById("officerNameInput");
+      const policeTokenInput = document.getElementById("policeTokenInput");
+      const contextMessage = document.getElementById("contextMessage");
+      const links = Array.from(document.querySelectorAll(".police-link"));
+
+      hotelIdInput.value = localStorage.getItem("police_reports_hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
+      officerNameInput.value = localStorage.getItem("police_officer_name") || localStorage.getItem("dashboard_officer_name") || "";
+      policeTokenInput.value = localStorage.getItem("police_access_token") || "";
+
+      if (hotelIdInput.value || officerNameInput.value || policeTokenInput.value) {
+        showMessage("Saved police context found on this device.", "success");
+      }
+
+      function showMessage(message, tone) {
+        contextMessage.textContent = message;
+        contextMessage.className = "mt-4 rounded-2xl border px-4 py-3 text-sm";
+        contextMessage.classList.remove("hidden");
+        if (tone === "success") {
+          contextMessage.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-700");
+        } else {
+          contextMessage.classList.add("border-rose-200", "bg-rose-50", "text-rose-700");
+        }
+      }
+
+      function persistContext() {
+        localStorage.setItem("police_reports_hotel_id", hotelIdInput.value.trim());
+        localStorage.setItem("dashboard_hotel_id", hotelIdInput.value.trim());
+        localStorage.setItem("police_officer_name", officerNameInput.value.trim());
+        localStorage.setItem("dashboard_officer_name", officerNameInput.value.trim());
+        localStorage.setItem("police_access_token", policeTokenInput.value.trim());
+      }
+
+      document.getElementById("saveContextButton").addEventListener("click", () => {
+        persistContext();
+        showMessage("Police context saved on this device.", "success");
+      });
+
+      links.forEach((link) => {
+        link.href = "#";
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          const hotelId = hotelIdInput.value.trim();
+          persistContext();
+          const url = new URL(link.dataset.target, window.location.href);
+          if (hotelId) {
+            url.searchParams.set("hotel_id", hotelId);
+          }
+          if (officerNameInput.value.trim()) {
+            url.searchParams.set("officer_name", officerNameInput.value.trim());
+          }
+          window.location.href = url.toString();
+        });
+      });
+    </script>
+  </body>
+</html>
