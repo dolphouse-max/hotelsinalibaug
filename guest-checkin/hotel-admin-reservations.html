@@ -151,6 +151,31 @@
 
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-ocean">Backup & Transfer</h2>
+          <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-ocean">Version 2</span>
+        </div>
+        <div class="mt-4 grid gap-3">
+          <button id="exportCsvButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+            Export CSV
+          </button>
+          <label class="inline-flex w-full cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+            Import CSV
+            <input id="importCsvInput" type="file" accept=".csv,text/csv" class="hidden">
+          </label>
+          <button id="backupDriveButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">
+            Backup To Google Drive
+          </button>
+          <button id="restoreDriveButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+            Restore Latest Drive Backup
+          </button>
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">
+            CSV export/import works on this device. Google Drive backup and restore uses the hotel Drive connection from the Drive page.
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg font-semibold text-ocean">Future Reservation Calendar</h2>
           <button id="resetCalendarButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700">Show All</button>
         </div>
@@ -182,6 +207,10 @@
       const calendarGrid = document.getElementById("calendarGrid");
       const calendarState = document.getElementById("calendarState");
       const todayIso = new Date().toISOString().slice(0, 10);
+      const exportCsvButton = document.getElementById("exportCsvButton");
+      const importCsvInput = document.getElementById("importCsvInput");
+      const backupDriveButton = document.getElementById("backupDriveButton");
+      const restoreDriveButton = document.getElementById("restoreDriveButton");
 
       let filterMode = "arrivals";
       let selectedCalendarDate = "";
@@ -192,6 +221,15 @@
       function reservationStorageKey() {
         const hotelId = hotelIdInput.value.trim();
         return hotelId ? `hotel_reservations_${hotelId}` : "";
+      }
+
+      function storedAuthHeaders(includeJson = true) {
+        const storedToken = localStorage.getItem("hotel_admin_token") || "";
+        if (!storedToken) {
+          throw new Error("Hotel admin token is not available on this device. Open the hotel admin pages once and log in before using Google Drive backup.");
+        }
+
+        return hotelAdminCommon.authHeaders({ value: storedToken }, includeJson);
       }
 
       function readReservations() {
@@ -223,6 +261,121 @@
           return;
         }
         localStorage.setItem(key, JSON.stringify(items));
+      }
+
+      function csvEscape(value) {
+        const text = String(value ?? "");
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+
+      function exportReservationsCsv() {
+        const hotelId = hotelIdInput.value.trim();
+        if (!hotelId) {
+          throw new Error("Enter a hotel ID first.");
+        }
+
+        const items = readReservations();
+        const rows = [
+          [
+            "id",
+            "booking_type",
+            "booking_source",
+            "guest_name",
+            "guest_phone",
+            "total_guests",
+            "check_in_date",
+            "check_out_date",
+            "room_plan",
+            "advance_payment",
+            "booking_note",
+            "created_at",
+          ],
+          ...items.map((item) => [
+            item.id,
+            item.booking_type,
+            item.booking_source,
+            item.guest_name,
+            item.guest_phone,
+            item.total_guests,
+            item.check_in_date,
+            item.check_out_date,
+            item.room_plan,
+            item.advance_payment,
+            item.booking_note,
+            item.created_at,
+          ]),
+        ];
+
+        const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${hotelId}_reservations.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function parseCsvLine(line) {
+        const result = [];
+        let current = "";
+        let insideQuotes = false;
+
+        for (let index = 0; index < line.length; index += 1) {
+          const char = line[index];
+          const next = line[index + 1];
+
+          if (char === '"' && insideQuotes && next === '"') {
+            current += '"';
+            index += 1;
+          } else if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === "," && !insideQuotes) {
+            result.push(current);
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+
+        result.push(current);
+        return result;
+      }
+
+      function importReservationsCsv(text) {
+        const lines = text.split(/\r?\n/).filter(Boolean);
+        if (lines.length < 2) {
+          throw new Error("CSV file is empty.");
+        }
+
+        const headers = parseCsvLine(lines[0]);
+        const imported = [];
+
+        for (const line of lines.slice(1)) {
+          const values = parseCsvLine(line);
+          const row = Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
+          if (!row.guest_name) {
+            continue;
+          }
+
+          imported.push({
+            id: row.id || (crypto.randomUUID ? crypto.randomUUID() : `reservation_${Date.now()}_${imported.length}`),
+            booking_type: row.booking_type || "future",
+            booking_source: row.booking_source || "direct",
+            guest_name: row.guest_name,
+            guest_phone: row.guest_phone || "",
+            total_guests: Number(row.total_guests || "1"),
+            check_in_date: row.check_in_date,
+            check_out_date: row.check_out_date,
+            room_plan: row.room_plan || "",
+            advance_payment: Number(row.advance_payment || "0"),
+            booking_note: row.booking_note || "",
+            created_at: row.created_at || new Date().toISOString(),
+          });
+        }
+
+        reservations = imported;
+        writeReservations(reservations);
       }
 
       function statCounts(items) {
@@ -448,6 +601,108 @@
       });
 
       reservationForm.addEventListener("submit", saveReservation);
+
+      exportCsvButton.addEventListener("click", () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        try {
+          exportReservationsCsv();
+          hotelAdminCommon.setMessage(pageMessage, "CSV exported successfully.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to export CSV", "error");
+        }
+      });
+
+      importCsvInput.addEventListener("change", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        const file = importCsvInput.files && importCsvInput.files[0];
+        if (!file) {
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          importReservationsCsv(text);
+          selectedCalendarDate = "";
+          renderAll();
+          hotelAdminCommon.setMessage(pageMessage, "CSV imported successfully on this device.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to import CSV", "error");
+        } finally {
+          importCsvInput.value = "";
+        }
+      });
+
+      backupDriveButton.addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(backupDriveButton, true, "Backing up...");
+        try {
+          const hotelId = hotelIdInput.value.trim();
+          if (!hotelId) {
+            throw new Error("Enter a hotel ID first.");
+          }
+
+          const response = await fetch("/api/hotel-admin/reservations-backup", {
+            method: "POST",
+            headers: storedAuthHeaders(),
+            body: JSON.stringify({
+              hotel_id: hotelId,
+              records: readReservations(),
+            }),
+          });
+          const data = await hotelAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to backup reservations to Google Drive");
+          }
+
+          hotelAdminCommon.setMessage(pageMessage, `Drive backup created: ${data.backup?.name || "reservation backup"}.`, "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to backup reservations", "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(backupDriveButton, false);
+        }
+      });
+
+      restoreDriveButton.addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(restoreDriveButton, true, "Restoring...");
+        try {
+          const hotelId = hotelIdInput.value.trim();
+          if (!hotelId) {
+            throw new Error("Enter a hotel ID first.");
+          }
+
+          const listResponse = await fetch(`/api/hotel-admin/reservations-backup?hotel_id=${encodeURIComponent(hotelId)}`, {
+            headers: storedAuthHeaders(false),
+          });
+          const listData = await hotelAdminCommon.readJson(listResponse);
+          if (!listResponse.ok) {
+            throw new Error(listData.error || "Unable to load Drive backups");
+          }
+
+          const latest = (listData.backups || [])[0];
+          if (!latest) {
+            throw new Error("No reservation backup file found in Google Drive.");
+          }
+
+          const restoreResponse = await fetch(`/api/hotel-admin/reservations-backup?hotel_id=${encodeURIComponent(hotelId)}&file_id=${encodeURIComponent(latest.id)}`, {
+            headers: storedAuthHeaders(false),
+          });
+          const restoreData = await hotelAdminCommon.readJson(restoreResponse);
+          if (!restoreResponse.ok) {
+            throw new Error(restoreData.error || "Unable to restore reservation backup");
+          }
+
+          reservations = Array.isArray(restoreData.records) ? restoreData.records : [];
+          writeReservations(reservations);
+          selectedCalendarDate = "";
+          renderAll();
+          hotelAdminCommon.setMessage(pageMessage, `Latest Drive backup restored from ${latest.name}.`, "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to restore reservations", "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(restoreDriveButton, false);
+        }
+      });
 
       setDefaultDates();
       renderAll();

@@ -347,3 +347,59 @@ export async function uploadFileToHotelDrive(
 
   return (await response.json()) as GoogleDriveUploadResult;
 }
+
+export async function listHotelDriveFiles(
+  accessToken: string,
+  folderId: string,
+  fileNamePrefix = ""
+): Promise<Array<{ id: string; name: string; createdTime: string; modifiedTime: string }>> {
+  const url = new URL(GOOGLE_DRIVE_FILES_URL);
+  const clauses = [`'${folderId}' in parents`, "trashed = false"];
+
+  if (fileNamePrefix) {
+    clauses.push(`name contains '${fileNamePrefix.replace(/'/g, "\\'")}'`);
+  }
+
+  url.searchParams.set("q", clauses.join(" and "));
+  url.searchParams.set("fields", "files(id,name,createdTime,modifiedTime)");
+  url.searchParams.set("orderBy", "modifiedTime desc");
+  url.searchParams.set("pageSize", "20");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to list Google Drive files: ${errorText}`);
+  }
+
+  const payload = (await response.json()) as {
+    files?: Array<{ id: string; name: string; createdTime: string; modifiedTime: string }>;
+  };
+
+  return payload.files || [];
+}
+
+export async function downloadHotelDriveFile(
+  accessToken: string,
+  fileId: string
+): Promise<string> {
+  const url = new URL(`${GOOGLE_DRIVE_FILES_URL}/${encodeURIComponent(fileId)}`);
+  url.searchParams.set("alt", "media");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to download Google Drive file: ${errorText}`);
+  }
+
+  return response.text();
+}
