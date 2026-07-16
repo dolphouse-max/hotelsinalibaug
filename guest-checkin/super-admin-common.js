@@ -125,6 +125,34 @@
     `;
   }
 
+  function quickNav(currentPage) {
+    const pages = [
+      { id: "home", label: "Home", href: "/super-admin-home.html" },
+      { id: "setup", label: "Setup", href: "/super-admin-setup.html" },
+      { id: "add", label: "Add Hotel", href: "/super-admin-add-hotel.html" },
+      { id: "hotels", label: "Hotels", href: "/super-admin-hotels.html" },
+      { id: "renewals", label: "Renewals", href: "/super-admin-renewals.html" },
+      { id: "reports", label: "Reports", href: "/super-admin-reports.html" },
+    ];
+
+    return `
+      <nav class="mt-4 overflow-x-auto pb-1">
+        <div class="flex gap-2">
+          ${pages.map((page) => `
+            <a
+              href="${page.href}"
+              class="whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium ${
+                page.id === currentPage
+                  ? "border-ocean-950 bg-ocean-950 text-white"
+                  : "border-slate-200 bg-white text-slate-700"
+              }"
+            >${page.label}</a>
+          `).join("")}
+        </div>
+      </nav>
+    `;
+  }
+
   window.superAdminCommon = {
     todayDate,
     addMonths,
@@ -137,5 +165,6 @@
     setButtonLoading,
     suggestHotelId,
     pageChrome,
+    quickNav,
   };
 })();

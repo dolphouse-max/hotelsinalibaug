@@ -28,9 +28,23 @@
       <script>
         document.write(superAdminCommon.pageChrome("Add Hotel", "Create", "Create the hotel account and its admin contact in one page. Trial dates default to a 3-month starter period."));
       </script>
+        <script>
+          document.write(superAdminCommon.quickNav("add"));
+        </script>
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            New hotels get a 3-month trial by default. You can adjust dates before creating the account.
+            New hotels get a 3-month trial by default. Keep this page only for new hotel creation. Future edits can be done from the Hotels page.
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Default Trial</p>
+              <p class="mt-2 text-base font-semibold text-ocean-950">3 months</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Hotel ID</p>
+              <p class="mt-2 text-base font-semibold text-ocean-950">Auto-suggested</p>
+            </div>
           </div>
 
           <form id="hotelForm" class="mt-5 space-y-4">
@@ -135,6 +149,10 @@
       superAdminCommon.restoreToken(tokenInput);
       subscriptionStartDateInput.value = superAdminCommon.todayDate();
       subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
+
+      if (tokenInput.value) {
+        superAdminCommon.setMessage(formSuccess, "Saved superadmin token loaded from this device.", "success");
+      }
 
       async function loadHotels() {
         const response = await fetch("/api/super-admin/manage-hotel", {
@@ -254,6 +272,7 @@
           activeFlagInput.value = "1";
           subscriptionStartDateInput.value = superAdminCommon.todayDate();
           subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
+          hotelNameInput.focus();
           await loadHotels();
         } catch (error) {
           superAdminCommon.setMessage(formError, error instanceof Error ? error.message : "Unable to create hotel", "error");
@@ -298,6 +317,7 @@
           subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
           pendingDuplicatePayload = null;
           pendingDuplicateHotels = [];
+          hotelNameInput.focus();
           await loadHotels();
         } catch (error) {
           superAdminCommon.setMessage(formError, error instanceof Error ? error.message : "Unable to create hotel", "error");

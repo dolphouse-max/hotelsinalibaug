@@ -28,7 +28,13 @@
       <script>
         document.write(superAdminCommon.pageChrome("Access Setup", "Setup", "Save the superadmin token locally on this device so the mobile workflow stays quick and simple."));
       </script>
+        <script>
+          document.write(superAdminCommon.quickNav("setup"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Save the token once on this phone, then the rest of the Superadmin pages can reuse it automatically.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
@@ -53,6 +59,9 @@
       const tokenStatus = document.getElementById("tokenStatus");
 
       superAdminCommon.restoreToken(tokenInput);
+      if (tokenInput.value) {
+        superAdminCommon.setMessage(tokenStatus, "Saved token found on this device. You can verify it anytime.", "success");
+      }
 
       saveTokenButton.addEventListener("click", () => {
         superAdminCommon.saveToken(tokenInput);

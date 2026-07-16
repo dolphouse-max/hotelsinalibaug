@@ -28,11 +28,18 @@
       <script>
         document.write(superAdminCommon.pageChrome("Tenant Overview", "Hotels", "Review active and inactive hotels, reminder windows, and edit hotel details in place from a mobile-friendly page."));
       </script>
+        <script>
+          document.write(superAdminCommon.quickNav("hotels"));
+        </script>
         <div class="p-5">
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
               <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            </div>
+            <div>
+              <label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Hotel</label>
+              <input id="hotelFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Search by hotel name, ID, mobile or Gmail">
             </div>
             <button id="refreshButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
               Refresh Hotels
@@ -145,12 +152,14 @@
     <script>
       const tokenInput = document.getElementById("superAdminToken");
       const refreshButton = document.getElementById("refreshButton");
+      const hotelFilter = document.getElementById("hotelFilter");
       const hotelsGrid = document.getElementById("hotelsGrid");
       const listState = document.getElementById("listState");
       const totalHotelsStat = document.getElementById("totalHotelsStat");
       const reminderHotelsStat = document.getElementById("reminderHotelsStat");
       const inactiveHotelsStat = document.getElementById("inactiveHotelsStat");
       const hotelCardTemplate = document.getElementById("hotelCardTemplate");
+      let allHotels = [];
 
       superAdminCommon.restoreToken(tokenInput);
 
@@ -267,6 +276,41 @@
         return fragment;
       }
 
+      function applyHotelFilter() {
+        const query = hotelFilter.value.trim().toLowerCase();
+        const filteredHotels = !query
+          ? allHotels
+          : allHotels.filter((hotel) =>
+              [
+                hotel.name,
+                hotel.id,
+                hotel.admin_email,
+                hotel.admin_phone,
+                hotel.contact,
+              ]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(query))
+            );
+
+        hotelsGrid.innerHTML = "";
+
+        updateStats(allHotels);
+        if (!allHotels.length) {
+          listState.textContent = "No hotels found yet.";
+          return;
+        }
+
+        if (!filteredHotels.length) {
+          listState.textContent = "No hotels match this search.";
+          return;
+        }
+
+        listState.textContent = `${filteredHotels.length} of ${allHotels.length} hotel account${allHotels.length === 1 ? "" : "s"} shown.`;
+        for (const hotel of filteredHotels) {
+          hotelsGrid.appendChild(renderHotelCard(hotel));
+        }
+      }
+
       async function loadHotels() {
         listState.textContent = "Loading hotels...";
         hotelsGrid.innerHTML = "";
@@ -278,17 +322,10 @@
           if (!response.ok) {
             throw new Error(data.error || "Unable to load hotels");
           }
-          const hotels = data.hotels || [];
-          updateStats(hotels);
-          if (!hotels.length) {
-            listState.textContent = "No hotels found yet.";
-            return;
-          }
-          listState.textContent = `${hotels.length} hotel account${hotels.length === 1 ? "" : "s"} loaded.`;
-          for (const hotel of hotels) {
-            hotelsGrid.appendChild(renderHotelCard(hotel));
-          }
+          allHotels = data.hotels || [];
+          applyHotelFilter();
         } catch (error) {
+          allHotels = [];
           updateStats([]);
           listState.textContent = error instanceof Error ? error.message : "Unable to load hotels";
         }
@@ -303,6 +340,8 @@
           superAdminCommon.setButtonLoading(refreshButton, false);
         }
       });
+
+      hotelFilter.addEventListener("input", applyHotelFilter);
 
       loadHotels().catch(() => {});
     </script>

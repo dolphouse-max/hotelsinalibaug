@@ -28,6 +28,9 @@
       <script>
         document.write(superAdminCommon.pageChrome("Renewal Queue", "Renewals", "Review hotel renewal requests, record subscription payments, and dismiss requests from a focused mobile page."));
       </script>
+        <script>
+          document.write(superAdminCommon.quickNav("renewals"));
+        </script>
         <div class="p-5">
           <div class="space-y-4">
             <div>
@@ -37,6 +40,10 @@
             <button id="refreshButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
               Refresh Renewal Queue
             </button>
+          </div>
+
+          <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page only for renewal work: finish pending requests here, then use Reports separately for audit history.
           </div>
 
           <div class="mt-5 grid grid-cols-2 gap-3">

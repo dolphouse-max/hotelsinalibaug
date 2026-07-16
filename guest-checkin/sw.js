@@ -1,4 +1,4 @@
-const CACHE_NAME = "guest-checkin-pwa-v1";
+const CACHE_NAME = "guest-checkin-pwa-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -38,12 +38,22 @@ self.addEventListener("fetch", (event) => {
 
       return fetch(event.request)
         .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200) {
+            return networkResponse;
+          }
+
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           return networkResponse;
         })
         .catch(async () => {
-          if (event.request.mode === "navigate") {
+          const requestUrl = new URL(event.request.url);
+          const isHomeNavigation =
+            event.request.mode === "navigate" &&
+            requestUrl.origin === self.location.origin &&
+            (requestUrl.pathname === "/" || requestUrl.pathname === "/index.html");
+
+          if (isHomeNavigation) {
             return (await caches.match("/index.html")) || Response.error();
           }
 
