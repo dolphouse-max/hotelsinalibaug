@@ -1,8 +1,11 @@
 import { sendPushToSubscription } from "./push";
+import { purgeExpiredHotelMessages } from "./hotel-messages";
 
 const REMINDER_DAYS = [15, 7, 3, 1];
 
 export async function runSubscriptionReminderCycle(env, createdBy = "System Reminder") {
+  await purgeExpiredHotelMessages(env.DB);
+
   const hotelsResult = await env.DB.prepare(
     `SELECT
        h.id,

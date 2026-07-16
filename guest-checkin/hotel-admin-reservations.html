@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#17324a">
+    <title>Bookings & Reservations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+              shell: "#f6efe3",
+              breeze: "#9bc8c2",
+              sunset: "#dc8f67",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Bookings</span>
+      </div>
+      <script>
+        document.write(hotelAdminCommon.quickNav("reservations"));
+      </script>
+
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Bookings & Reservations</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Save walk-ins and future bookings on this device so reception can track arrivals, departures, and advance payments before check-in starts.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID for this device">
+            </div>
+            <div class="rounded-[1.5rem] border border-sky-200 bg-sky-50 px-4 py-4 text-sm leading-6 text-sky-900">
+              This booking register uses only this mobile or laptop browser storage. It does not save to D1.
+            </div>
+            <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-3 gap-3">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Today</p>
+              <p id="todayArrivalsStat" class="mt-2 text-xl font-semibold text-ocean">0</p>
+              <p class="mt-1 text-xs text-slate-500">Arrivals</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Today</p>
+              <p id="todayDeparturesStat" class="mt-2 text-xl font-semibold text-ocean">0</p>
+              <p class="mt-1 text-xs text-slate-500">Departures</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Future</p>
+              <p id="futureReservationsStat" class="mt-2 text-xl font-semibold text-ocean">0</p>
+              <p class="mt-1 text-xs text-slate-500">Bookings</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-ocean">Add Reservation</h2>
+          <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-ocean">Walk-in or Future</span>
+        </div>
+
+        <form id="reservationForm" class="mt-4 space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="bookingType" class="mb-2 block text-sm font-medium text-slate-700">Booking Type</label>
+              <select id="bookingType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                <option value="walkin">Walk-In</option>
+                <option value="future">Future Reservation</option>
+              </select>
+            </div>
+            <div>
+              <label for="bookingSource" class="mb-2 block text-sm font-medium text-slate-700">Source</label>
+              <select id="bookingSource" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                <option value="direct">Direct</option>
+                <option value="phone">Phone</option>
+                <option value="walkin">Walk-In Desk</option>
+                <option value="agent">Agent</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="guestName" class="mb-2 block text-sm font-medium text-slate-700">Guest Name</label>
+            <input id="guestName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="guestPhone" class="mb-2 block text-sm font-medium text-slate-700">Phone</label>
+              <input id="guestPhone" inputmode="tel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <div>
+              <label for="totalGuests" class="mb-2 block text-sm font-medium text-slate-700">Guests</label>
+              <input id="totalGuests" type="number" min="1" value="1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="checkInDate" class="mb-2 block text-sm font-medium text-slate-700">Check-In Date</label>
+              <input id="checkInDate" type="date" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <div>
+              <label for="checkOutDate" class="mb-2 block text-sm font-medium text-slate-700">Check-Out Date</label>
+              <input id="checkOutDate" type="date" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="roomPlan" class="mb-2 block text-sm font-medium text-slate-700">Room / Plan</label>
+              <input id="roomPlan" placeholder="Deluxe / 101 / AC" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <div>
+              <label for="advancePayment" class="mb-2 block text-sm font-medium text-slate-700">Advance Payment</label>
+              <input id="advancePayment" type="number" min="0" step="0.01" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+          </div>
+
+          <div>
+            <label for="bookingNote" class="mb-2 block text-sm font-medium text-slate-700">Note</label>
+            <textarea id="bookingNote" rows="3" placeholder="Early arrival, extra mattress, family booking, etc." class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+          </div>
+
+          <button id="saveReservationButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white">
+            Save Reservation On This Device
+          </button>
+        </form>
+      </section>
+
+      <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-ocean">Future Reservation Calendar</h2>
+          <button id="resetCalendarButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700">Show All</button>
+        </div>
+        <div id="calendarState" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">Calendar loads after you save or load reservations.</div>
+        <div id="calendarGrid" class="mt-4 grid grid-cols-5 gap-2"></div>
+      </section>
+
+      <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <h2 class="text-lg font-semibold text-ocean">Arrival / Departure List</h2>
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <button id="showArrivalsButton" type="button" class="rounded-2xl bg-ocean px-4 py-3 text-sm font-semibold text-white">Today Arrivals</button>
+          <button id="showDeparturesButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">Today Departures</button>
+        </div>
+        <div class="mt-4">
+          <input id="reservationSearch" placeholder="Search guest, phone, room, or note" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+        </div>
+        <div id="reservationsState" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">No reservations loaded yet.</div>
+        <div id="reservationsList" class="mt-4 grid gap-3"></div>
+      </section>
+    </main>
+
+    <script>
+      const hotelIdInput = document.getElementById("hotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const reservationForm = document.getElementById("reservationForm");
+      const saveReservationButton = document.getElementById("saveReservationButton");
+      const reservationsList = document.getElementById("reservationsList");
+      const reservationsState = document.getElementById("reservationsState");
+      const calendarGrid = document.getElementById("calendarGrid");
+      const calendarState = document.getElementById("calendarState");
+      const todayIso = new Date().toISOString().slice(0, 10);
+
+      let filterMode = "arrivals";
+      let selectedCalendarDate = "";
+      let reservations = [];
+
+      hotelAdminCommon.hydrateContext(null, hotelIdInput);
+
+      function reservationStorageKey() {
+        const hotelId = hotelIdInput.value.trim();
+        return hotelId ? `hotel_reservations_${hotelId}` : "";
+      }
+
+      function readReservations() {
+        const key = reservationStorageKey();
+        if (!key) {
+          reservations = [];
+          return [];
+        }
+
+        try {
+          reservations = JSON.parse(localStorage.getItem(key) || "[]");
+        } catch {
+          reservations = [];
+        }
+
+        reservations.sort((left, right) => {
+          if (left.check_in_date === right.check_in_date) {
+            return String(left.created_at).localeCompare(String(right.created_at));
+          }
+          return String(left.check_in_date).localeCompare(String(right.check_in_date));
+        });
+
+        return reservations;
+      }
+
+      function writeReservations(items) {
+        const key = reservationStorageKey();
+        if (!key) {
+          return;
+        }
+        localStorage.setItem(key, JSON.stringify(items));
+      }
+
+      function statCounts(items) {
+        const future = items.filter((item) => item.check_in_date > todayIso).length;
+        const arrivals = items.filter((item) => item.check_in_date === todayIso).length;
+        const departures = items.filter((item) => item.check_out_date === todayIso).length;
+        document.getElementById("futureReservationsStat").textContent = String(future);
+        document.getElementById("todayArrivalsStat").textContent = String(arrivals);
+        document.getElementById("todayDeparturesStat").textContent = String(departures);
+      }
+
+      function setDefaultDates() {
+        document.getElementById("checkInDate").value = todayIso;
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById("checkOutDate").value = tomorrow.toISOString().slice(0, 10);
+        document.getElementById("checkInDate").min = todayIso;
+        document.getElementById("checkOutDate").min = todayIso;
+      }
+
+      function renderCalendar(items) {
+        calendarGrid.innerHTML = "";
+        const futureItems = items.filter((item) => item.check_in_date >= todayIso);
+        if (!futureItems.length) {
+          calendarState.textContent = "No future reservations saved on this device yet.";
+          return;
+        }
+
+        const counts = new Map();
+        for (const item of futureItems) {
+          counts.set(item.check_in_date, (counts.get(item.check_in_date) || 0) + 1);
+        }
+
+        const base = new Date(`${todayIso}T00:00:00`);
+        for (let index = 0; index < 30; index += 1) {
+          const date = new Date(base);
+          date.setDate(base.getDate() + index);
+          const iso = date.toISOString().slice(0, 10);
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `rounded-2xl border px-2 py-3 text-center text-xs ${selectedCalendarDate === iso ? "border-ocean bg-ocean text-white" : "border-slate-200 bg-slate-50 text-slate-700"}`;
+          button.innerHTML = `
+            <div class="font-semibold">${date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</div>
+            <div class="mt-1">${counts.get(iso) || 0} booking${(counts.get(iso) || 0) === 1 ? "" : "s"}</div>
+          `;
+          button.addEventListener("click", () => {
+            selectedCalendarDate = selectedCalendarDate === iso ? "" : iso;
+            renderAll();
+          });
+          calendarGrid.appendChild(button);
+        }
+
+        calendarState.textContent = selectedCalendarDate
+          ? `Showing reservations for ${selectedCalendarDate}. Tap the selected day again to clear the filter.`
+          : "Tap a future date to filter reservations by check-in date.";
+      }
+
+      function reservationMatchesSearch(item, query) {
+        if (!query) {
+          return true;
+        }
+
+        return [
+          item.guest_name,
+          item.guest_phone,
+          item.room_plan,
+          item.booking_note,
+          item.booking_type,
+          item.booking_source,
+        ]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query));
+      }
+
+      function renderReservations(items) {
+        reservationsList.innerHTML = "";
+        const query = document.getElementById("reservationSearch").value.trim().toLowerCase();
+
+        const filtered = items.filter((item) => {
+          if (selectedCalendarDate && item.check_in_date !== selectedCalendarDate) {
+            return false;
+          }
+
+          if (filterMode === "arrivals" && item.check_in_date !== todayIso) {
+            return false;
+          }
+
+          if (filterMode === "departures" && item.check_out_date !== todayIso) {
+            return false;
+          }
+
+          if (filterMode === "all" && item.check_in_date < todayIso) {
+            return false;
+          }
+
+          return reservationMatchesSearch(item, query);
+        });
+
+        if (!filtered.length) {
+          const emptyText = filterMode === "departures"
+            ? "No departures matched today."
+            : filterMode === "arrivals"
+              ? "No arrivals matched today."
+              : "No future reservations matched this filter.";
+          reservationsState.textContent = emptyText;
+          return;
+        }
+
+        reservationsState.textContent = `${filtered.length} reservation${filtered.length === 1 ? "" : "s"} shown.`;
+        for (const item of filtered) {
+          const card = document.createElement("article");
+          card.className = "rounded-2xl border border-slate-200 bg-slate-50 p-4";
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="font-semibold text-slate-900">${item.guest_name}</p>
+                <p class="mt-1 text-sm text-slate-600">${item.guest_phone || "No phone"} • ${item.total_guests} guest${Number(item.total_guests) === 1 ? "" : "s"}</p>
+                <p class="mt-1 text-sm text-slate-600">${item.check_in_date} to ${item.check_out_date}</p>
+                <p class="mt-1 text-sm text-slate-600">${item.room_plan || "Room not assigned"} • ${item.booking_type === "walkin" ? "Walk-In" : "Future Reservation"}</p>
+                <p class="mt-1 text-sm text-slate-600">Advance: INR ${Number(item.advance_payment || 0).toFixed(2)}</p>
+                <p class="mt-1 text-sm text-slate-600">Source: ${item.booking_source}</p>
+                ${item.booking_note ? `<p class="mt-2 text-sm leading-6 text-slate-600">${item.booking_note}</p>` : ""}
+              </div>
+              <button type="button" class="delete-reservation-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700" data-id="${item.id}">
+                Delete
+              </button>
+            </div>
+          `;
+          card.querySelector(".delete-reservation-button").addEventListener("click", () => {
+            const confirmed = window.confirm(`Delete reservation for ${item.guest_name}?`);
+            if (!confirmed) {
+              return;
+            }
+            reservations = reservations.filter((entry) => entry.id !== item.id);
+            writeReservations(reservations);
+            renderAll();
+            hotelAdminCommon.setMessage(pageMessage, "Reservation deleted from this device.", "success");
+          });
+          reservationsList.appendChild(card);
+        }
+      }
+
+      function renderAll() {
+        const items = readReservations();
+        statCounts(items);
+        renderCalendar(items);
+        renderReservations(items);
+      }
+
+      function saveReservation(event) {
+        event.preventDefault();
+        hotelAdminCommon.clearMessage(pageMessage);
+        hotelAdminCommon.setButtonLoading(saveReservationButton, true, "Saving...");
+
+        try {
+          const hotelId = hotelIdInput.value.trim();
+          if (!hotelId) {
+            throw new Error("Enter a hotel ID first.");
+          }
+
+          hotelAdminCommon.persistContext("", hotelId);
+
+          const checkInDate = document.getElementById("checkInDate").value;
+          const checkOutDate = document.getElementById("checkOutDate").value;
+          if (!checkInDate || !checkOutDate || checkOutDate < checkInDate) {
+            throw new Error("Check-out date must be on or after check-in date.");
+          }
+
+          const newReservation = {
+            id: crypto.randomUUID ? crypto.randomUUID() : `reservation_${Date.now()}`,
+            booking_type: document.getElementById("bookingType").value,
+            booking_source: document.getElementById("bookingSource").value,
+            guest_name: document.getElementById("guestName").value.trim(),
+            guest_phone: document.getElementById("guestPhone").value.trim(),
+            total_guests: Number(document.getElementById("totalGuests").value || "1"),
+            check_in_date: checkInDate,
+            check_out_date: checkOutDate,
+            room_plan: document.getElementById("roomPlan").value.trim(),
+            advance_payment: Number(document.getElementById("advancePayment").value || "0"),
+            booking_note: document.getElementById("bookingNote").value.trim(),
+            created_at: new Date().toISOString(),
+          };
+
+          if (!newReservation.guest_name) {
+            throw new Error("Guest name is required.");
+          }
+
+          reservations = readReservations();
+          reservations.push(newReservation);
+          writeReservations(reservations);
+          reservationForm.reset();
+          setDefaultDates();
+          selectedCalendarDate = "";
+          renderAll();
+          hotelAdminCommon.setMessage(pageMessage, "Reservation saved on this device.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to save reservation", "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(saveReservationButton, false);
+        }
+      }
+
+      document.getElementById("showArrivalsButton").addEventListener("click", () => {
+        filterMode = "arrivals";
+        renderAll();
+      });
+
+      document.getElementById("showDeparturesButton").addEventListener("click", () => {
+        filterMode = "departures";
+        renderAll();
+      });
+
+      document.getElementById("resetCalendarButton").addEventListener("click", () => {
+        filterMode = "all";
+        selectedCalendarDate = "";
+        renderAll();
+      });
+
+      document.getElementById("reservationSearch").addEventListener("input", renderAll);
+      hotelIdInput.addEventListener("change", () => {
+        selectedCalendarDate = "";
+        renderAll();
+      });
+
+      reservationForm.addEventListener("submit", saveReservation);
+
+      setDefaultDates();
+      renderAll();
+    </script>
+  </body>
+</html>

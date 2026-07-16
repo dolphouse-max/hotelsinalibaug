@@ -1,4 +1,5 @@
 import { badRequest, json, unauthorized } from "../../_lib/api";
+import { purgeExpiredHotelMessages } from "../../_lib/hotel-messages";
 
 function requireSuperAdmin(request, env) {
   const authHeader = request.headers.get("authorization");
@@ -18,6 +19,8 @@ export async function onRequestGet(context) {
   if (!requireSuperAdmin(context.request, context.env)) {
     return unauthorized();
   }
+
+  await purgeExpiredHotelMessages(context.env.DB);
 
   const url = new URL(context.request.url);
   const threadId = url.searchParams.get("thread_id")?.trim() || "";
@@ -44,8 +47,9 @@ export async function onRequestGet(context) {
          FROM hotel_messages m2
          WHERE m2.thread_id = t.id
          ORDER BY m2.created_at DESC, m2.id DESC
-         LIMIT 1
+        LIMIT 1
        )
+     WHERE latest.created_at >= datetime('now', '-1 day')
      ORDER BY t.last_message_at DESC, t.id DESC`
   ).all();
 
@@ -75,6 +79,7 @@ export async function onRequestGet(context) {
        FROM hotel_messages m
        INNER JOIN hotels sender ON sender.id = m.sender_hotel_id
        WHERE m.thread_id = ?1
+         AND m.created_at >= datetime('now', '-1 day')
        ORDER BY m.created_at ASC, m.id ASC`
     )
       .bind(threadId)

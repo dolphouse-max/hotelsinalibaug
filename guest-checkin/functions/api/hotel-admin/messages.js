@@ -1,4 +1,5 @@
 import { badRequest, json, unauthorized } from "../../_lib/api";
+import { purgeExpiredHotelMessages } from "../../_lib/hotel-messages";
 
 function requireHotelAdmin(request, env) {
   const authHeader = request.headers.get("authorization");
@@ -77,6 +78,7 @@ async function loadThreads(db, hotelId) {
          LIMIT 1
        )
      WHERE t.hotel_a_id = ?1 OR t.hotel_b_id = ?1
+       AND latest.created_at >= datetime('now', '-1 day')
      ORDER BY t.last_message_at DESC, t.id DESC`
   )
     .bind(hotelId)
@@ -115,6 +117,7 @@ async function loadThreadMessages(db, hotelId, threadId) {
        ON r.message_id = m.id
       AND r.hotel_id = ?2
      WHERE m.thread_id = ?1
+       AND m.created_at >= datetime('now', '-1 day')
      ORDER BY m.created_at ASC, m.id ASC`
   )
     .bind(threadId, hotelId)
@@ -140,6 +143,8 @@ export async function onRequestGet(context) {
   }
 
   try {
+    await purgeExpiredHotelMessages(context.env.DB);
+
     const [directory, threads] = await Promise.all([
       loadDirectory(context.env.DB, hotelId),
       loadThreads(context.env.DB, hotelId),
@@ -180,6 +185,8 @@ export async function onRequestPost(context) {
     }
 
     if (action === "send_message") {
+      await purgeExpiredHotelMessages(context.env.DB);
+
       const recipientHotelId = typeof payload.recipient_hotel_id === "string" ? payload.recipient_hotel_id.trim() : "";
       const messageText = typeof payload.message_text === "string" ? payload.message_text.trim() : "";
 
@@ -189,6 +196,10 @@ export async function onRequestPost(context) {
 
       if (!messageText) {
         return badRequest("message_text is required");
+      }
+
+      if (messageText.length > 1000) {
+        return badRequest("message_text must be 1000 characters or fewer");
       }
 
       const [hotelAId, hotelBId] = normalizeThreadPair(hotelId, recipientHotelId);
@@ -233,6 +244,8 @@ export async function onRequestPost(context) {
     }
 
     if (action === "mark_thread_read") {
+      await purgeExpiredHotelMessages(context.env.DB);
+
       const threadId = typeof payload.thread_id === "string" ? payload.thread_id.trim() : "";
 
       if (!isSafeRowId(threadId)) {
