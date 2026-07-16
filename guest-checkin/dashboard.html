@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f2436">
     <title>Superadmin Dashboard | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,6 +35,13 @@
     </div>
 
     <main class="relative mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mb-5 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-4 py-3 backdrop-blur">
+        <img src="/logo.webp" alt="Hotels In Alibaug" class="h-11 w-11 rounded-2xl object-cover">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-sand-100/70">Hotels In Alibaug</p>
+          <p class="text-sm font-medium text-sand-50">Superadmin</p>
+        </div>
+      </div>
       <section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-resort backdrop-blur sm:p-8">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -90,6 +100,18 @@
           </a>
         </article>
       </section>
+
+      <footer class="mt-6 rounded-[2rem] border border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-200 shadow-resort backdrop-blur">
+        <p class="font-semibold text-white">Hotels In Alibaug</p>
+        <p class="mt-2 leading-6 text-slate-300">Platform administration remains subject to the subscription, privacy, data processing, and license terms below.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href="/software-subscription-agreement.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Subscription Agreement</a>
+          <a href="/privacy-policy.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Privacy Policy</a>
+          <a href="/terms-and-conditions.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Terms & Conditions</a>
+          <a href="/data-processing-agreement.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Data Processing Agreement</a>
+          <a href="/end-user-license-agreement.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">EULA</a>
+        </div>
+      </footer>
     </main>
   </body>
 </html>

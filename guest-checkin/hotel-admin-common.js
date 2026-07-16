@@ -144,6 +144,67 @@
     `;
   }
 
+  function mountBrandChip() {
+    if (document.getElementById("appBrandChip")) {
+      return;
+    }
+
+    const main = document.querySelector("main");
+    if (!main) {
+      return;
+    }
+
+    const brand = document.createElement("div");
+    brand.id = "appBrandChip";
+    brand.className = "mb-4";
+    brand.innerHTML = `
+      <div class="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <img src="/logo.webp" alt="Hotels In Alibaug" class="h-10 w-10 rounded-xl object-cover">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Hotels In Alibaug</p>
+          <p class="text-sm font-semibold text-ocean">Private App</p>
+        </div>
+      </div>
+    `;
+
+    main.prepend(brand);
+  }
+
+  function mountLegalFooter() {
+    if (document.getElementById("appLegalFooter")) {
+      return;
+    }
+
+    const main = document.querySelector("main");
+    if (!main) {
+      return;
+    }
+
+    const footer = document.createElement("footer");
+    footer.id = "appLegalFooter";
+    footer.className = "mt-8 rounded-[1.75rem] border border-slate-200 bg-white px-4 py-5 text-sm text-slate-600 shadow-sm";
+    footer.innerHTML = `
+      <p class="font-semibold text-slate-800">Hotels In Alibaug</p>
+      <p class="mt-2 leading-6">Private software for subscribed hotel users. Review the legal terms below before using the platform.</p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a href="/software-subscription-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Subscription Agreement</a>
+        <a href="/privacy-policy.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Privacy Policy</a>
+        <a href="/terms-and-conditions.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Terms & Conditions</a>
+        <a href="/data-processing-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Data Processing Agreement</a>
+        <a href="/end-user-license-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">EULA</a>
+      </div>
+    `;
+
+    main.appendChild(footer);
+  }
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("DOMContentLoaded", () => {
+      mountBrandChip();
+      mountLegalFooter();
+    });
+  }
+
   window.hotelAdminCommon = {
     params,
     hydrateContext,
@@ -156,5 +217,7 @@
     safeHotelId,
     loadHotelProfile,
     quickNav,
+    mountBrandChip,
+    mountLegalFooter,
   };
 })();

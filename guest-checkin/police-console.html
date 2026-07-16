@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1f3b57">
     <title>Police Access Console | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,6 +32,13 @@
   <body class="min-h-screen bg-slate-100 text-slate-900">
     <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(31,59,87,0.16),_transparent_36%),linear-gradient(180deg,#f8fafc_0%,#eef2f6_100%)]">
       <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mb-5 inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <img src="/logo.webp" alt="Hotels In Alibaug" class="h-11 w-11 rounded-2xl object-cover">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slateblue/70">Hotels In Alibaug</p>
+            <p class="text-sm font-medium text-ink">Police Console</p>
+          </div>
+        </div>
         <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slateblue/70">Hotels In Alibaug SaaS</p>
@@ -99,6 +110,18 @@
             </article>
           </section>
         </div>
+
+        <footer class="mt-8 rounded-[1.75rem] border border-slate-200 bg-white px-4 py-5 text-sm text-slate-600 shadow-sm">
+          <p class="font-semibold text-slate-800">Hotels In Alibaug</p>
+          <p class="mt-2 leading-6">Police access and guest proof review remain governed by the subscription, privacy, and data processing terms linked below.</p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <a href="/software-subscription-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Subscription Agreement</a>
+            <a href="/privacy-policy.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Privacy Policy</a>
+            <a href="/terms-and-conditions.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Terms & Conditions</a>
+            <a href="/data-processing-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">Data Processing Agreement</a>
+            <a href="/end-user-license-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">EULA</a>
+          </div>
+        </footer>
       </main>
     </div>
 

@@ -3,6 +3,9 @@ const APP_SHELL = [
   "/",
   "/index.html",
   "/manifest.json",
+  "/favicon.ico",
+  "/logo.webp",
+  "/home-screen.webp",
   "/sw.js",
   "https://cdn.tailwindcss.com",
 ];

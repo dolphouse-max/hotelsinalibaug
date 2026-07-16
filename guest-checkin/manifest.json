@@ -12,15 +12,13 @@
   "categories": ["business", "productivity", "travel"],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%230f2436'/%3E%3Cpath d='M36 154h120M48 154V82l48-34 48 34v72M76 154v-36h40v36' stroke='%23f2e0c0' stroke-width='12' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
+      "src": "/home-screen.webp",
+      "type": "image/webp",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230f2436'/%3E%3Cpath d='M96 412h320M128 412V206l128-90 128 90v206M202 412v-96h108v96' stroke='%23f2e0c0' stroke-width='28' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
+      "src": "/home-screen.webp",
+      "type": "image/webp",
       "purpose": "any maskable"
     }
   ]

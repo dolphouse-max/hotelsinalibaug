@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f2436">
     <title>Staff Register | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -42,11 +45,7 @@
     <main class="relative mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-6 sm:px-6 sm:py-10">
       <section class="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-resort backdrop-blur sm:p-7">
         <div class="flex items-center gap-3">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sand-100/10 text-sand-50">
-            <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.7">
-              <path d="M4 20h16M7 20v-8m10 8v-8M9 8h6m-7 4h8M8 4h8a2 2 0 0 1 2 2v14H6V6a2 2 0 0 1 2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
+          <img src="/logo.webp" alt="Hotels In Alibaug" class="h-12 w-12 rounded-2xl object-cover">
           <div>
             <p class="text-xs uppercase tracking-[0.32em] text-sand-100/70">Hotels In Alibaug</p>
             <h1 class="text-3xl font-semibold tracking-tight text-white">Staff Register</h1>
@@ -276,6 +275,18 @@
           </button>
         </form>
       </section>
+
+      <footer class="mt-6 rounded-[2rem] border border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-200 shadow-resort backdrop-blur">
+        <p class="font-semibold text-white">Hotels In Alibaug</p>
+        <p class="mt-2 leading-6 text-slate-300">Use of the staff register is governed by the hotel subscription, privacy, and software license documents below.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href="/software-subscription-agreement.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Subscription Agreement</a>
+          <a href="/privacy-policy.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Privacy Policy</a>
+          <a href="/terms-and-conditions.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Terms & Conditions</a>
+          <a href="/data-processing-agreement.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">Data Processing Agreement</a>
+          <a href="/end-user-license-agreement.html" class="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-sand-50">EULA</a>
+        </div>
+      </footer>
     </main>
 
     <div id="successModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ocean-950/70 px-4 backdrop-blur-sm">
