@@ -23,7 +23,13 @@
       <script>
         document.write(superAdminReportsCommon.pageChrome("Hotel Register", "Register", "View the platform hotel register with contact details, room counts, and current status, then export it as CSV."));
       </script>
+        <script>
+          document.write(superAdminReportsCommon.quickNav("register"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Tap a hotel name to drill into that hotel’s full report with guests, staff, and police access history.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>

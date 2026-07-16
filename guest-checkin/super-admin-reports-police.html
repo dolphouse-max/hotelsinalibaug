@@ -23,7 +23,13 @@
       <script>
         document.write(superAdminReportsCommon.pageChrome("Police Access Logs", "Police", "Review which officers accessed hotel guest records and export the current log slice as CSV."));
       </script>
+        <script>
+          document.write(superAdminReportsCommon.quickNav("police"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Search by officer, hotel, or guest when the access log grows large.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
@@ -40,6 +46,10 @@
             <div class="grid grid-cols-2 gap-3">
               <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Load Report</button>
               <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div>
+              <label for="policeFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Log</label>
+              <input id="policeFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Search by officer, hotel, guest, or hotel ID">
             </div>
             <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
@@ -69,6 +79,7 @@
       const toDateInput = document.getElementById("toDate");
       const loadButton = document.getElementById("loadButton");
       const exportButton = document.getElementById("exportButton");
+      const policeFilterInput = document.getElementById("policeFilter");
       const errorBox = document.getElementById("errorBox");
       const policeState = document.getElementById("policeState");
       const policeTable = document.getElementById("policeTable");
@@ -76,14 +87,29 @@
 
       superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
 
-      async function loadReport() {
-        superAdminReportsCommon.clearMessage(errorBox);
-        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
-        lastReportData = data;
-        policeState.textContent = `${data.reports.police_access_logs.length} police access row${data.reports.police_access_logs.length === 1 ? "" : "s"} loaded.`;
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function applyPoliceFilter(logs) {
+        const filterValue = normalizeFilterValue(policeFilterInput.value);
+        if (!filterValue) {
+          return logs;
+        }
+
+        return logs.filter((log) =>
+          [log.officer_name, log.hotel_name, log.hotel_id, log.guest_name, log.guest_id]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(filterValue))
+        );
+      }
+
+      function renderPoliceLogs(logs) {
+        const filteredLogs = applyPoliceFilter(logs);
+        policeState.textContent = `${filteredLogs.length} police access row${filteredLogs.length === 1 ? "" : "s"} loaded.`;
         superAdminReportsCommon.renderTable(
           policeTable,
-          data.reports.police_access_logs.map((log) => {
+          filteredLogs.map((log) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td class="px-3 py-3 font-medium text-ocean-950">${log.officer_name}</td>
@@ -96,6 +122,13 @@
           4,
           "No police access logs found."
         );
+      }
+
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        renderPoliceLogs(data.reports.police_access_logs || []);
       }
 
       loadButton.addEventListener("click", async () => {
@@ -115,10 +148,17 @@
           return;
         }
         const rows = [["Officer Name", "Hotel Name", "Hotel ID", "Guest Name", "Guest ID", "Accessed At"]];
-        for (const log of lastReportData.reports.police_access_logs) {
+        for (const log of applyPoliceFilter(lastReportData.reports.police_access_logs)) {
           rows.push([log.officer_name, log.hotel_name, log.hotel_id, log.guest_name, log.guest_id, log.accessed_at]);
         }
         superAdminReportsCommon.downloadCsv("police-access-logs.csv", rows);
+      });
+
+      policeFilterInput.addEventListener("input", () => {
+        if (!lastReportData?.reports?.police_access_logs) {
+          return;
+        }
+        renderPoliceLogs(lastReportData.reports.police_access_logs);
       });
     </script>
   </body>

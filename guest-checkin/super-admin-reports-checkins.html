@@ -23,7 +23,13 @@
       <script>
         document.write(superAdminReportsCommon.pageChrome("Recent Guest Check-Ins", "Guests", "See latest guest movement across hotels and open proof documents only when a justified audit reason is entered."));
       </script>
+        <script>
+          document.write(superAdminReportsCommon.quickNav("checkins"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page for quick audit review across hotels. Search before opening proofs if the list gets large.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
@@ -38,6 +44,10 @@
               <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10">
             </div>
             <button id="loadButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Load Report</button>
+            <div>
+              <label for="checkinFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Check-In</label>
+              <input id="checkinFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Search by guest, hotel, phone, or room">
+            </div>
             <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
 
@@ -58,21 +68,39 @@
       const fromDateInput = document.getElementById("fromDate");
       const toDateInput = document.getElementById("toDate");
       const loadButton = document.getElementById("loadButton");
+      const checkinFilterInput = document.getElementById("checkinFilter");
       const errorBox = document.getElementById("errorBox");
       const metricCurrentGuests = document.getElementById("metricCurrentGuests");
       const checkinsState = document.getElementById("checkinsState");
       const checkinsList = document.getElementById("checkinsList");
+      let lastReportData = null;
 
       superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
 
-      async function loadReport() {
-        superAdminReportsCommon.clearMessage(errorBox);
-        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function applyCheckinFilter(entries) {
+        const filterValue = normalizeFilterValue(checkinFilterInput.value);
+        if (!filterValue) {
+          return entries;
+        }
+
+        return entries.filter((entry) =>
+          [entry.name, entry.hotel_name, entry.hotel_id, entry.phone, entry.room_number]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(filterValue))
+        );
+      }
+
+      function renderCheckins(data) {
+        const filteredEntries = applyCheckinFilter(data.reports.recent_guest_checkins || []);
         metricCurrentGuests.textContent = data.summary.current_in_house_guests;
-        checkinsState.textContent = `${data.reports.recent_guest_checkins.length} recent guest check-in row${data.reports.recent_guest_checkins.length === 1 ? "" : "s"} loaded.`;
+        checkinsState.textContent = `${filteredEntries.length} recent guest check-in row${filteredEntries.length === 1 ? "" : "s"} loaded.`;
         superAdminReportsCommon.renderCards(
           checkinsList,
-          data.reports.recent_guest_checkins,
+          filteredEntries,
           "No guest check-ins found for this date range.",
           (entry) => `
             <h3 class="text-base font-semibold text-ocean-950">${entry.name}</h3>
@@ -86,6 +114,13 @@
         superAdminReportsCommon.attachProofButtons(checkinsList, tokenInput, viewerNameInput, errorBox);
       }
 
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        renderCheckins(data);
+      }
+
       loadButton.addEventListener("click", async () => {
         superAdminReportsCommon.setButtonLoading(loadButton, true, "Loading...");
         try {
@@ -95,6 +130,13 @@
         } finally {
           superAdminReportsCommon.setButtonLoading(loadButton, false);
         }
+      });
+
+      checkinFilterInput.addEventListener("input", () => {
+        if (!lastReportData) {
+          return;
+        }
+        renderCheckins(lastReportData);
       });
     </script>
   </body>

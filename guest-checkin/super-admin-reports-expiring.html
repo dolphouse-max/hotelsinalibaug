@@ -24,7 +24,13 @@
       <script>
         document.write(superAdminReportsCommon.pageChrome("Hotels Expiring Soon", "Expiry", "View expiring hotel subscriptions, reminder windows, and export the result as CSV."));
       </script>
+        <script>
+          document.write(superAdminReportsCommon.quickNav("expiring"));
+        </script>
         <div class="p-5">
+          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page for renewal follow-up. It highlights hotels nearing subscription expiry.
+          </div>
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
@@ -41,6 +47,10 @@
             <div class="grid grid-cols-2 gap-3">
               <button id="loadButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Load Report</button>
               <button id="exportButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">Export CSV</button>
+            </div>
+            <div>
+              <label for="expiringFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Hotel</label>
+              <input id="expiringFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-800 focus:ring-4 focus:ring-ocean-800/10" placeholder="Search by hotel name, ID, Gmail, or mobile">
             </div>
             <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
@@ -69,6 +79,7 @@
       const toDateInput = document.getElementById("toDate");
       const loadButton = document.getElementById("loadButton");
       const exportButton = document.getElementById("exportButton");
+      const expiringFilterInput = document.getElementById("expiringFilter");
       const errorBox = document.getElementById("errorBox");
       const metricHotels = document.getElementById("metricHotels");
       const metricReminderHotels = document.getElementById("metricReminderHotels");
@@ -78,17 +89,31 @@
 
       superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
 
-      async function loadReport() {
-        superAdminReportsCommon.clearMessage(errorBox);
-        localStorage.setItem("super_admin_token", tokenInput.value.trim());
-        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
-        lastReportData = data;
-        metricHotels.textContent = data.summary.total_hotels;
-        metricReminderHotels.textContent = data.summary.hotels_in_reminder_window;
-        expiringState.textContent = `${data.reports.expiring_hotels.length} hotel${data.reports.expiring_hotels.length === 1 ? "" : "s"} expiring within 30 days.`;
+      function normalizeFilterValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function applyExpiringFilter(hotels) {
+        const filterValue = normalizeFilterValue(expiringFilterInput.value);
+        if (!filterValue) {
+          return hotels;
+        }
+
+        return hotels.filter((hotel) =>
+          [hotel.name, hotel.id, hotel.admin_email, hotel.contact]
+            .filter(Boolean)
+            .some((value) => normalizeFilterValue(value).includes(filterValue))
+        );
+      }
+
+      function renderExpiringHotels(hotels, summary) {
+        const filteredHotels = applyExpiringFilter(hotels);
+        metricHotels.textContent = summary.total_hotels;
+        metricReminderHotels.textContent = summary.hotels_in_reminder_window;
+        expiringState.textContent = `${filteredHotels.length} hotel${filteredHotels.length === 1 ? "" : "s"} shown from the expiring list.`;
         superAdminReportsCommon.renderCards(
           expiringList,
-          data.reports.expiring_hotels,
+          filteredHotels,
           "No hotel subscriptions are expiring within 30 days.",
           (hotel) => `
             <div class="flex items-start justify-between gap-3">
@@ -109,6 +134,14 @@
         );
       }
 
+      async function loadReport() {
+        superAdminReportsCommon.clearMessage(errorBox);
+        localStorage.setItem("super_admin_token", tokenInput.value.trim());
+        const data = await superAdminReportsCommon.loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput });
+        lastReportData = data;
+        renderExpiringHotels(data.reports.expiring_hotels || [], data.summary);
+      }
+
       loadButton.addEventListener("click", async () => {
         superAdminReportsCommon.setButtonLoading(loadButton, true, "Loading...");
         try {
@@ -126,10 +159,17 @@
           return;
         }
         const rows = [["Hotel Name", "Hotel ID", "Admin Gmail", "Mobile", "Occupied Rooms", "Total Rooms", "Trial End", "Status"]];
-        for (const hotel of lastReportData.reports.expiring_hotels) {
+        for (const hotel of applyExpiringFilter(lastReportData.reports.expiring_hotels)) {
           rows.push([hotel.name, hotel.id, hotel.admin_email, hotel.contact, hotel.occupied_rooms, hotel.total_rooms, hotel.subscription_end_date, Number(hotel.is_active) === 1 ? "Active" : "Inactive"]);
         }
         superAdminReportsCommon.downloadCsv("expiring-hotels.csv", rows);
+      });
+
+      expiringFilterInput.addEventListener("input", () => {
+        if (!lastReportData?.reports?.expiring_hotels) {
+          return;
+        }
+        renderExpiringHotels(lastReportData.reports.expiring_hotels, lastReportData.summary);
       });
     </script>
   </body>

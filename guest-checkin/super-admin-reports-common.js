@@ -167,6 +167,33 @@
     `;
   }
 
+  function quickNav(currentPage) {
+    const pages = [
+      { id: "home", label: "Home", href: "/super-admin-reports-home.html" },
+      { id: "expiring", label: "Expiring", href: "/super-admin-reports-expiring.html" },
+      { id: "checkins", label: "Check-Ins", href: "/super-admin-reports-checkins.html" },
+      { id: "register", label: "Hotels", href: "/super-admin-reports-register.html" },
+      { id: "police", label: "Police Logs", href: "/super-admin-reports-police.html" },
+    ];
+
+    return `
+      <nav class="mt-4 overflow-x-auto pb-1">
+        <div class="flex gap-2">
+          ${pages.map((page) => `
+            <a
+              href="${page.href}"
+              class="whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium ${
+                page.id === currentPage
+                  ? "border-ocean-950 bg-ocean-950 text-white"
+                  : "border-slate-200 bg-white text-slate-700"
+              }"
+            >${page.label}</a>
+          `).join("")}
+        </div>
+      </nav>
+    `;
+  }
+
   function buildProofUrl(hotelId, guestId, side, reason, viewerName) {
     const url = new URL("/api/super-admin/guest-proof", window.location.origin);
     url.searchParams.set("hotel_id", hotelId);
@@ -270,6 +297,7 @@
     renderTable,
     downloadCsv,
     pageChrome,
+    quickNav,
     proofButtons,
     attachProofButtons,
   };
