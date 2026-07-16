@@ -1,5 +1,6 @@
 name = "hotelsinalibaug"
 compatibility_date = "2026-07-14"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
 [[d1_databases]]
@@ -13,3 +14,8 @@ database_id = "b33c9905-3cba-4303-b8df-ff90569b343d"
 # GOOGLE_CLIENT_SECRET
 # GOOGLE_REDIRECT_URI
 # ENCRYPTION_KEY
+# SUPER_ADMIN_TOKEN
+# HOTEL_ADMIN_TOKEN
+# VAPID_PUBLIC_KEY
+# VAPID_PRIVATE_KEY
+# VAPID_SUBJECT

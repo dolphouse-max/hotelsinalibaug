@@ -122,6 +122,7 @@
       { id: "drive", label: "Drive", href: "/hotel-admin-google-drive.html" },
       { id: "checkin", label: "Guest QR", href: "/hotel-admin-checkin.html" },
       { id: "payment", label: "Pay QR", href: "/hotel-admin-payment.html" },
+      { id: "notifications", label: "Alerts", href: "/hotel-admin-notifications.html" },
       { id: "renewal", label: "Renewal", href: "/hotel-admin-renewal.html" },
       { id: "guests", label: "Guests", href: "/hotel-admin-guests.html" },
       { id: "reports", label: "Reports", href: "/reports.html" },

@@ -131,6 +131,7 @@
       { id: "setup", label: "Setup", href: "/super-admin-setup.html" },
       { id: "add", label: "Add Hotel", href: "/super-admin-add-hotel.html" },
       { id: "hotels", label: "Hotels", href: "/super-admin-hotels.html" },
+      { id: "notifications", label: "Notifications", href: "/super-admin-notifications.html" },
       { id: "renewals", label: "Renewals", href: "/super-admin-renewals.html" },
       { id: "reports", label: "Reports", href: "/super-admin-reports.html" },
     ];

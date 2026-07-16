@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f2436">
+    <title>Notification Centre | Superadmin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-common.js"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { ocean: "#08131d", harbor: "#17344d" } } } };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/super-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Notifications</span>
+      </div>
+      <script>
+        document.write(superAdminCommon.quickNav("notifications"));
+      </script>
+
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#08131d_0%,#17344d_68%,#275273_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Push Notification Centre</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Send greetings, renewal reminders, or general notices to all hotels or selected hotel groups.</p>
+        </div>
+        <div class="p-5">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Hotels can open the notification page in their PWA and allow browser notifications to receive these alerts on-device.
+          </div>
+          <div class="mt-5 space-y-4">
+            <div>
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <div>
+              <label for="createdBy" class="mb-2 block text-sm font-medium text-slate-700">Sender Name</label>
+              <input id="createdBy" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Superadmin">
+            </div>
+            <div>
+              <label for="title" class="mb-2 block text-sm font-medium text-slate-700">Title</label>
+              <input id="title" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Subscription reminder">
+            </div>
+            <div>
+              <label for="message" class="mb-2 block text-sm font-medium text-slate-700">Message</label>
+              <textarea id="message" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Your subscription expires soon. Please renew today."></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="notificationType" class="mb-2 block text-sm font-medium text-slate-700">Type</label>
+                <select id="notificationType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  <option value="general">General</option>
+                  <option value="reminder">Reminder</option>
+                  <option value="greeting">Greeting</option>
+                </select>
+              </div>
+              <div>
+                <label for="audienceType" class="mb-2 block text-sm font-medium text-slate-700">Audience</label>
+                <select id="audienceType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  <option value="active_hotels">Active Hotels</option>
+                  <option value="expiring_15_days">Expiring in 15 Days</option>
+                  <option value="all_hotels">All Hotels</option>
+                  <option value="specific_hotel">One Hotel</option>
+                </select>
+              </div>
+            </div>
+            <div id="targetHotelWrap" class="hidden">
+              <label for="targetHotelId" class="mb-2 block text-sm font-medium text-slate-700">Target Hotel ID</label>
+              <input id="targetHotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="HotelAbc0001">
+            </div>
+            <div>
+              <label for="actionUrl" class="mb-2 block text-sm font-medium text-slate-700">Action Page</label>
+              <select id="actionUrl" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                <option value="/hotel-admin-home.html">Hotel Admin Home</option>
+                <option value="/hotel-admin-renewal.html">Renewal Tracker</option>
+                <option value="/hotel-admin-payment.html">Payment QR</option>
+                <option value="/hotel-admin-profile.html">Profile</option>
+              </select>
+            </div>
+            <button id="sendButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+              Send Notification
+            </button>
+            <button id="runRemindersButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold text-slate-700">
+              Run Subscription Reminders Now
+            </button>
+            <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-ocean">Recent Notifications</h2>
+          <button id="refreshButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700">Refresh</button>
+        </div>
+        <div id="notificationsList" class="mt-4 space-y-3"></div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const createdByInput = document.getElementById("createdBy");
+      const audienceTypeInput = document.getElementById("audienceType");
+      const targetHotelWrap = document.getElementById("targetHotelWrap");
+      const targetHotelIdInput = document.getElementById("targetHotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const sendButton = document.getElementById("sendButton");
+      const runRemindersButton = document.getElementById("runRemindersButton");
+      const refreshButton = document.getElementById("refreshButton");
+      const notificationsList = document.getElementById("notificationsList");
+
+      superAdminCommon.restoreToken(tokenInput);
+      createdByInput.value = localStorage.getItem("super_admin_notification_sender") || "Superadmin";
+
+      function syncTargetHotel() {
+        targetHotelWrap.classList.toggle("hidden", audienceTypeInput.value !== "specific_hotel");
+      }
+
+      function renderNotifications(items) {
+        notificationsList.innerHTML = "";
+        if (!items.length) {
+          notificationsList.innerHTML = '<div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No notifications sent yet.</div>';
+          return;
+        }
+
+        for (const item of items) {
+          const card = document.createElement("article");
+          card.className = "rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-600";
+          card.innerHTML = `
+            <p class="font-semibold text-slate-900">${item.title}</p>
+            <p class="mt-1 leading-6">${item.message}</p>
+            <p class="mt-2 text-xs uppercase tracking-[0.16em] text-slate-500">${item.notification_type} • ${item.audience_type.replaceAll("_", " ")}</p>
+            <p class="mt-1 text-xs text-slate-500">Action: ${item.action_url || "-"}</p>
+            <p class="mt-1 text-xs text-slate-500">Sender: ${item.created_by}</p>
+            <p class="mt-1 text-xs text-slate-500">Target: ${item.target_hotel_name || item.target_hotel_id || "Group message"}</p>
+            <p class="mt-1 text-xs text-slate-500">Sent: ${item.created_at}</p>
+          `;
+          notificationsList.appendChild(card);
+        }
+      }
+
+      async function loadNotifications() {
+        const response = await fetch("/api/super-admin/notifications", {
+          headers: superAdminCommon.authHeaders(tokenInput, false),
+        });
+        const data = await superAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load notifications");
+        }
+        renderNotifications(data.notifications || []);
+      }
+
+      sendButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(pageMessage);
+        superAdminCommon.setButtonLoading(sendButton, true, "Sending...");
+        try {
+          localStorage.setItem("super_admin_notification_sender", createdByInput.value.trim());
+          const response = await fetch("/api/super-admin/notifications", {
+            method: "POST",
+            headers: superAdminCommon.authHeaders(tokenInput),
+            body: JSON.stringify({
+              created_by: createdByInput.value.trim(),
+              title: document.getElementById("title").value.trim(),
+              message: document.getElementById("message").value.trim(),
+              notification_type: document.getElementById("notificationType").value,
+              audience_type: audienceTypeInput.value,
+              target_hotel_id: targetHotelIdInput.value.trim(),
+              action_url: document.getElementById("actionUrl").value,
+            }),
+          });
+          const data = await superAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to send notification");
+          }
+          document.getElementById("title").value = "";
+          document.getElementById("message").value = "";
+          targetHotelIdInput.value = "";
+          superAdminCommon.setMessage(pageMessage, "Notification saved and published successfully.", "success");
+          await loadNotifications();
+        } catch (error) {
+          superAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          superAdminCommon.setButtonLoading(sendButton, false);
+        }
+      });
+
+      refreshButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(pageMessage);
+        superAdminCommon.setButtonLoading(refreshButton, true, "Refreshing...");
+        try {
+          await loadNotifications();
+        } catch (error) {
+          superAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          superAdminCommon.setButtonLoading(refreshButton, false);
+        }
+      });
+
+      runRemindersButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(pageMessage);
+        superAdminCommon.setButtonLoading(runRemindersButton, true, "Running...");
+        try {
+          const response = await fetch("/api/super-admin/reminders", {
+            method: "POST",
+            headers: superAdminCommon.authHeaders(tokenInput),
+            body: JSON.stringify({
+              created_by: createdByInput.value.trim() || "Superadmin",
+            }),
+          });
+          const data = await superAdminCommon.readJson(response);
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to run reminder cycle");
+          }
+          superAdminCommon.setMessage(
+            pageMessage,
+            `Reminder cycle finished. Sent: ${data.summary.sent}, skipped: ${data.summary.skipped}.`,
+            "success"
+          );
+          await loadNotifications();
+        } catch (error) {
+          superAdminCommon.setMessage(pageMessage, error.message, "error");
+        } finally {
+          superAdminCommon.setButtonLoading(runRemindersButton, false);
+        }
+      });
+
+      audienceTypeInput.addEventListener("change", syncTargetHotel);
+      syncTargetHotel();
+
+      if (tokenInput.value.trim()) {
+        loadNotifications().catch(() => {});
+      }
+    </script>
+  </body>
+</html>

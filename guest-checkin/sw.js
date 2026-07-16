@@ -65,3 +65,56 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const targetUrl = event.notification?.data?.url || "/hotel-admin-home.html";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ("focus" in client) {
+          client.navigate?.(targetUrl);
+          return client.focus();
+        }
+      }
+
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+
+      return undefined;
+    })
+  );
+});
+
+self.addEventListener("push", (event) => {
+  if (!event.data) {
+    return;
+  }
+
+  let payload = {};
+
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = {
+      title: "Hotels In Alibaug",
+      message: event.data.text(),
+      action_url: "/hotel-admin-home.html",
+    };
+  }
+
+  const title = payload.title || "Hotels In Alibaug";
+  const options = {
+    body: payload.message || "You have a new notification.",
+    icon: "/home-screen.webp",
+    badge: "/home-screen.webp",
+    data: {
+      url: payload.action_url || "/hotel-admin-home.html",
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
