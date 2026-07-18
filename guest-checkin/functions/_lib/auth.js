@@ -1,5 +1,3 @@
-import { createRemoteJWKSet, jwtVerify } from "jose";
-
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
@@ -7,9 +5,11 @@ const SESSION_COOKIE_NAME = "hia_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 const DEFAULT_SUPERADMIN_EMAIL = "gjpatil@gmail.com";
 const DEFAULT_FIREBASE_PROJECT_ID = "guest-checkin-542d6";
-const FIREBASE_JWKS = createRemoteJWKSet(
-  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
-);
+const FIREBASE_JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+let firebaseJwksCache = {
+  expiresAt: 0,
+  keysByKid: new Map(),
+};
 
 function normalizeEmail(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -37,6 +37,10 @@ function decodeBase64Url(value) {
     bytes[index] = binary.charCodeAt(index);
   }
   return bytes;
+}
+
+function decodeBase64UrlText(value) {
+  return textDecoder.decode(decodeBase64Url(value));
 }
 
 async function importHmacKey(secret) {
@@ -91,6 +95,56 @@ function buildSessionCookieValue(session) {
 
 function firebaseProjectId(env) {
   return env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID;
+}
+
+function currentUnixTime() {
+  return Math.floor(Date.now() / 1000);
+}
+
+function parseCacheMaxAge(cacheControl) {
+  const match = String(cacheControl || "").match(/max-age=(\d+)/i);
+  return match ? Number(match[1]) : 3600;
+}
+
+async function getFirebaseJwkByKid(kid) {
+  const now = Date.now();
+  if (firebaseJwksCache.expiresAt > now && firebaseJwksCache.keysByKid.has(kid)) {
+    return firebaseJwksCache.keysByKid.get(kid) || null;
+  }
+
+  const response = await fetch(FIREBASE_JWKS_URL);
+  if (!response.ok) {
+    throw new Error("Unable to load Firebase signing keys.");
+  }
+
+  const body = await response.json();
+  const keys = Array.isArray(body.keys) ? body.keys : [];
+  const keysByKid = new Map();
+  for (const key of keys) {
+    if (key?.kid) {
+      keysByKid.set(key.kid, key);
+    }
+  }
+
+  firebaseJwksCache = {
+    expiresAt: now + parseCacheMaxAge(response.headers.get("cache-control")) * 1000,
+    keysByKid,
+  };
+
+  return firebaseJwksCache.keysByKid.get(kid) || null;
+}
+
+async function importFirebasePublicKey(jwk) {
+  return crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256",
+    },
+    false,
+    ["verify"]
+  );
 }
 
 async function ensureAuthTables(db) {
@@ -234,15 +288,58 @@ export async function saveAuthUser(env, user) {
 
 async function verifyFirebaseIdToken(idToken, env) {
   const projectId = firebaseProjectId(env);
-  const issuer = `https://securetoken.google.com/${projectId}`;
-  const { payload } = await jwtVerify(idToken, FIREBASE_JWKS, {
-    algorithms: ["RS256"],
-    issuer,
-    audience: projectId,
-  });
+  const parts = String(idToken || "").split(".");
+  if (parts.length !== 3) {
+    throw new Error("Firebase ID token is malformed.");
+  }
 
+  const [encodedHeader, encodedPayload, encodedSignature] = parts;
+  let header;
+  let payload;
+
+  try {
+    header = JSON.parse(decodeBase64UrlText(encodedHeader));
+    payload = JSON.parse(decodeBase64UrlText(encodedPayload));
+  } catch {
+    throw new Error("Firebase ID token could not be decoded.");
+  }
+
+  if (header?.alg !== "RS256" || !header?.kid) {
+    throw new Error("Firebase token header is invalid.");
+  }
+
+  const jwk = await getFirebaseJwkByKid(header.kid);
+  if (!jwk) {
+    throw new Error("Firebase signing key was not found.");
+  }
+
+  const publicKey = await importFirebasePublicKey(jwk);
+  const signedData = textEncoder.encode(`${encodedHeader}.${encodedPayload}`);
+  const signature = decodeBase64Url(encodedSignature);
+  const isValid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", publicKey, signature, signedData);
+  if (!isValid) {
+    throw new Error("Firebase token signature is invalid.");
+  }
+
+  const now = currentUnixTime();
+  const issuer = `https://securetoken.google.com/${projectId}`;
+  if (payload?.iss !== issuer) {
+    throw new Error("Firebase token issuer is invalid.");
+  }
+  if (payload?.aud !== projectId) {
+    throw new Error("Firebase token audience is invalid.");
+  }
   if (!payload?.sub) {
     throw new Error("Firebase token is missing a user ID.");
+  }
+  if (!payload?.iat || Number(payload.iat) > now) {
+    throw new Error("Firebase token issue time is invalid.");
+  }
+  if (!payload?.auth_time || Number(payload.auth_time) > now) {
+    throw new Error("Firebase token auth_time is invalid.");
+  }
+  if (!payload?.exp || Number(payload.exp) <= now) {
+    throw new Error("Firebase token has expired.");
   }
 
   return payload;
