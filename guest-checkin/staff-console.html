@@ -84,7 +84,7 @@
           <div class="flex items-center justify-between gap-3">
             <div>
               <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Access Setup</h3>
-              <p class="mt-1 text-sm text-slate-600">Save your Hotel ID and Hotel Admin token for this device.</p>
+              <p class="mt-1 text-sm text-slate-600">Save your Hotel ID for this device. Staff uploads now use the logged-in hotel admin session automatically.</p>
             </div>
             <button id="toggleSetupButton" type="button" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
               Hide
@@ -94,10 +94,6 @@
             <div>
               <label for="hotelIdInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelIdInput" type="text" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="hotelalibaug0001">
-            </div>
-            <div>
-              <label for="adminTokenInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
-              <input id="adminTokenInput" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Paste HOTEL_ADMIN_TOKEN">
             </div>
             <button id="saveSetupButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean-800">
               Save Setup
@@ -306,7 +302,6 @@
 
     <script>
       const hotelIdInput = document.getElementById("hotelIdInput");
-      const adminTokenInput = document.getElementById("adminTokenInput");
       const saveSetupButton = document.getElementById("saveSetupButton");
       const toggleSetupButton = document.getElementById("toggleSetupButton");
       const setupFields = document.getElementById("setupFields");
@@ -365,13 +360,11 @@
         const params = new URLSearchParams(window.location.search);
         return {
           hotelId: params.get("hotel_id") || localStorage.getItem("staff_console_hotel_id") || "",
-          adminToken: localStorage.getItem("staff_console_admin_token") || "",
         };
       }
 
-      function saveStoredConfig(hotelId, adminToken) {
+      function saveStoredConfig(hotelId) {
         localStorage.setItem("staff_console_hotel_id", hotelId);
-        localStorage.setItem("staff_console_admin_token", adminToken);
       }
 
       function updateHotelLabel() {
@@ -494,19 +487,13 @@
 
       function buildPayload() {
         const hotelId = hotelIdInput.value.trim();
-        const adminToken = adminTokenInput.value.trim();
 
         if (!hotelId) {
           throw new Error("Please save the Hotel ID first.");
         }
 
-        if (!adminToken) {
-          throw new Error("Please save the Hotel Admin token first.");
-        }
-
         return {
           hotelId,
-          adminToken,
           fullName: document.getElementById("fullName").value.trim(),
           age: document.getElementById("age").value.trim(),
           sex: sexInput.value,
@@ -556,7 +543,6 @@
         formData.set("id_back_file", await compressProofFile(backFile));
 
         return {
-          adminToken: payload.adminToken,
           formData,
         };
       }
@@ -575,7 +561,6 @@
       function initialize() {
         const config = readStoredConfig();
         hotelIdInput.value = config.hotelId;
-        adminTokenInput.value = config.adminToken;
         updateHotelLabel();
         setSex("Male");
         syncWhatsapp();
@@ -583,7 +568,7 @@
       }
 
       saveSetupButton.addEventListener("click", () => {
-        saveStoredConfig(hotelIdInput.value.trim(), adminTokenInput.value.trim());
+        saveStoredConfig(hotelIdInput.value.trim());
         updateHotelLabel();
         showBanner("Staff console setup saved locally on this device.", "success");
       });
@@ -614,12 +599,9 @@
         setSubmitting(true);
 
         try {
-          const { adminToken, formData } = await buildFormData();
+          const { formData } = await buildFormData();
           const response = await fetch("/api/hotel-admin/staff-upload", {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${adminToken}`,
-            },
             body: formData,
           });
           const data = await readJson(response);
