@@ -85,7 +85,7 @@
 
   function slugHotelId(name) {
     const compact = String(name || "").replace(/[^a-zA-Z0-9]/g, "");
-    return compact ? compact.charAt(0).toUpperCase() + compact.slice(1) : "";
+    return compact ? compact.toLowerCase() : "";
   }
 
   function suggestHotelId(name, hotels) {

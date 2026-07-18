@@ -33,9 +33,7 @@ function isEmail(value) {
 function slugHotelIdBase(value) {
   const compact = String(value || "").replace(/[^a-zA-Z0-9]/g, "");
   const withoutTrailingDigits = compact.replace(/\d+$/, "");
-  return withoutTrailingDigits
-    ? withoutTrailingDigits.charAt(0).toUpperCase() + withoutTrailingDigits.slice(1)
-    : "";
+  return withoutTrailingDigits ? withoutTrailingDigits.toLowerCase() : "";
 }
 
 function toDateOnly(date) {
@@ -97,9 +95,9 @@ function normalizeHotelPayload(payload) {
   const isActive = payload.is_active === false || payload.is_active === 0 ? 0 : 1;
   const hotelId =
     typeof payload.hotel_id === "string"
-      ? payload.hotel_id.trim()
+      ? payload.hotel_id.trim().toLowerCase()
       : typeof payload.id === "string"
-        ? payload.id.trim()
+        ? payload.id.trim().toLowerCase()
         : "";
 
   if (!name || !contact || !gmailId || !hotelId) {
@@ -170,13 +168,13 @@ async function findPotentialDuplicateHotels(env, hotel) {
      FROM hotels h
      LEFT JOIN hotel_staff hs
        ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
-     WHERE h.id = ?1
+     WHERE lower(h.id) = lower(?1)
         OR lower(h.name) = lower(?2)
         OR h.contact = ?3
         OR lower(COALESCE(hs.email, '')) = lower(?4)
      ORDER BY
        CASE
-         WHEN h.id = ?1 THEN 0
+         WHEN lower(h.id) = lower(?1) THEN 0
          WHEN lower(h.name) = lower(?2) AND h.contact = ?3 THEN 1
          WHEN lower(COALESCE(hs.email, '')) = lower(?4) THEN 2
          ELSE 3
@@ -261,7 +259,7 @@ export async function onRequestPost(context) {
     if (!skipDuplicateCheck) {
       const duplicates = await findPotentialDuplicateHotels(context.env, hotel);
       if (duplicates.length) {
-        const exactHotelIdMatch = duplicates.some((entry) => entry.id === hotel.id);
+        const exactHotelIdMatch = duplicates.some((entry) => String(entry.id || "").toLowerCase() === hotel.id);
         return json(
           {
             error: exactHotelIdMatch
@@ -383,7 +381,7 @@ export async function onRequestPut(context) {
            subscription_end_date = ?7,
            is_active = ?8,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?9
+       WHERE lower(id) = lower(?9)
        RETURNING id, name, contact, address, total_rooms, occupied_rooms, subscription_start_date, subscription_end_date, is_active`
     )
       .bind(
@@ -409,7 +407,7 @@ export async function onRequestPut(context) {
          SET email = ?1,
              phone = ?2,
              updated_at = CURRENT_TIMESTAMP
-         WHERE hotel_id = ?3 AND role = 'admin'`
+         WHERE lower(hotel_id) = lower(?3) AND role = 'admin'`
       )
         .bind(hotel.gmailId, hotel.contact, hotel.id)
         .run();
@@ -432,7 +430,7 @@ export async function onRequestPut(context) {
        FROM hotels h
        LEFT JOIN hotel_staff hs
          ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
-       WHERE h.id = ?1
+       WHERE lower(h.id) = lower(?1)
        LIMIT 1`
     )
       .bind(hotel.id)
