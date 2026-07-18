@@ -48,6 +48,8 @@ interface StaffEmailRecord {
   role: string;
 }
 
+const STAFF_PLACEHOLDER_EMAIL_DOMAIN = "no-email.hotelsinalibaug.in";
+
 function requireText(formData: FormData, key: string): string {
   const value = formData.get(key);
   if (typeof value !== "string" || !value.trim()) {
@@ -70,6 +72,25 @@ function optionalText(formData: FormData, key: string): string | null {
 function optionalEmail(formData: FormData, key: string): string | null {
   const value = optionalText(formData, key);
   return value ? value.toLowerCase() : null;
+}
+
+function buildPlaceholderEmail(hotelId: string, staffId: string): string {
+  return `${hotelId}.${staffId}@${STAFF_PLACEHOLDER_EMAIL_DOMAIN}`.toLowerCase();
+}
+
+function isPlaceholderEmail(value: string | null): boolean {
+  return Boolean(value) && String(value).toLowerCase().endsWith(`@${STAFF_PLACEHOLDER_EMAIL_DOMAIN}`);
+}
+
+function normalizeEmailForResponse<T extends StaffRecord>(staff: T): T {
+  if (!isPlaceholderEmail(staff.email)) {
+    return staff;
+  }
+
+  return {
+    ...staff,
+    email: null,
+  };
 }
 
 function optionalNumber(formData: FormData, key: string, minimum = 0): number | null {
@@ -315,6 +336,7 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
 
   if (createMode) {
     const newStaffId = crypto.randomUUID().replace(/-/g, "");
+    const storedEmail = email || buildPlaceholderEmail(hotelId, newStaffId);
     const result = await env.DB.prepare(
       `INSERT INTO hotel_staff (
          id,
@@ -370,7 +392,7 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
         sex,
         workingSinceMonth,
         workingSinceYear,
-        email,
+        storedEmail,
         mobile,
         whatsapp,
         addressLine1,
@@ -389,9 +411,10 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
       throw new Error("Unable to save staff member");
     }
 
-    return { created: true, staff: result };
+    return { created: true, staff: normalizeEmailForResponse(result) };
   }
 
+  const storedEmail = email || buildPlaceholderEmail(hotelId, existing.id);
   const updated = await env.DB.prepare(
     `UPDATE hotel_staff
      SET full_name = ?1,
@@ -442,7 +465,7 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
       sex,
       workingSinceMonth,
       workingSinceYear,
-      email,
+      storedEmail,
       mobile,
       whatsapp,
       addressLine1,
@@ -463,7 +486,7 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
     throw new Error("Staff member not found");
   }
 
-  return { created: false, staff: updated };
+  return { created: false, staff: normalizeEmailForResponse(updated) };
 }
 
 export function statusForStaffUploadError(message: string): number {
