@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f2436">
+    <title>Hotel QR | Superadmin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: {
+                950: "#08131d",
+                900: "#0f2436",
+                800: "#17344d",
+              },
+              coral: "#d98d63",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminCommon.pageChrome("Hotel Main Page QR", "Hotel QR", "Open this page when visiting a hotel, then ask the owner or staff member to scan the QR code from your phone."));
+      </script>
+      <div class="p-5">
+        <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          This QR opens the hotel launcher page directly on the customer's phone.
+        </div>
+
+        <div class="mt-5 rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+          <img src="/hotel-dashboard-qr.svg" alt="QR code for hotel dashboard" class="mx-auto w-full max-w-[320px] rounded-[1.5rem] border border-slate-200 bg-white p-3">
+          <p class="mt-4 text-center text-lg font-semibold text-ocean-950">Hotel Main Page</p>
+          <p class="mt-2 break-all rounded-2xl bg-slate-50 px-4 py-3 text-center text-sm text-slate-600">https://checkin.hotelsinalibaug.in/hotel-dashboard.html</p>
+          <a href="/hotel-dashboard.html" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
+            Open Hotel Main Page
+          </a>
+        </div>
+      </div>
+      </section>
+    </main>
+  </body>
+</html>
