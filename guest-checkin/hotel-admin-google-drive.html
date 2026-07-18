@@ -94,6 +94,10 @@
           ? `Connect with this Gmail: ${data.adminEmail}`
           : "Admin Gmail not available";
         document.getElementById("folderId").textContent = data.googleDriveFolderId || "Folder ID not available";
+        connectButton.disabled = Boolean(data.googleDriveConnected);
+        connectButton.textContent = data.googleDriveConnected ? "Connected" : "Connect Google Drive";
+        connectButton.classList.toggle("opacity-60", Boolean(data.googleDriveConnected));
+        connectButton.classList.toggle("cursor-not-allowed", Boolean(data.googleDriveConnected));
         document.getElementById("disconnectButton").disabled = !data.googleDriveConnected;
       }
 
@@ -123,6 +127,10 @@
 
       document.getElementById("connectButton").addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
+        if (driveState?.googleDriveConnected) {
+          hotelAdminCommon.setMessage(pageMessage, "Google Drive is already connected for this hotel.", "success");
+          return;
+        }
         hotelAdminCommon.setButtonLoading(connectButton, true, "Preparing...");
         try {
           if (!driveState) {
@@ -150,6 +158,9 @@
           }
           await loadStatus();
           hotelAdminCommon.setMessage(pageMessage, "Google Drive disconnected successfully.", "success");
+          connectButton.disabled = false;
+          connectButton.textContent = "Connect Google Drive";
+          connectButton.classList.remove("opacity-60", "cursor-not-allowed");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {

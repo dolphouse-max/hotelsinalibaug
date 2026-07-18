@@ -9,9 +9,18 @@ interface Env {
   ENCRYPTION_KEY: string;
 }
 
-function page(title: string, message: string): string {
+function page(title: string, message: string, actionHref?: string, actionLabel?: string): string {
   const safeTitle = escapeHtml(title);
   const safeMessage = escapeHtml(message);
+  const safeActionHref = actionHref ? escapeHtml(actionHref) : "";
+  const safeActionLabel = actionLabel ? escapeHtml(actionLabel) : "";
+  const actionMarkup = safeActionHref && safeActionLabel
+    ? `<div style="margin-top: 24px;">
+        <a href="${safeActionHref}" style="display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; background: #17324a; color: #fff; padding: 14px 18px; font-weight: 600; text-decoration: none;">
+          ${safeActionLabel}
+        </a>
+      </div>`
+    : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -30,6 +39,7 @@ function page(title: string, message: string): string {
     <main>
       <h1>${safeTitle}</h1>
       <p>${safeMessage}</p>
+      ${actionMarkup}
     </main>
   </body>
 </html>`;
@@ -63,11 +73,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
     const oauthState = await verifyOAuthState(state, context.env);
     await connectHotelGoogleDrive(oauthState.hotelId, code, context.env);
+    const backUrl = `/hotel-admin-google-drive.html?hotel_id=${encodeURIComponent(oauthState.hotelId)}`;
 
     return html(
       page(
         "Google Drive connected",
-        "The hotel's Alibaug_Guest_Register folder is now linked successfully."
+        "The hotel's Alibaug_Guest_Register folder is now linked successfully.",
+        backUrl,
+        "Back to Google Drive Page"
       )
     );
   } catch (error) {
