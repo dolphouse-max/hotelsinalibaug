@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Add Hotel</title>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js?v=20260718-2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="super-admin-common.js?v=20260718-1"></script>
     <script>
@@ -220,16 +223,19 @@
           "",
           `Hotel Name: ${hotel.name}`,
           `Hotel ID: ${hotel.id}`,
+          `Hotel Admin Email: ${hotel.admin_email || ""}`,
+          `Temporary Password: ${hotel.id}`,
           "",
           `Open Hotel Admin: ${hotelAdminUrl.toString()}`,
           `Open Hotel QR Page: ${hotelQrUrl.toString()}`,
           "",
           "Next steps:",
           "1. Open Hotel Admin page",
-          "2. Sign in with the saved hotel admin Gmail",
-          "3. Add admin Gmail in Profile",
-          "4. Connect Google Drive",
-          "5. Start guest and staff setup",
+          "2. Sign in with hotel admin email",
+          `3. Use temporary password: ${hotel.id}`,
+          "4. Change password after first login",
+          "5. Connect Google Drive",
+          "6. Start guest and staff setup",
         ].join("\n");
       }
 
@@ -261,6 +267,26 @@
         hotelQrPageLink.href = hotelQrUrl.toString();
         hotelAdminPageLink.href = hotelAdminUrl.toString();
         nextActionsPanel.classList.remove("hidden");
+      }
+
+      async function createHotelAdminUser(hotel) {
+        const email = String(hotel.admin_email || "").trim().toLowerCase();
+        const password = String(hotel.id || "").trim().toLowerCase();
+        const displayName = `${hotel.name} Admin`;
+
+        if (!email || !password) {
+          throw new Error("Hotel admin email or Hotel ID is missing for Firebase user creation.");
+        }
+
+        const created = await window.firebaseAuthBridge.createUserInFirebase(email, password, displayName);
+        await superAdminCommon.saveUser({
+          firebase_uid: created.uid,
+          email: created.email,
+          role: "hotel_admin",
+          hotel_id: hotel.id,
+          display_name: displayName,
+          is_active: 1,
+        });
       }
 
       function buildCreatePayload(skipDuplicateCheck = false) {
@@ -355,7 +381,24 @@
             throw new Error(data.error || "Unable to create hotel");
           }
 
-          superAdminCommon.setMessage(formSuccess, `${data.hotel.name} created. Trial runs until ${data.hotel.subscription_end_date}.`, "success");
+          try {
+            await createHotelAdminUser(data.hotel);
+          } catch (userError) {
+            superAdminCommon.setMessage(
+              formError,
+              `${data.hotel.name} was created, but hotel admin Firebase user could not be created. ${userError instanceof Error ? userError.message : "Please create the user from Super Admin Home."}`,
+              "error"
+            );
+            renderNextActions(data.hotel);
+            await loadHotels();
+            return;
+          }
+
+          superAdminCommon.setMessage(
+            formSuccess,
+            `${data.hotel.name} created. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.`,
+            "success"
+          );
           renderNextActions(data.hotel);
           hotelForm.reset();
           hotelIdInput.dataset.userEdited = "";
@@ -399,7 +442,24 @@
             throw new Error(data.error || "Unable to create hotel");
           }
 
-          superAdminCommon.setMessage(formSuccess, `${data.hotel.name} created after duplicate review. Trial runs until ${data.hotel.subscription_end_date}.`, "success");
+          try {
+            await createHotelAdminUser(data.hotel);
+          } catch (userError) {
+            superAdminCommon.setMessage(
+              formError,
+              `${data.hotel.name} was created after duplicate review, but hotel admin Firebase user could not be created. ${userError instanceof Error ? userError.message : "Please create the user from Super Admin Home."}`,
+              "error"
+            );
+            renderNextActions(data.hotel);
+            await loadHotels();
+            return;
+          }
+
+          superAdminCommon.setMessage(
+            formSuccess,
+            `${data.hotel.name} created after duplicate review. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.`,
+            "success"
+          );
           renderNextActions(data.hotel);
           hotelForm.reset();
           hotelIdInput.dataset.userEdited = "";
