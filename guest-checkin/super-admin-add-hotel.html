@@ -63,6 +63,11 @@
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Suggested Hotel ID</label>
               <input id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="DolphinHouse0001">
             </div>
+            <div id="liveMatchPanel" class="hidden rounded-[1.5rem] border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">
+              <p class="font-semibold">Existing hotel details</p>
+              <p id="liveMatchMessage" class="mt-2 text-sky-900"></p>
+              <div id="liveMatchList" class="mt-4 grid gap-3"></div>
+            </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label for="mobileNumber" class="mb-2 block text-sm font-medium text-slate-700">Mobile</label>
@@ -155,6 +160,9 @@
       const formError = document.getElementById("formError");
       const formSuccess = document.getElementById("formSuccess");
       const submitButton = document.getElementById("submitButton");
+      const liveMatchPanel = document.getElementById("liveMatchPanel");
+      const liveMatchMessage = document.getElementById("liveMatchMessage");
+      const liveMatchList = document.getElementById("liveMatchList");
       const duplicatePanel = document.getElementById("duplicatePanel");
       const duplicateMessage = document.getElementById("duplicateMessage");
       const duplicateList = document.getElementById("duplicateList");
@@ -190,6 +198,7 @@
           throw new Error(data.error || "Unable to load hotels");
         }
         loadedHotels = data.hotels || [];
+        renderLiveMatches();
       }
 
       function clearFormMessages() {
@@ -200,6 +209,73 @@
         duplicateList.innerHTML = "";
         nextActionsPanel.classList.add("hidden");
         nextActionsSummary.textContent = "";
+      }
+
+      function normalizeLookupValue(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function findMatchingHotels() {
+        const hotelName = normalizeLookupValue(hotelNameInput.value);
+        const hotelId = normalizeLookupValue(hotelIdInput.value);
+
+        if (!hotelName && !hotelId) {
+          return [];
+        }
+
+        const exactHotelIdMatches = [];
+        const relatedMatches = [];
+
+        for (const hotel of loadedHotels) {
+          const existingName = normalizeLookupValue(hotel.name);
+          const existingId = normalizeLookupValue(hotel.id);
+          const exactHotelIdMatch = Boolean(hotelId) && existingId === hotelId;
+          const nameMatch = Boolean(hotelName) && (existingName.includes(hotelName) || hotelName.includes(existingName));
+          const partialIdMatch = Boolean(hotelId) && !exactHotelIdMatch && existingId.includes(hotelId);
+
+          if (exactHotelIdMatch) {
+            exactHotelIdMatches.push(hotel);
+            continue;
+          }
+
+          if (nameMatch || partialIdMatch) {
+            relatedMatches.push(hotel);
+          }
+        }
+
+        return [...exactHotelIdMatches, ...relatedMatches].slice(0, 3);
+      }
+
+      function renderLiveMatches() {
+        const matches = findMatchingHotels();
+        liveMatchList.innerHTML = "";
+
+        if (!matches.length) {
+          liveMatchPanel.classList.add("hidden");
+          liveMatchMessage.textContent = "";
+          return;
+        }
+
+        const hasExactHotelIdMatch = matches.some((hotel) => normalizeLookupValue(hotel.id) === normalizeLookupValue(hotelIdInput.value));
+        liveMatchMessage.textContent = hasExactHotelIdMatch
+          ? "This Hotel ID already exists. Please review the saved record below."
+          : "Similar hotel details were found below while you type.";
+
+        for (const hotel of matches) {
+          const card = document.createElement("div");
+          card.className = "rounded-2xl border border-sky-200 bg-white px-4 py-4";
+          card.innerHTML = `
+            <p class="font-semibold text-ocean-950">${hotel.name}</p>
+            <p class="mt-2 text-slate-700">Hotel ID: <span class="font-medium">${hotel.id}</span></p>
+            <p class="mt-1 text-slate-700">Admin Gmail: <span class="font-medium">${hotel.admin_email || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Mobile: <span class="font-medium">${hotel.admin_phone || hotel.contact || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Address: <span class="font-medium">${hotel.address || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Trial End: <span class="font-medium">${hotel.subscription_end_date || "Not set"}</span></p>
+          `;
+          liveMatchList.appendChild(card);
+        }
+
+        liveMatchPanel.classList.remove("hidden");
       }
 
       function escapeVcf(value) {
@@ -340,10 +416,12 @@
         if (!hotelIdInput.dataset.userEdited) {
           hotelIdInput.value = superAdminCommon.suggestHotelId(hotelNameInput.value, loadedHotels);
         }
+        renderLiveMatches();
       });
 
       hotelIdInput.addEventListener("input", () => {
         hotelIdInput.dataset.userEdited = "true";
+        renderLiveMatches();
       });
 
       subscriptionStartDateInput.addEventListener("change", () => {
