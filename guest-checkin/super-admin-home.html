@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0f2436">
     <title>Super Admin Home</title>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js?v=20260718-2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="super-admin-common.js?v=20260718-1"></script>
     <script>
@@ -32,14 +35,14 @@
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
             <p class="text-sm font-semibold text-ocean">Superadmin login</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Log in with your superadmin email and password. Initial password is the same as the login ID until you change it.</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Log in with your Firebase email and password. Use password reset email if you forget it.</p>
           </div>
           <div class="mt-5 space-y-4">
             <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
-              Superadmin Login ID: <span class="font-semibold text-ocean">gjpatil@gmail.com</span>
+              Superadmin Email: <span class="font-semibold text-ocean">gjpatil@gmail.com</span>
             </div>
             <div>
-              <label for="superAdminLoginId" class="mb-2 block text-sm font-medium text-slate-700">Login ID</label>
+              <label for="superAdminLoginId" class="mb-2 block text-sm font-medium text-slate-700">Email</label>
               <input id="superAdminLoginId" value="gjpatil@gmail.com" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <div>
@@ -49,11 +52,14 @@
             <button id="loginButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15">
               Login
             </button>
+            <button id="createSuperadminButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Create Superadmin Firebase Account
+            </button>
             <button id="changePasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
               Change Password
             </button>
             <button id="forgotPasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
-              Forgot Password
+              Send Password Reset Email
             </button>
             <button id="logoutButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
               Logout
@@ -131,21 +137,29 @@
 
       <section class="mt-5">
         <div class="mb-3 flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-ocean">Password Reset</h2>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Support</p>
+          <h2 class="text-lg font-semibold text-ocean">Firebase Users</h2>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Provision</p>
         </div>
         <div class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
-          <p class="text-sm text-slate-600">Use this when police or a hotel admin cannot remember the password.</p>
+          <p class="text-sm text-slate-600">Create Firebase login users for superadmin, hotel admin, or police. Hotel admin users must be linked to a hotel.</p>
           <div class="mt-4 grid gap-3">
-            <select id="resetRole" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-              <option value="police">Police</option>
+            <select id="userRole" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              <option value="super_admin">Superadmin</option>
               <option value="hotel_admin">Hotel Admin</option>
+              <option value="police">Police</option>
             </select>
-            <input id="resetLoginId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID for hotel reset">
-            <button id="resetPasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
-              Reset Selected Password
+            <input id="userDisplayName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Display name">
+            <input id="userEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Email address">
+            <input id="userPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Temporary password">
+            <select id="userHotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              <option value="">Select hotel for hotel admin</option>
+            </select>
+            <button id="createUserButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Create Firebase User
             </button>
           </div>
+          <div id="userMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          <div id="userList" class="mt-4 grid gap-3"></div>
         </div>
       </section>
 
@@ -167,22 +181,81 @@
       const loginIdInput = document.getElementById("superAdminLoginId");
       const passwordInput = document.getElementById("superAdminPassword");
       const loginButton = document.getElementById("loginButton");
+      const createSuperadminButton = document.getElementById("createSuperadminButton");
       const changePasswordButton = document.getElementById("changePasswordButton");
       const forgotPasswordButton = document.getElementById("forgotPasswordButton");
-      const resetRoleInput = document.getElementById("resetRole");
-      const resetLoginIdInput = document.getElementById("resetLoginId");
-      const resetPasswordButton = document.getElementById("resetPasswordButton");
+      const userRoleInput = document.getElementById("userRole");
+      const userDisplayNameInput = document.getElementById("userDisplayName");
+      const userEmailInput = document.getElementById("userEmail");
+      const userPasswordInput = document.getElementById("userPassword");
+      const userHotelIdInput = document.getElementById("userHotelId");
+      const createUserButton = document.getElementById("createUserButton");
+      const userMessage = document.getElementById("userMessage");
+      const userList = document.getElementById("userList");
 
       function setLoggedInState(session) {
         logoutButton.classList.remove("hidden");
-        superAdminCommon.setMessage(sessionStatus, `Logged in as ${session.login_id}${session.must_change_password ? ". Please change your password now." : ""}`, "success");
+        superAdminCommon.setMessage(sessionStatus, `Logged in as ${session.login_id}`, "success");
       }
 
-      async function initializePasswordLogin() {
+      function renderUsers(users) {
+        userList.innerHTML = "";
+        if (!users.length) {
+          userList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">No Firebase user mappings saved yet.</div>';
+          return;
+        }
+
+        for (const user of users) {
+          const card = document.createElement("article");
+          card.className = "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4";
+          card.innerHTML = `
+            <p class="font-semibold text-ocean">${user.display_name || user.email}</p>
+            <p class="mt-1 text-sm text-slate-600">${user.email}</p>
+            <p class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">${user.role.replace("_", " ")}</p>
+            <p class="mt-1 text-sm text-slate-600">${user.hotel_name ? `Hotel: ${user.hotel_name} (${user.hotel_id})` : "No hotel linked"}</p>
+          `;
+          userList.appendChild(card);
+        }
+      }
+
+      async function hydrateHotels() {
+        const response = await fetch("/api/super-admin/manage-hotel");
+        const data = await superAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load hotels.");
+        }
+
+        userHotelIdInput.innerHTML = '<option value="">Select hotel for hotel admin</option>';
+        for (const hotel of data.hotels || []) {
+          const option = document.createElement("option");
+          option.value = hotel.id;
+          option.textContent = `${hotel.name} (${hotel.id})`;
+          userHotelIdInput.appendChild(option);
+        }
+      }
+
+      async function hydrateUsers() {
+        const users = await superAdminCommon.listUsers();
+        renderUsers(users);
+      }
+
+      function toggleHotelSelect() {
+        const needsHotel = userRoleInput.value === "hotel_admin";
+        userHotelIdInput.disabled = !needsHotel;
+        userHotelIdInput.classList.toggle("opacity-60", !needsHotel);
+      }
+
+      async function initializeFirebaseLogin() {
         try {
-          const session = await superAdminCommon.getSession("super_admin");
+          let session = await superAdminCommon.getSession("super_admin");
+          if (!session) {
+            const restored = await window.firebaseAuthBridge.ensureAppSession().catch(() => null);
+            session = restored?.session || null;
+          }
           if (session) {
             setLoggedInState(session);
+            await hydrateHotels();
+            await hydrateUsers();
           }
         } catch (error) {
           superAdminCommon.setMessage(sessionStatus, error.message || "Unable to load superadmin session.", "error");
@@ -193,13 +266,31 @@
         superAdminCommon.clearMessage(sessionStatus);
         superAdminCommon.setButtonLoading(loginButton, true, "Logging in...");
         try {
-          const data = await superAdminCommon.loginWithPassword("super_admin", loginIdInput.value.trim(), passwordInput.value);
+          const data = await window.firebaseAuthBridge.signIn(loginIdInput.value.trim(), passwordInput.value);
           setLoggedInState(data.session);
+          await hydrateHotels();
+          await hydrateUsers();
           window.location.href = data.redirect;
         } catch (error) {
           superAdminCommon.setMessage(sessionStatus, error.message || "Login failed.", "error");
         } finally {
           superAdminCommon.setButtonLoading(loginButton, false);
+        }
+      });
+
+      createSuperadminButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(sessionStatus);
+        superAdminCommon.setButtonLoading(createSuperadminButton, true, "Creating...");
+        try {
+          const data = await window.firebaseAuthBridge.signUpPrimary(loginIdInput.value.trim(), passwordInput.value, "Superadmin");
+          setLoggedInState(data.session);
+          await hydrateHotels();
+          await hydrateUsers();
+          superAdminCommon.setMessage(sessionStatus, "Superadmin Firebase account created and logged in.", "success");
+        } catch (error) {
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to create superadmin account.", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(createSuperadminButton, false);
         }
       });
 
@@ -213,7 +304,7 @@
           return;
         }
         try {
-          await superAdminCommon.changePassword(currentPassword, newPassword);
+          await window.firebaseAuthBridge.changePassword(currentPassword, newPassword);
           superAdminCommon.setMessage(sessionStatus, "Password changed successfully.", "success");
         } catch (error) {
           superAdminCommon.setMessage(sessionStatus, error.message || "Unable to change password.", "error");
@@ -222,34 +313,52 @@
 
       forgotPasswordButton.addEventListener("click", async () => {
         try {
-          const data = await superAdminCommon.forgotPassword("super_admin", loginIdInput.value.trim(), loginIdInput.value.trim());
-          superAdminCommon.setMessage(sessionStatus, data.message || "Password reset completed.", "success");
+          await window.firebaseAuthBridge.sendPasswordReset(loginIdInput.value.trim());
+          superAdminCommon.setMessage(sessionStatus, "Password reset email sent.", "success");
         } catch (error) {
-          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to reset password.", "error");
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to send password reset email.", "error");
         }
       });
 
-      resetRoleInput.addEventListener("change", () => {
-        resetLoginIdInput.placeholder = resetRoleInput.value === "police" ? "Not needed for police reset" : "Hotel ID for hotel reset";
-      });
+      userRoleInput.addEventListener("change", toggleHotelSelect);
+      toggleHotelSelect();
 
-      resetPasswordButton.addEventListener("click", async () => {
+      createUserButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(userMessage);
+        superAdminCommon.setButtonLoading(createUserButton, true, "Creating...");
         try {
-          const role = resetRoleInput.value;
-          const loginId = resetRoleInput.value === "police" ? "alibaug-police" : resetLoginIdInput.value.trim().toLowerCase();
-          const data = await superAdminCommon.resetRolePassword(role, loginId);
-          superAdminCommon.setMessage(sessionStatus, data.message || "Password reset completed.", "success");
+          const created = await window.firebaseAuthBridge.createUserInFirebase(
+            userEmailInput.value.trim(),
+            userPasswordInput.value,
+            userDisplayNameInput.value.trim()
+          );
+          await superAdminCommon.saveUser({
+            firebase_uid: created.uid,
+            email: created.email,
+            role: userRoleInput.value,
+            hotel_id: userRoleInput.value === "hotel_admin" ? userHotelIdInput.value.trim().toLowerCase() : "",
+            display_name: userDisplayNameInput.value.trim() || created.display_name,
+            is_active: 1,
+          });
+          superAdminCommon.setMessage(userMessage, "Firebase user created and linked successfully.", "success");
+          userEmailInput.value = "";
+          userPasswordInput.value = "";
+          userDisplayNameInput.value = "";
+          userHotelIdInput.value = "";
+          await hydrateUsers();
         } catch (error) {
-          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to reset password.", "error");
+          superAdminCommon.setMessage(userMessage, error.message || "Unable to create Firebase user.", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(createUserButton, false);
         }
       });
 
       logoutButton.addEventListener("click", async () => {
-        await superAdminCommon.logout();
+        await window.firebaseAuthBridge.signOutEverywhere();
         window.location.reload();
       });
 
-      initializePasswordLogin();
+      initializeFirebaseLogin();
     </script>
   </body>
 </html>

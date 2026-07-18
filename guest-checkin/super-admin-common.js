@@ -64,77 +64,28 @@
     return data.session || null;
   }
 
-  async function loginWithPassword(role, loginId, password) {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ role, login_id: loginId, password }),
-    });
+  async function listUsers() {
+    const response = await fetch("/api/super-admin/users");
     const data = await readJson(response);
-
     if (!response.ok) {
-      throw new Error(data.error || "Login failed.");
+      throw new Error(data.error || "Unable to load users.");
     }
-
-    saveToken();
-    return data;
+    return data.users || [];
   }
 
-  async function changePassword(currentPassword, newPassword) {
-    const response = await fetch("/api/auth/change-password", {
+  async function saveUser(payload) {
+    const response = await fetch("/api/super-admin/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        current_password: currentPassword,
-        new_password: newPassword,
-      }),
+      body: JSON.stringify(payload),
     });
     const data = await readJson(response);
     if (!response.ok) {
-      throw new Error(data.error || "Unable to change password.");
+      throw new Error(data.error || "Unable to save user.");
     }
-    return data;
-  }
-
-  async function forgotPassword(role, loginId, contactValue) {
-    const response = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        role,
-        login_id: loginId,
-        contact_value: contactValue,
-      }),
-    });
-    const data = await readJson(response);
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to process forgot password.");
-    }
-    return data;
-  }
-
-  async function resetRolePassword(role, loginId) {
-    const response = await fetch("/api/super-admin/auth-reset", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        role,
-        login_id: loginId,
-      }),
-    });
-    const data = await readJson(response);
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to reset password.");
-    }
-    return data;
+    return data.user;
   }
 
   async function logout() {
@@ -332,10 +283,8 @@
     authHeaders,
     hideLegacyField,
     getSession,
-    loginWithPassword,
-    changePassword,
-    forgotPassword,
-    resetRolePassword,
+    listUsers,
+    saveUser,
     logout,
     readJson,
     setMessage,

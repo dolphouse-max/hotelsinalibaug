@@ -1,22 +1,21 @@
+import { createRemoteJWKSet, jwtVerify } from "jose";
+
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
 const SESSION_COOKIE_NAME = "hia_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
-const PBKDF2_ITERATIONS = 100000;
-const DEFAULT_SUPERADMIN_LOGIN = "gjpatil@gmail.com";
-const DEFAULT_POLICE_LOGIN = "alibaug-police";
-const DEFAULT_POLICE_PASSWORD = "AlibaugPolice@2026!Secure";
+const DEFAULT_SUPERADMIN_EMAIL = "gjpatil@gmail.com";
+const DEFAULT_FIREBASE_PROJECT_ID = "guest-checkin-542d6";
+const FIREBASE_JWKS = createRemoteJWKSet(
+  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
+);
 
 function normalizeEmail(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
 export function normalizeHotelId(value) {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
-
-function normalizeLoginId(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
@@ -61,31 +60,6 @@ async function verifyValue(value, signature, secret) {
   return crypto.subtle.verify("HMAC", key, decodeBase64Url(signature), textEncoder.encode(value));
 }
 
-async function derivePasswordHash(password, salt) {
-  const importedKey = await crypto.subtle.importKey(
-    "raw",
-    textEncoder.encode(String(password || "")),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: decodeBase64Url(salt),
-      iterations: PBKDF2_ITERATIONS,
-      hash: "SHA-256",
-    },
-    importedKey,
-    256
-  );
-  return encodeBase64Url(new Uint8Array(bits));
-}
-
-function randomSalt() {
-  return encodeBase64Url(crypto.getRandomValues(new Uint8Array(16)));
-}
-
 function parseCookieHeader(cookieHeader) {
   const cookies = {};
   for (const part of String(cookieHeader || "").split(";")) {
@@ -99,125 +73,11 @@ function parseCookieHeader(cookieHeader) {
 }
 
 function getSessionSecret(env) {
-  return env.SESSION_SECRET || env.ENCRYPTION_KEY || env.GOOGLE_CLIENT_SECRET || "hia_default_session_secret";
+  return env.SESSION_SECRET || env.ENCRYPTION_KEY || "hia_default_session_secret";
 }
 
 function getCookieAttributes(maxAgeSeconds) {
   return [`Path=/`, `HttpOnly`, `Secure`, `SameSite=Lax`, `Max-Age=${maxAgeSeconds}`].join("; ");
-}
-
-async function ensureAuthTables(db) {
-  await db.batch([
-    db.prepare(
-      `CREATE TABLE IF NOT EXISTS auth_accounts (
-         login_id TEXT PRIMARY KEY,
-         role TEXT NOT NULL CHECK (role IN ('super_admin', 'hotel_admin', 'police')),
-         hotel_id TEXT,
-         email TEXT,
-         display_name TEXT NOT NULL,
-         password_salt TEXT NOT NULL,
-         password_hash TEXT NOT NULL,
-         must_change_password INTEGER NOT NULL DEFAULT 1 CHECK (must_change_password IN (0, 1)),
-         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-         password_changed_at TEXT
-       )`
-    ),
-    db.prepare(
-      `CREATE TABLE IF NOT EXISTS auth_reset_requests (
-         id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-         role TEXT NOT NULL CHECK (role IN ('super_admin', 'hotel_admin', 'police')),
-         login_id TEXT NOT NULL,
-         contact_value TEXT,
-         status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'resolved', 'dismissed')),
-         note TEXT,
-         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-         resolved_at TEXT
-       )`
-    ),
-    db.prepare(`CREATE INDEX IF NOT EXISTS idx_auth_accounts_role ON auth_accounts(role)`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS idx_auth_accounts_hotel_id ON auth_accounts(hotel_id)`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS idx_auth_reset_requests_status ON auth_reset_requests(status)`),
-  ]);
-}
-
-async function findAuthAccount(db, loginId) {
-  return db.prepare(
-    `SELECT
-       login_id,
-       role,
-       hotel_id,
-       email,
-       display_name,
-       password_salt,
-       password_hash,
-       must_change_password
-     FROM auth_accounts
-     WHERE lower(login_id) = lower(?1)
-     LIMIT 1`
-  )
-    .bind(loginId)
-    .first();
-}
-
-async function insertAuthAccountIfMissing(db, account) {
-  const salt = randomSalt();
-  const passwordHash = await derivePasswordHash(account.password, salt);
-
-  await db.prepare(
-    `INSERT OR IGNORE INTO auth_accounts (
-       login_id,
-       role,
-       hotel_id,
-       email,
-       display_name,
-       password_salt,
-       password_hash,
-       must_change_password
-     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`
-  )
-    .bind(
-      account.login_id,
-      account.role,
-      account.hotel_id || null,
-      account.email || null,
-      account.display_name,
-      salt,
-      passwordHash,
-      account.must_change_password ? 1 : 0
-    )
-    .run();
-}
-
-async function updatePasswordForLogin(db, loginId, password, mustChangePassword = false) {
-  const salt = randomSalt();
-  const passwordHash = await derivePasswordHash(password, salt);
-  await db.prepare(
-    `UPDATE auth_accounts
-     SET password_salt = ?1,
-         password_hash = ?2,
-         must_change_password = ?3,
-         updated_at = CURRENT_TIMESTAMP,
-         password_changed_at = CURRENT_TIMESTAMP
-     WHERE lower(login_id) = lower(?4)`
-  )
-    .bind(salt, passwordHash, mustChangePassword ? 1 : 0, loginId)
-    .run();
-}
-
-async function recordResetRequest(db, role, loginId, contactValue, status, note) {
-  await db.prepare(
-    `INSERT INTO auth_reset_requests (
-       role,
-       login_id,
-       contact_value,
-       status,
-       note,
-       resolved_at
-     ) VALUES (?1, ?2, ?3, ?4, ?5, CASE WHEN ?4 = 'resolved' THEN CURRENT_TIMESTAMP ELSE NULL END)`
-  )
-    .bind(role, loginId, contactValue || null, status, note || null)
-    .run();
 }
 
 function buildSessionCookieValue(session) {
@@ -229,212 +89,214 @@ function buildSessionCookieValue(session) {
   return encodeBase64Url(textEncoder.encode(JSON.stringify(payload)));
 }
 
-function policeInitialPassword(env) {
-  return env.POLICE_INITIAL_PASSWORD || DEFAULT_POLICE_PASSWORD;
+function firebaseProjectId(env) {
+  return env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID;
 }
 
-export function defaultSuperAdminLogin() {
-  return DEFAULT_SUPERADMIN_LOGIN;
+async function ensureAuthTables(db) {
+  await db.batch([
+    db.prepare(
+      `CREATE TABLE IF NOT EXISTS auth_users (
+         id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+         firebase_uid TEXT UNIQUE,
+         email TEXT NOT NULL UNIQUE,
+         role TEXT NOT NULL CHECK (role IN ('super_admin', 'hotel_admin', 'police')),
+         hotel_id TEXT,
+         display_name TEXT NOT NULL,
+         is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+       )`
+    ),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_auth_users_role ON auth_users(role)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_auth_users_hotel_id ON auth_users(hotel_id)`),
+  ]);
 }
 
-export function defaultPoliceLogin() {
-  return DEFAULT_POLICE_LOGIN;
-}
-
-export function defaultPolicePassword(env) {
-  return policeInitialPassword(env);
-}
-
-async function ensureSuperAdminAccount(env) {
-  await ensureAuthTables(env.DB);
-  await insertAuthAccountIfMissing(env.DB, {
-    login_id: DEFAULT_SUPERADMIN_LOGIN,
-    role: "super_admin",
-    display_name: "Superadmin",
-    email: DEFAULT_SUPERADMIN_LOGIN,
-    password: DEFAULT_SUPERADMIN_LOGIN,
-    must_change_password: true,
-  });
-}
-
-async function ensurePoliceAccount(env) {
-  await ensureAuthTables(env.DB);
-  await insertAuthAccountIfMissing(env.DB, {
-    login_id: DEFAULT_POLICE_LOGIN,
-    role: "police",
-    display_name: "Alibaug Police",
-    email: null,
-    password: policeInitialPassword(env),
-    must_change_password: true,
-  });
-}
-
-export async function ensureHotelAdminAccount(env, hotelId) {
-  await ensureAuthTables(env.DB);
-  const normalizedHotelId = normalizeHotelId(hotelId);
-  if (!normalizedHotelId) {
-    return null;
-  }
-
-  const hotel = await env.DB.prepare(
+async function findAuthUserByFirebaseIdentity(db, firebaseUid, email) {
+  return db.prepare(
     `SELECT
-       h.id,
-       h.name,
-       hs.email AS admin_email
-     FROM hotels h
-     LEFT JOIN hotel_staff hs
-       ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
-     WHERE lower(h.id) = lower(?1)
+       id,
+       firebase_uid,
+       email,
+       role,
+       hotel_id,
+       display_name,
+       is_active
+     FROM auth_users
+     WHERE (firebase_uid IS NOT NULL AND firebase_uid = ?1)
+        OR lower(email) = lower(?2)
      LIMIT 1`
   )
-    .bind(normalizedHotelId)
+    .bind(firebaseUid || null, email)
     .first();
+}
 
-  if (!hotel) {
-    return null;
+export async function listAuthUsers(env) {
+  await ensureAuthTables(env.DB);
+  const result = await env.DB.prepare(
+    `SELECT
+       au.id,
+       au.firebase_uid,
+       au.email,
+       au.role,
+       au.hotel_id,
+       au.display_name,
+       au.is_active,
+       au.created_at,
+       au.updated_at,
+       h.name AS hotel_name
+     FROM auth_users au
+     LEFT JOIN hotels h
+       ON lower(h.id) = lower(au.hotel_id)
+     ORDER BY
+       CASE au.role
+         WHEN 'super_admin' THEN 0
+         WHEN 'police' THEN 1
+         ELSE 2
+       END,
+       au.created_at DESC`
+  ).all();
+
+  return result.results || [];
+}
+
+async function upsertAuthUser(env, user) {
+  await ensureAuthTables(env.DB);
+
+  const email = normalizeEmail(user.email);
+  const role = typeof user.role === "string" ? user.role.trim() : "";
+  const hotelId = normalizeHotelId(user.hotel_id);
+  const displayName = typeof user.display_name === "string" ? user.display_name.trim() : email;
+  const firebaseUid = typeof user.firebase_uid === "string" ? user.firebase_uid.trim() : "";
+  const isActive = user.is_active === false || user.is_active === 0 ? 0 : 1;
+
+  if (!["super_admin", "hotel_admin", "police"].includes(role)) {
+    throw new Error("role must be super_admin, hotel_admin, or police.");
   }
 
-  await insertAuthAccountIfMissing(env.DB, {
-    login_id: normalizeHotelId(hotel.id),
-    role: "hotel_admin",
-    hotel_id: normalizeHotelId(hotel.id),
-    display_name: `${hotel.name} Admin`,
-    email: normalizeEmail(hotel.admin_email),
-    password: normalizeHotelId(hotel.id),
-    must_change_password: true,
+  if (!email) {
+    throw new Error("email is required.");
+  }
+
+  if (role === "hotel_admin" && !hotelId) {
+    throw new Error("hotel_id is required for hotel_admin users.");
+  }
+
+  if (hotelId) {
+    const hotel = await env.DB.prepare(
+      `SELECT id FROM hotels WHERE lower(id) = lower(?1) LIMIT 1`
+    )
+      .bind(hotelId)
+      .first();
+
+    if (!hotel) {
+      throw new Error("Selected hotel was not found.");
+    }
+  }
+
+  await env.DB.prepare(
+    `INSERT INTO auth_users (
+       firebase_uid,
+       email,
+       role,
+       hotel_id,
+       display_name,
+       is_active
+     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+     ON CONFLICT(email) DO UPDATE SET
+       firebase_uid = COALESCE(excluded.firebase_uid, auth_users.firebase_uid),
+       role = excluded.role,
+       hotel_id = excluded.hotel_id,
+       display_name = excluded.display_name,
+       is_active = excluded.is_active,
+       updated_at = CURRENT_TIMESTAMP`
+  )
+    .bind(firebaseUid || null, email, role, hotelId || null, displayName, isActive)
+    .run();
+
+  return findAuthUserByFirebaseIdentity(env.DB, firebaseUid, email);
+}
+
+async function ensureDefaultSuperAdmin(env, firebaseUid = "") {
+  return upsertAuthUser(env, {
+    firebase_uid: firebaseUid || null,
+    email: DEFAULT_SUPERADMIN_EMAIL,
+    role: "super_admin",
+    display_name: "Superadmin",
+    is_active: 1,
+  });
+}
+
+export async function saveAuthUser(env, user) {
+  return upsertAuthUser(env, user);
+}
+
+async function verifyFirebaseIdToken(idToken, env) {
+  const projectId = firebaseProjectId(env);
+  const issuer = `https://securetoken.google.com/${projectId}`;
+  const { payload } = await jwtVerify(idToken, FIREBASE_JWKS, {
+    algorithms: ["RS256"],
+    issuer,
+    audience: projectId,
   });
 
-  return hotel;
+  if (!payload?.sub) {
+    throw new Error("Firebase token is missing a user ID.");
+  }
+
+  return payload;
 }
 
-export async function ensureDefaultAccountForRole(env, role, loginId = "") {
-  if (role === "super_admin") {
-    await ensureSuperAdminAccount(env);
-    return findAuthAccount(env.DB, DEFAULT_SUPERADMIN_LOGIN);
+export async function resolveFirebaseSession(env, idToken) {
+  if (!idToken) {
+    throw new Error("Firebase ID token is required.");
   }
 
-  if (role === "police") {
-    await ensurePoliceAccount(env);
-    return findAuthAccount(env.DB, DEFAULT_POLICE_LOGIN);
+  const claims = await verifyFirebaseIdToken(idToken, env);
+  const firebaseUid = String(claims.sub || "").trim();
+  const email = normalizeEmail(claims.email);
+
+  if (!email) {
+    throw new Error("This Firebase account does not have an email address.");
   }
 
-  if (role === "hotel_admin") {
-    await ensureHotelAdminAccount(env, loginId);
-    return findAuthAccount(env.DB, normalizeHotelId(loginId));
+  await ensureAuthTables(env.DB);
+  if (email === DEFAULT_SUPERADMIN_EMAIL) {
+    await ensureDefaultSuperAdmin(env, firebaseUid);
   }
 
-  return null;
-}
-
-export async function verifyPasswordForRole(env, role, loginId, password) {
-  await ensureDefaultAccountForRole(env, role, loginId);
-  const normalizedLoginId =
-    role === "hotel_admin" ? normalizeHotelId(loginId) : normalizeLoginId(loginId);
-  const account = await findAuthAccount(env.DB, normalizedLoginId);
-
-  if (!account || account.role !== role) {
-    return null;
+  const user = await findAuthUserByFirebaseIdentity(env.DB, firebaseUid, email);
+  if (!user || Number(user.is_active) !== 1) {
+    throw new Error("This Firebase account is not authorized for this app.");
   }
 
-  const expectedHash = await derivePasswordHash(password, account.password_salt);
-  if (expectedHash !== account.password_hash) {
-    return null;
+  if (user.role === "hotel_admin" && !normalizeHotelId(user.hotel_id)) {
+    throw new Error("This hotel admin account is missing a hotel assignment.");
   }
+
+  await env.DB.prepare(
+    `UPDATE auth_users
+     SET firebase_uid = ?1,
+         display_name = ?2,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?3`
+  )
+    .bind(firebaseUid, String(claims.name || user.display_name || email).trim() || email, user.id)
+    .run();
 
   return {
-    login_id: normalizeLoginId(account.login_id),
-    role: account.role,
-    hotel_id: normalizeHotelId(account.hotel_id),
-    email: normalizeEmail(account.email),
-    display_name: account.display_name,
-    must_change_password: Number(account.must_change_password) === 1,
+    login_id: email,
+    role: user.role,
+    hotel_id: normalizeHotelId(user.hotel_id),
+    email,
+    display_name: String(claims.name || user.display_name || email).trim() || email,
+    firebase_uid: firebaseUid,
   };
 }
 
-export async function changePasswordForSession(env, session, currentPassword, newPassword) {
-  const account = await findAuthAccount(env.DB, session.login_id);
-  if (!account) {
-    throw new Error("Account not found.");
-  }
-
-  const currentHash = await derivePasswordHash(currentPassword, account.password_salt);
-  if (currentHash !== account.password_hash) {
-    throw new Error("Current password is incorrect.");
-  }
-
-  await updatePasswordForLogin(env.DB, account.login_id, newPassword, false);
-}
-
-export async function resetPasswordFromForgot(env, role, loginId, contactValue) {
-  await ensureAuthTables(env.DB);
-  const normalizedLoginId = role === "hotel_admin" ? normalizeHotelId(loginId) : normalizeLoginId(loginId);
-  const normalizedContact = normalizeLoginId(contactValue);
-
-  if (role === "super_admin") {
-    await ensureSuperAdminAccount(env);
-    if (normalizedLoginId !== DEFAULT_SUPERADMIN_LOGIN || normalizedContact !== DEFAULT_SUPERADMIN_LOGIN) {
-      throw new Error("Superadmin recovery details do not match.");
-    }
-
-    await updatePasswordForLogin(env.DB, DEFAULT_SUPERADMIN_LOGIN, DEFAULT_SUPERADMIN_LOGIN, true);
-    await recordResetRequest(env.DB, role, normalizedLoginId, normalizedContact, "resolved", "Reset to default superadmin login ID.");
-    return {
-      message: "Superadmin password reset to the login ID. Please log in and change it immediately.",
-    };
-  }
-
-  if (role === "hotel_admin") {
-    const hotel = await ensureHotelAdminAccount(env, normalizedLoginId);
-    if (!hotel) {
-      throw new Error("Hotel account not found.");
-    }
-
-    const adminEmail = normalizeEmail(hotel.admin_email);
-    if (!adminEmail || normalizedContact !== adminEmail) {
-      throw new Error("Registered hotel admin Gmail does not match.");
-    }
-
-    await updatePasswordForLogin(env.DB, normalizedLoginId, normalizedLoginId, true);
-    await recordResetRequest(env.DB, role, normalizedLoginId, normalizedContact, "resolved", "Reset to default hotel login ID.");
-    return {
-      message: "Hotel password reset to the Hotel ID. Please log in and change it immediately.",
-    };
-  }
-
-  if (role === "police") {
-    await recordResetRequest(env.DB, role, normalizedLoginId, normalizedContact, "pending", "Police password reset requested.");
-    throw new Error("Police password resets must be done by superadmin.");
-  }
-
-  throw new Error("Unsupported role.");
-}
-
-export async function resetPasswordAsSuperAdmin(env, role, loginId) {
-  await ensureAuthTables(env.DB);
-
-  if (role === "police") {
-    await ensurePoliceAccount(env);
-    await updatePasswordForLogin(env.DB, DEFAULT_POLICE_LOGIN, policeInitialPassword(env), true);
-    await recordResetRequest(env.DB, role, DEFAULT_POLICE_LOGIN, null, "resolved", "Superadmin reset police password to initial value.");
-    return {
-      message: "Police password reset to the initial police password.",
-    };
-  }
-
-  if (role === "hotel_admin") {
-    const hotel = await ensureHotelAdminAccount(env, loginId);
-    if (!hotel) {
-      throw new Error("Hotel account not found.");
-    }
-
-    await updatePasswordForLogin(env.DB, normalizeHotelId(loginId), normalizeHotelId(loginId), true);
-    await recordResetRequest(env.DB, role, normalizeHotelId(loginId), null, "resolved", "Superadmin reset hotel password to hotel ID.");
-    return {
-      message: "Hotel password reset to the Hotel ID.",
-    };
-  }
-
-  throw new Error("Only hotel and police passwords can be reset here.");
+export function defaultSuperAdminLogin() {
+  return DEFAULT_SUPERADMIN_EMAIL;
 }
 
 export async function createSessionCookie(session, env) {
@@ -473,12 +335,12 @@ export async function readSession(request, env) {
     }
 
     return {
-      login_id: normalizeLoginId(payload.login_id),
+      login_id: normalizeEmail(payload.login_id),
       role: payload.role,
       hotel_id: normalizeHotelId(payload.hotel_id),
       email: normalizeEmail(payload.email),
       display_name: typeof payload.display_name === "string" ? payload.display_name : "",
-      must_change_password: Boolean(payload.must_change_password),
+      firebase_uid: typeof payload.firebase_uid === "string" ? payload.firebase_uid : "",
       iat: Number(payload.iat || 0),
       exp: Number(payload.exp || 0),
     };

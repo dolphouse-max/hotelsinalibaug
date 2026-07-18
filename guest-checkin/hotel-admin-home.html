@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hotel Admin Home</title>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js?v=20260718-2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="hotel-admin-common.js?v=20260718-1"></script>
     <script>
@@ -34,13 +37,17 @@
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
             <p class="text-sm font-semibold text-ocean">Hotel admin login</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Use Hotel ID as the login ID. Initial password is also the Hotel ID until it is changed.</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Log in with the hotel admin email and password created by superadmin in Firebase.</p>
           </div>
 
           <div class="mt-5 space-y-4">
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID / Login ID</label>
-              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
+              <label for="hotelAdminEmail" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Email</label>
+              <input id="hotelAdminEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="booking@gmail.com">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Auto-filled after login">
             </div>
             <div>
               <label for="hotelPassword" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
@@ -53,7 +60,7 @@
               Change Password
             </button>
             <button id="forgotPasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
-              Forgot Password
+              Send Password Reset Email
             </button>
             <button id="logoutButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
               Logout
@@ -121,6 +128,7 @@
     </main>
 
     <script>
+      const emailInput = document.getElementById("hotelAdminEmail");
       const hotelIdInput = document.getElementById("hotelId");
       const passwordInput = document.getElementById("hotelPassword");
       const contextMessage = document.getElementById("contextMessage");
@@ -148,13 +156,18 @@
         });
       }
 
-      async function initializePasswordLogin() {
+      async function initializeFirebaseLogin() {
         try {
-          const session = await hotelAdminCommon.getSession(hotelIdInput.value.trim());
+          let session = await hotelAdminCommon.getSession(hotelIdInput.value.trim());
+          if (!session) {
+            const restored = await window.firebaseAuthBridge.ensureAppSession().catch(() => null);
+            session = restored?.session || null;
+          }
           if (session) {
+            emailInput.value = session.email || emailInput.value;
             hotelIdInput.value = session.hotel_id || hotelIdInput.value;
             logoutButton.classList.remove("hidden");
-            hotelAdminCommon.setMessage(contextMessage, `Logged in for ${session.hotel_id}${session.must_change_password ? ". Please change your password now." : ""}`, "success");
+            hotelAdminCommon.setMessage(contextMessage, `Logged in for ${session.hotel_id}`, "success");
           }
         } catch (error) {
           hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to load hotel session.", "error");
@@ -166,19 +179,20 @@
       });
 
       loginButton.addEventListener("click", async () => {
-        const hotelId = hotelIdInput.value.trim().toLowerCase();
-        hotelIdInput.value = hotelId;
-        if (!hotelId) {
-          hotelAdminCommon.setMessage(contextMessage, "Enter hotel ID before login.", "error");
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email) {
+          hotelAdminCommon.setMessage(contextMessage, "Enter hotel admin email before login.", "error");
           return;
         }
 
         hotelAdminCommon.clearMessage(contextMessage);
         hotelAdminCommon.setButtonLoading(loginButton, true, "Logging in...");
         try {
-          hotelAdminCommon.persistContext("__app_session__", hotelId);
-          const data = await hotelAdminCommon.loginWithPassword(hotelId, passwordInput.value);
-          hotelAdminCommon.setMessage(contextMessage, `Logged in for ${data.session.hotel_id}${data.session.must_change_password ? ". Please change your password now." : ""}`, "success");
+          const data = await window.firebaseAuthBridge.signIn(email, passwordInput.value);
+          hotelIdInput.value = data.session.hotel_id || "";
+          emailInput.value = data.session.email || email;
+          hotelAdminCommon.persistContext("__app_session__", data.session.hotel_id || "");
+          hotelAdminCommon.setMessage(contextMessage, `Logged in for ${data.session.hotel_id}`, "success");
           logoutButton.classList.remove("hidden");
           window.location.href = data.redirect;
         } catch (error) {
@@ -198,7 +212,7 @@
           return;
         }
         try {
-          await hotelAdminCommon.changePassword(currentPassword, newPassword);
+          await window.firebaseAuthBridge.changePassword(currentPassword, newPassword);
           hotelAdminCommon.setMessage(contextMessage, "Password changed successfully.", "success");
         } catch (error) {
           hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to change password.", "error");
@@ -206,31 +220,26 @@
       });
 
       forgotPasswordButton.addEventListener("click", async () => {
-        const hotelId = hotelIdInput.value.trim().toLowerCase();
-        hotelIdInput.value = hotelId;
-        if (!hotelId) {
-          hotelAdminCommon.setMessage(contextMessage, "Enter hotel ID first.", "error");
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email) {
+          hotelAdminCommon.setMessage(contextMessage, "Enter hotel admin email first.", "error");
           return;
         }
 
-        const adminGmail = window.prompt("Enter the registered hotel admin Gmail");
-        if (!adminGmail) {
-          return;
-        }
         try {
-          const data = await hotelAdminCommon.forgotPassword(hotelId, adminGmail);
-          hotelAdminCommon.setMessage(contextMessage, data.message || "Password reset completed.", "success");
+          await window.firebaseAuthBridge.sendPasswordReset(email);
+          hotelAdminCommon.setMessage(contextMessage, "Password reset email sent.", "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to reset password.", "error");
+          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to send password reset email.", "error");
         }
       });
 
       logoutButton.addEventListener("click", async () => {
-        await hotelAdminCommon.logout();
+        await window.firebaseAuthBridge.signOutEverywhere();
         window.location.reload();
       });
 
-      initializePasswordLogin();
+      initializeFirebaseLogin();
     </script>
   </body>
 </html>

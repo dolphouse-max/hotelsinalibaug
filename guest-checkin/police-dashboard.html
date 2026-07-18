@@ -8,6 +8,9 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1f3b57">
     <title>Police Dashboard | Hotels In Alibaug</title>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+    <script src="firebase-auth.js?v=20260718-2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -44,8 +47,8 @@
         <div class="p-6">
           <div class="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
             <div>
-              <label for="policeLoginIdInput" class="mb-2 block text-sm font-medium text-slate-700">Police Login ID</label>
-              <input id="policeLoginIdInput" value="alibaug-police" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+              <label for="policeEmailInput" class="mb-2 block text-sm font-medium text-slate-700">Police Email</label>
+              <input id="policeEmailInput" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <div>
               <label for="policePasswordInput" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
@@ -73,7 +76,7 @@
               Change Password
             </button>
             <button id="forgotPasswordButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
-              Forgot Password
+              Send Password Reset Email
             </button>
           </div>
           <div id="contextMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm"></div>
@@ -103,7 +106,7 @@
     <script>
       const hotelIdInput = document.getElementById("hotelIdInput");
       const officerNameInput = document.getElementById("officerNameInput");
-      const policeLoginIdInput = document.getElementById("policeLoginIdInput");
+      const policeEmailInput = document.getElementById("policeEmailInput");
       const policePasswordInput = document.getElementById("policePasswordInput");
       const contextMessage = document.getElementById("contextMessage");
       const links = Array.from(document.querySelectorAll(".police-link"));
@@ -111,7 +114,6 @@
 
       hotelIdInput.value = localStorage.getItem("police_reports_hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
       officerNameInput.value = localStorage.getItem("police_officer_name") || localStorage.getItem("dashboard_officer_name") || "";
-      policeLoginIdInput.value = "alibaug-police";
       localStorage.setItem("police_access_token", localStorage.getItem("police_access_token") || "");
 
       if (hotelIdInput.value || officerNameInput.value) {
@@ -141,23 +143,14 @@
 
       loginButton.addEventListener("click", async () => {
         try {
-          const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              role: "police",
-              login_id: policeLoginIdInput.value.trim(),
-              password: policePasswordInput.value,
-            }),
-          });
-          const data = await response.json();
-          if (!response.ok) {
-            throw new Error(data.error || "Login failed.");
+          const email = policeEmailInput.value.trim().toLowerCase();
+          if (!email) {
+            throw new Error("Enter police email before login.");
           }
+          const data = await window.firebaseAuthBridge.signIn(email, policePasswordInput.value);
+          policeEmailInput.value = data.session.email || email;
           persistContext();
-          showMessage(`Police login successful${data.session?.must_change_password ? ". Please change password now." : ""}.`, "success");
+          showMessage("Police login successful.", "success");
         } catch (error) {
           showMessage(error instanceof Error ? error.message : "Unable to log in.", "error");
         }
@@ -178,28 +171,26 @@
           return;
         }
         try {
-          const response = await fetch("/api/auth/change-password", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              current_password: currentPassword,
-              new_password: newPassword,
-            }),
-          });
-          const data = await response.json();
-          if (!response.ok) {
-            throw new Error(data.error || "Unable to change password.");
-          }
+          await window.firebaseAuthBridge.changePassword(currentPassword, newPassword);
           showMessage("Police password changed successfully.", "success");
         } catch (error) {
           showMessage(error instanceof Error ? error.message : "Unable to change password.", "error");
         }
       });
 
-      document.getElementById("forgotPasswordButton").addEventListener("click", () => {
-        showMessage("Ask superadmin to reset the police password from the superadmin home page.", "error");
+      document.getElementById("forgotPasswordButton").addEventListener("click", async () => {
+        const email = policeEmailInput.value.trim().toLowerCase();
+        if (!email) {
+          showMessage("Enter police email first.", "error");
+          return;
+        }
+
+        try {
+          await window.firebaseAuthBridge.sendPasswordReset(email);
+          showMessage("Password reset email sent.", "success");
+        } catch (error) {
+          showMessage(error instanceof Error ? error.message : "Unable to send password reset email.", "error");
+        }
       });
 
       links.forEach((link) => {
@@ -218,6 +209,15 @@
           window.location.href = url.toString();
         });
       });
+
+      window.firebaseAuthBridge.ensureAppSession()
+        .then((data) => {
+          if (data?.session?.role === "police") {
+            policeEmailInput.value = data.session.email || policeEmailInput.value;
+            showMessage("Police session restored.", "success");
+          }
+        })
+        .catch(() => {});
     </script>
   </body>
 </html>

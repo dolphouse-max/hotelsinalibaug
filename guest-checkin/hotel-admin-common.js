@@ -85,61 +85,6 @@
     return data.session || null;
   }
 
-  async function loginWithPassword(hotelId, password) {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ role: "hotel_admin", login_id: hotelId, password }),
-    });
-    const data = await readJson(response);
-
-    if (!response.ok) {
-      throw new Error(data.error || "Login failed.");
-    }
-
-    persistContext(SESSION_PLACEHOLDER, data.session?.hotel_id || hotelId);
-    return data;
-  }
-
-  async function changePassword(currentPassword, newPassword) {
-    const response = await fetch("/api/auth/change-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        current_password: currentPassword,
-        new_password: newPassword,
-      }),
-    });
-    const data = await readJson(response);
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to change password.");
-    }
-    return data;
-  }
-
-  async function forgotPassword(hotelId, adminGmail) {
-    const response = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        role: "hotel_admin",
-        login_id: hotelId,
-        contact_value: adminGmail,
-      }),
-    });
-    const data = await readJson(response);
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to reset password.");
-    }
-    return data;
-  }
-
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     localStorage.removeItem("hotel_admin_token");
@@ -312,9 +257,6 @@
     authHeaders,
     hideLegacyField,
     getSession,
-    loginWithPassword,
-    changePassword,
-    forgotPassword,
     logout,
     readJson,
     setMessage,

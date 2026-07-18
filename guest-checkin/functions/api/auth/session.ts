@@ -1,6 +1,5 @@
 import { json, unauthorized } from "../../_lib/api";
 import {
-  defaultPoliceLogin,
   defaultSuperAdminLogin,
   getHotelAdminRecord,
   readSession,
@@ -52,13 +51,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       return unauthorized();
     }
 
-    return json({
-      ok: true,
-      session: {
-        ...session,
-        login_id: session.login_id || defaultPoliceLogin(),
-      },
-    });
+    return json({ ok: true, session });
   }
 
   const session = await readSession(context.request, context.env);
@@ -70,7 +63,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     ok: true,
     session: {
       ...session,
-      login_id: session.login_id || (session.role === "super_admin" ? defaultSuperAdminLogin() : defaultPoliceLogin()),
+      login_id: session.login_id || defaultSuperAdminLogin(),
     },
   });
 };
