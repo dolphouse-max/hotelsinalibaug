@@ -49,8 +49,8 @@
 
           <form id="hotelForm" class="mt-5 space-y-4">
             <div>
-              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
-              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Google superadmin session">
             </div>
             <div>
               <label for="hotelName" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
@@ -104,6 +104,24 @@
 
             <div id="formError" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
             <div id="formSuccess" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div id="nextActionsPanel" class="hidden rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+              <p class="font-semibold">Next step for this hotel</p>
+              <p id="nextActionsSummary" class="mt-2 leading-6"></p>
+              <div class="mt-4 grid gap-3">
+                <a id="whatsAppLink" href="#" class="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 font-semibold text-white">
+                  Open WhatsApp Message
+                </a>
+                <a id="saveContactLink" href="#" download="hotel-contact.vcf" class="inline-flex items-center justify-center rounded-2xl border border-emerald-300 bg-white px-5 py-3 font-semibold text-emerald-900">
+                  Save Contact
+                </a>
+                <a id="hotelQrPageLink" href="#" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+                  Open Hotel QR Page
+                </a>
+                <a id="hotelAdminPageLink" href="#" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+                  Open Hotel Admin Page
+                </a>
+              </div>
+            </div>
             <div id="duplicatePanel" class="hidden rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
               <p class="font-semibold">Possible existing hotel found</p>
               <p id="duplicateMessage" class="mt-2"></p>
@@ -139,6 +157,12 @@
       const duplicateList = document.getElementById("duplicateList");
       const useExistingButton = document.getElementById("useExistingButton");
       const createAnywayButton = document.getElementById("createAnywayButton");
+      const nextActionsPanel = document.getElementById("nextActionsPanel");
+      const nextActionsSummary = document.getElementById("nextActionsSummary");
+      const whatsAppLink = document.getElementById("whatsAppLink");
+      const saveContactLink = document.getElementById("saveContactLink");
+      const hotelQrPageLink = document.getElementById("hotelQrPageLink");
+      const hotelAdminPageLink = document.getElementById("hotelAdminPageLink");
       const subscriptionStartDateInput = document.getElementById("subscriptionStartDate");
       const subscriptionEndDateInput = document.getElementById("subscriptionEndDate");
       const activeFlagInput = document.getElementById("activeFlag");
@@ -151,7 +175,7 @@
       subscriptionEndDateInput.value = superAdminCommon.addMonths(subscriptionStartDateInput.value, 3);
 
       if (tokenInput.value) {
-        superAdminCommon.setMessage(formSuccess, "Saved superadmin token loaded from this device.", "success");
+        superAdminCommon.setMessage(formSuccess, "Saved superadmin session loaded from this device.", "success");
       }
 
       async function loadHotels() {
@@ -171,6 +195,72 @@
         duplicatePanel.classList.add("hidden");
         duplicateMessage.textContent = "";
         duplicateList.innerHTML = "";
+        nextActionsPanel.classList.add("hidden");
+        nextActionsSummary.textContent = "";
+      }
+
+      function escapeVcf(value) {
+        return String(value || "")
+          .replace(/\\/g, "\\\\")
+          .replace(/\n/g, "\\n")
+          .replace(/,/g, "\\,")
+          .replace(/;/g, "\\;");
+      }
+
+      function buildWhatsappMessage(hotel) {
+        const hotelAdminUrl = new URL("/hotel-admin-home.html", window.location.origin);
+        hotelAdminUrl.searchParams.set("hotel_id", hotel.id);
+
+        const hotelQrUrl = new URL("/super-admin-hotel-qr.html", window.location.origin);
+
+        return [
+          "Hello from Hotels In Alibaug.",
+          "",
+          "Your hotel has been created successfully.",
+          "",
+          `Hotel Name: ${hotel.name}`,
+          `Hotel ID: ${hotel.id}`,
+          "",
+          `Open Hotel Admin: ${hotelAdminUrl.toString()}`,
+          `Open Hotel QR Page: ${hotelQrUrl.toString()}`,
+          "",
+          "Next steps:",
+          "1. Open Hotel Admin page",
+          "2. Sign in with the saved hotel admin Gmail",
+          "3. Add admin Gmail in Profile",
+          "4. Connect Google Drive",
+          "5. Start guest and staff setup",
+        ].join("\n");
+      }
+
+      function renderNextActions(hotel) {
+        const normalizedMobile = String(hotel.admin_phone || hotel.contact || "").replace(/[^\d+]/g, "");
+        const whatsappNumber = normalizedMobile.replace(/^\+/, "");
+        const hotelAdminUrl = new URL("/hotel-admin-home.html", window.location.origin);
+        hotelAdminUrl.searchParams.set("hotel_id", hotel.id);
+        const hotelQrUrl = new URL("/super-admin-hotel-qr.html", window.location.origin);
+        const whatsappMessage = buildWhatsappMessage(hotel);
+        const vcf = [
+          "BEGIN:VCARD",
+          "VERSION:3.0",
+          `FN:${escapeVcf(hotel.name)}`,
+          `TEL;TYPE=CELL:${escapeVcf(hotel.admin_phone || hotel.contact || "")}`,
+          `EMAIL:${escapeVcf(hotel.admin_email || "")}`,
+          `NOTE:${escapeVcf(`Hotel ID: ${hotel.id}`)}`,
+          "END:VCARD",
+        ].join("\n");
+
+        nextActionsSummary.textContent = `${hotel.name} is ready. Use the actions below to message the hotel, save the contact, and open the onboarding links.`;
+        whatsAppLink.href = whatsappNumber
+          ? `https://wa.me/${encodeURIComponent(whatsappNumber)}?text=${encodeURIComponent(whatsappMessage)}`
+          : "#";
+        whatsAppLink.classList.toggle("opacity-60", !whatsappNumber);
+        whatsAppLink.setAttribute("aria-disabled", whatsappNumber ? "false" : "true");
+        saveContactLink.href = `data:text/vcard;charset=utf-8,${encodeURIComponent(vcf)}`;
+        saveContactLink.download = `${hotel.id}.vcf`;
+        hotelQrPageLink.href = hotelQrUrl.toString();
+        hotelAdminPageLink.href = hotelAdminUrl.toString();
+        nextActionsPanel.classList.remove("hidden");
       }
 
       function buildCreatePayload(skipDuplicateCheck = false) {
@@ -266,6 +356,7 @@
           }
 
           superAdminCommon.setMessage(formSuccess, `${data.hotel.name} created. Trial runs until ${data.hotel.subscription_end_date}.`, "success");
+          renderNextActions(data.hotel);
           hotelForm.reset();
           hotelIdInput.dataset.userEdited = "";
           subscriptionEndDateInput.dataset.userEdited = "";
@@ -309,6 +400,7 @@
           }
 
           superAdminCommon.setMessage(formSuccess, `${data.hotel.name} created after duplicate review. Trial runs until ${data.hotel.subscription_end_date}.`, "success");
+          renderNextActions(data.hotel);
           hotelForm.reset();
           hotelIdInput.dataset.userEdited = "";
           subscriptionEndDateInput.dataset.userEdited = "";

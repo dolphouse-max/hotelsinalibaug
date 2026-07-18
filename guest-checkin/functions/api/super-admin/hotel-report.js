@@ -1,3 +1,5 @@
+import { requireSuperAdminSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -20,16 +22,6 @@ function isSafeHotelId(value) {
 
 function isIsoDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function requireSuperAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
 }
 
 async function getTableColumns(db, tableName) {
@@ -63,7 +55,7 @@ async function countValue(statement) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 

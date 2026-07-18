@@ -1,4 +1,6 @@
 (function () {
+  const SESSION_PLACEHOLDER = "__google_session__";
+
   function todayDate() {
     return new Date().toISOString().slice(0, 10);
   }
@@ -11,27 +13,84 @@
 
   function restoreToken(tokenInput) {
     if (tokenInput) {
-      tokenInput.value = localStorage.getItem("super_admin_token") || "";
+      tokenInput.value = SESSION_PLACEHOLDER;
+      hideLegacyField(tokenInput);
+      localStorage.setItem("super_admin_token", SESSION_PLACEHOLDER);
     }
   }
 
-  function saveToken(tokenInput) {
-    localStorage.setItem("super_admin_token", tokenInput?.value?.trim() || "");
+  function saveToken() {
+    localStorage.setItem("super_admin_token", SESSION_PLACEHOLDER);
   }
 
   function authHeaders(tokenInput, includeJson = true) {
-    const token = tokenInput?.value?.trim() || "";
     const headers = {};
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
 
     if (includeJson) {
       headers["Content-Type"] = "application/json";
     }
 
     return headers;
+  }
+
+  function hideLegacyField(input) {
+    if (!input) {
+      return;
+    }
+
+    input.type = "hidden";
+    const wrapper = input.closest("div");
+    if (wrapper) {
+      wrapper.classList.add("hidden");
+    }
+  }
+
+  async function loadGoogleConfig() {
+    const response = await fetch("/api/auth/google-config");
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load Google login settings.");
+    }
+
+    return data;
+  }
+
+  async function getSession(role) {
+    const url = new URL("/api/auth/session", window.location.origin);
+    if (role) {
+      url.searchParams.set("role", role);
+    }
+
+    const response = await fetch(url.toString());
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return data.session || null;
+  }
+
+  async function loginWithGoogle(credential, role) {
+    const response = await fetch("/api/auth/google-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ credential, role }),
+    });
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Google login failed.");
+    }
+
+    return data;
+  }
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
   }
 
   async function readJson(response) {
@@ -222,6 +281,11 @@
     restoreToken,
     saveToken,
     authHeaders,
+    hideLegacyField,
+    loadGoogleConfig,
+    getSession,
+    loginWithGoogle,
+    logout,
     readJson,
     setMessage,
     clearMessage,

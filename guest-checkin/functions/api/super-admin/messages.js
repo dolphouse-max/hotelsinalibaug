@@ -1,22 +1,13 @@
+import { requireSuperAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import { purgeExpiredHotelMessages } from "../../_lib/hotel-messages";
-
-function requireSuperAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
-}
 
 function isSafeRowId(value) {
   return typeof value === "string" && /^[a-z0-9]{16,64}$/i.test(value.trim());
 }
 
 export async function onRequestGet(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 

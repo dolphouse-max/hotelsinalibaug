@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hotel Admin Home</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="hotel-admin-common.js"></script>
     <script>
@@ -33,21 +34,20 @@
 
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p class="text-sm font-semibold text-ocean">Quick setup on this device</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Store the hotel token and hotel ID locally so staff can move between pages faster on the same phone.</p>
+            <p class="text-sm font-semibold text-ocean">Google login for hotel admin</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Enter the hotel ID, then sign in with the same Gmail saved as the hotel admin Gmail for that hotel.</p>
           </div>
 
           <div class="mt-5 space-y-4">
             <div>
-              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
-              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Paste token">
-            </div>
-            <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
             </div>
-            <button id="saveContextButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15">
-              Save Hotel Context
+            <div id="googleButtonWrap" class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4">
+              <div id="googleSignInButton" class="flex justify-center"></div>
+            </div>
+            <button id="logoutButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Logout
             </button>
             <div id="contextMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
@@ -112,27 +112,19 @@
     </main>
 
     <script>
-      const tokenInput = document.getElementById("hotelAdminToken");
       const hotelIdInput = document.getElementById("hotelId");
       const contextMessage = document.getElementById("contextMessage");
       const launcherLinks = Array.from(document.querySelectorAll(".launcher-link"));
+      const logoutButton = document.getElementById("logoutButton");
 
-      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
-      if (tokenInput.value.trim() || hotelIdInput.value.trim()) {
-        hotelAdminCommon.setMessage(contextMessage, "Saved hotel context found on this device. You can update it anytime.", "success");
-      }
-
-      document.getElementById("saveContextButton").addEventListener("click", () => {
-        hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
-        hotelAdminCommon.setMessage(contextMessage, "Hotel context saved on this device.", "success");
-      });
+      hotelAdminCommon.hydrateContext(null, hotelIdInput);
 
       for (const link of launcherLinks) {
         link.href = "#";
         link.addEventListener("click", (event) => {
           event.preventDefault();
           const hotelId = hotelIdInput.value.trim();
-          hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelId);
+          hotelAdminCommon.persistContext("__google_session__", hotelId);
 
           const url = new URL(link.dataset.target, window.location.href);
           if (hotelId) {
@@ -141,6 +133,58 @@
           window.location.href = url.toString();
         });
       }
+
+      async function initializeGoogleLogin() {
+        try {
+          const config = await hotelAdminCommon.loadGoogleConfig();
+          const session = await hotelAdminCommon.getSession(hotelIdInput.value.trim());
+          if (session) {
+            logoutButton.classList.remove("hidden");
+            hotelAdminCommon.setMessage(contextMessage, `Logged in as ${session.email} for ${session.hotel_id}`, "success");
+          }
+
+          google.accounts.id.initialize({
+            client_id: config.clientId,
+            callback: async ({ credential }) => {
+              try {
+                const hotelId = hotelIdInput.value.trim().toLowerCase();
+                if (!hotelId) {
+                  throw new Error("Enter hotel ID before Google login.");
+                }
+
+                hotelAdminCommon.persistContext("__google_session__", hotelId);
+                const data = await hotelAdminCommon.loginWithGoogle(credential, hotelId);
+                hotelAdminCommon.setMessage(contextMessage, `Logged in as ${data.session.email} for ${data.session.hotel_id}`, "success");
+                logoutButton.classList.remove("hidden");
+                window.location.href = data.redirect;
+              } catch (error) {
+                hotelAdminCommon.setMessage(contextMessage, error.message || "Google login failed.", "error");
+              }
+            },
+          });
+
+          google.accounts.id.renderButton(document.getElementById("googleSignInButton"), {
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "pill",
+            width: 280,
+          });
+        } catch (error) {
+          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to load Google login.", "error");
+        }
+      }
+
+      hotelIdInput.addEventListener("input", () => {
+        hotelIdInput.value = hotelIdInput.value.toLowerCase();
+      });
+
+      logoutButton.addEventListener("click", async () => {
+        await hotelAdminCommon.logout();
+        window.location.reload();
+      });
+
+      initializeGoogleLogin();
     </script>
   </body>
 </html>

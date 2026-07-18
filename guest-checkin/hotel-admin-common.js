@@ -1,8 +1,9 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
+  const SESSION_PLACEHOLDER = "__google_session__";
 
   function readStoredToken() {
-    return localStorage.getItem("hotel_admin_token") || "";
+    return SESSION_PLACEHOLDER;
   }
 
   function readStoredHotelId() {
@@ -17,6 +18,7 @@
   function hydrateContext(tokenInput, hotelIdInput) {
     if (tokenInput) {
       tokenInput.value = readStoredToken();
+      hideLegacyField(tokenInput);
     }
 
     if (hotelIdInput) {
@@ -25,7 +27,7 @@
   }
 
   function persistContext(token, hotelId) {
-    localStorage.setItem("hotel_admin_token", token || "");
+    localStorage.setItem("hotel_admin_token", SESSION_PLACEHOLDER);
     localStorage.setItem("hotel_admin_hotel_id", hotelId || "");
 
     if (hotelId) {
@@ -36,18 +38,74 @@
   }
 
   function authHeaders(tokenInput, includeJson = true) {
-    const token = tokenInput?.value?.trim() || "";
     const headers = {};
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
 
     if (includeJson) {
       headers["Content-Type"] = "application/json";
     }
 
     return headers;
+  }
+
+  function hideLegacyField(input) {
+    if (!input) {
+      return;
+    }
+
+    input.type = "hidden";
+    const wrapper = input.closest("div");
+    if (wrapper) {
+      wrapper.classList.add("hidden");
+    }
+  }
+
+  async function loadGoogleConfig() {
+    const response = await fetch("/api/auth/google-config");
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load Google login settings.");
+    }
+
+    return data;
+  }
+
+  async function getSession(hotelId) {
+    const url = new URL("/api/auth/session", window.location.origin);
+    url.searchParams.set("role", "hotel_admin");
+    if (hotelId) {
+      url.searchParams.set("hotel_id", hotelId);
+    }
+
+    const response = await fetch(url.toString());
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return data.session || null;
+  }
+
+  async function loginWithGoogle(credential, hotelId) {
+    const response = await fetch("/api/auth/google-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ credential, role: "hotel_admin", hotel_id: hotelId }),
+    });
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Google login failed.");
+    }
+
+    return data;
+  }
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
   }
 
   async function readJson(response) {
@@ -215,6 +273,11 @@
     hydrateContext,
     persistContext,
     authHeaders,
+    hideLegacyField,
+    loadGoogleConfig,
+    getSession,
+    loginWithGoogle,
+    logout,
     readJson,
     setMessage,
     clearMessage,

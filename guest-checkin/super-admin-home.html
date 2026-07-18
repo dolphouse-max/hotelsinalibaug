@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0f2436">
     <title>Super Admin Home</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="super-admin-common.js"></script>
     <script>
@@ -31,18 +32,20 @@
         </div>
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p class="text-sm font-semibold text-ocean">Access token for this device</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Save the superadmin token once, then move between all admin pages faster on the same device.</p>
+            <p class="text-sm font-semibold text-ocean">Google login for superadmin</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Use the allowed superadmin Gmail on this device. The session stays active across all superadmin pages.</p>
           </div>
           <div class="mt-5 space-y-4">
-            <div>
-              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
-              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+            <div id="allowedEmailCard" class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
+              Loading allowed superadmin Gmail...
             </div>
-            <button id="saveTokenButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15">
-              Save Token On This Device
+            <div id="googleButtonWrap" class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4">
+              <div id="googleSignInButton" class="flex justify-center"></div>
+            </div>
+            <button id="logoutButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Logout
             </button>
-            <div id="tokenStatus" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div id="sessionStatus" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
         </div>
       </section>
@@ -58,7 +61,7 @@
         <div class="grid gap-3">
           <a href="/super-admin-setup.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
             <p class="text-lg font-semibold text-ocean">Access Setup</p>
-            <p class="mt-1 text-sm text-slate-600">Save and verify the superadmin token on this device.</p>
+            <p class="mt-1 text-sm text-slate-600">Verify your Google superadmin access on this device.</p>
           </a>
           <a href="/super-admin-add-hotel.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
             <p class="text-lg font-semibold text-ocean">Add Hotel</p>
@@ -126,15 +129,56 @@
     </main>
 
     <script>
-      const tokenInput = document.getElementById("superAdminToken");
-      const tokenStatus = document.getElementById("tokenStatus");
-      const saveTokenButton = document.getElementById("saveTokenButton");
-      superAdminCommon.restoreToken(tokenInput);
+      const sessionStatus = document.getElementById("sessionStatus");
+      const logoutButton = document.getElementById("logoutButton");
+      const allowedEmailCard = document.getElementById("allowedEmailCard");
 
-      saveTokenButton.addEventListener("click", () => {
-        superAdminCommon.saveToken(tokenInput);
-        superAdminCommon.setMessage(tokenStatus, "Superadmin token saved on this device.", "success");
+      function setLoggedInState(session) {
+        logoutButton.classList.remove("hidden");
+        superAdminCommon.setMessage(sessionStatus, `Logged in as ${session.email}`, "success");
+      }
+
+      async function initializeGoogleLogin() {
+        try {
+          const config = await superAdminCommon.loadGoogleConfig();
+          allowedEmailCard.textContent = `Allowed superadmin Gmail: ${(config.superAdminEmails || []).join(", ")}`;
+
+          const session = await superAdminCommon.getSession("super_admin");
+          if (session) {
+            setLoggedInState(session);
+          }
+
+          google.accounts.id.initialize({
+            client_id: config.clientId,
+            callback: async ({ credential }) => {
+              try {
+                const data = await superAdminCommon.loginWithGoogle(credential, "super_admin");
+                setLoggedInState(data.session);
+                window.location.href = data.redirect;
+              } catch (error) {
+                superAdminCommon.setMessage(sessionStatus, error.message || "Google login failed.", "error");
+              }
+            },
+          });
+
+          google.accounts.id.renderButton(document.getElementById("googleSignInButton"), {
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "pill",
+            width: 280,
+          });
+        } catch (error) {
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to load Google login.", "error");
+        }
+      }
+
+      logoutButton.addEventListener("click", async () => {
+        await superAdminCommon.logout();
+        window.location.reload();
       });
+
+      initializeGoogleLogin();
     </script>
   </body>
 </html>

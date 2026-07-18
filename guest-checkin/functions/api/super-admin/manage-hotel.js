@@ -1,3 +1,5 @@
+import { requireSuperAdminSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -65,16 +67,6 @@ function getSubscriptionMeta(subscriptionEndDate, isActive) {
       ? `Subscription expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"}. Payment collection should start now.`
       : null,
   };
-}
-
-function requireSuperAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
 }
 
 function normalizeHotelPayload(payload) {
@@ -211,7 +203,7 @@ function buildSequentialHotelId(base, sequence) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 
@@ -242,7 +234,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 
@@ -354,7 +346,7 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestPut(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 

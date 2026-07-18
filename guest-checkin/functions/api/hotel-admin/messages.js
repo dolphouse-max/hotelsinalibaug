@@ -1,15 +1,6 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import { purgeExpiredHotelMessages } from "../../_lib/hotel-messages";
-
-function requireHotelAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
-}
 
 function isSafeHotelId(value) {
   return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
@@ -130,16 +121,16 @@ async function loadThreadMessages(db, hotelId, threadId) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id")?.trim() || "";
   const threadId = url.searchParams.get("thread_id")?.trim() || "";
 
   if (!isSafeHotelId(hotelId)) {
     return badRequest("Valid hotel_id is required");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   try {
@@ -171,10 +162,6 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const action = typeof payload.action === "string" ? payload.action.trim() : "";
@@ -182,6 +169,10 @@ export async function onRequestPost(context) {
 
     if (!isSafeHotelId(hotelId)) {
       return badRequest("Valid hotel_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     if (action === "send_message") {

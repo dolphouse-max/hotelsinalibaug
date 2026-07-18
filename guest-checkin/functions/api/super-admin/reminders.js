@@ -1,18 +1,9 @@
+import { requireSuperAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import { runSubscriptionReminderCycle } from "../../_lib/subscription-reminders";
 
-function requireSuperAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
-}
-
 export async function onRequestPost(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 

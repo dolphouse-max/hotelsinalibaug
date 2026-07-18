@@ -1,3 +1,4 @@
+import { requireSuperAdminSession } from "../../_lib/auth";
 import { getHotelDriveAccessToken } from "../../_lib/google-drive";
 
 function json(body, init = {}) {
@@ -24,18 +25,8 @@ function isSafeHotelId(value) {
   return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
 }
 
-function requireSuperAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
-}
-
 export async function onRequestGet(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 

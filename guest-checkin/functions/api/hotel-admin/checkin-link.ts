@@ -1,21 +1,11 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import { createCheckinAccessToken } from "../../_lib/checkin-link";
 import { getHotelById } from "../../_lib/google-drive";
 
 interface Env {
   DB: D1Database;
-  HOTEL_ADMIN_TOKEN: string;
   CHECKIN_LINK_SECRET: string;
-}
-
-function requireHotelAdmin(request: Request, env: Env): boolean {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
 function isSafeId(value: string | null): value is string {
@@ -23,15 +13,15 @@ function isSafeId(value: string | null): value is string {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
 
   if (!isSafeId(hotelId)) {
     return badRequest("Invalid hotel_id");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   const hotel = await getHotelById(context.env, hotelId);

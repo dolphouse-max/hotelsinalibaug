@@ -1,3 +1,5 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -55,26 +57,16 @@ function getSubscriptionMeta(subscriptionEndDate, isActive) {
   };
 }
 
-function requireHotelAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
-}
-
 export async function onRequestGet(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
 
   if (!isSafeId(hotelId)) {
     return badRequest("Valid hotel_id is required");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   const hotel = await context.env.DB.prepare(
@@ -113,10 +105,6 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPut(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
@@ -129,6 +117,10 @@ export async function onRequestPut(context) {
 
     if (!isSafeId(hotelId)) {
       return badRequest("Valid hotel_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     if (!name || !contact || !address) {

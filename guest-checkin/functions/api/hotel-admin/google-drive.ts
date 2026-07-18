@@ -1,23 +1,13 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import { getHotelById, revokeHotelGoogleDrive } from "../../_lib/google-drive";
 
 interface Env {
   DB: D1Database;
-  HOTEL_ADMIN_TOKEN: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_REDIRECT_URI: string;
   ENCRYPTION_KEY: string;
-}
-
-function requireHotelAdmin(request: Request, env: Env): boolean {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
 function isSafeId(value: string | null): value is string {
@@ -25,15 +15,15 @@ function isSafeId(value: string | null): value is string {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
 
   if (!isSafeId(hotelId)) {
     return badRequest("Invalid hotel_id");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   const hotel = await getHotelById(context.env, hotelId);
@@ -53,15 +43,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 };
 
 export const onRequestDelete: PagesFunction<Env> = async (context) => {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
 
   if (!isSafeId(hotelId)) {
     return badRequest("Invalid hotel_id");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   const hotel = await getHotelById(context.env, hotelId);

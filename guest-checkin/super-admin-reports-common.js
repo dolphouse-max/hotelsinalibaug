@@ -6,9 +6,7 @@
   }
 
   function authHeaders(tokenInput) {
-    return {
-      Authorization: `Bearer ${tokenInput.value.trim()}`,
-    };
+    return {};
   }
 
   async function readJson(response) {
@@ -46,7 +44,10 @@
   }
 
   function hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput) {
-    tokenInput.value = localStorage.getItem("super_admin_token") || "";
+    tokenInput.value = "__google_session__";
+    if (window.superAdminCommon?.hideLegacyField) {
+      window.superAdminCommon.hideLegacyField(tokenInput);
+    }
     if (viewerNameInput) {
       viewerNameInput.value = localStorage.getItem("super_admin_viewer_name") || "";
     }
@@ -59,7 +60,7 @@
   }
 
   function persistFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput) {
-    localStorage.setItem("super_admin_token", tokenInput.value.trim());
+    localStorage.setItem("super_admin_token", "__google_session__");
     if (viewerNameInput) {
       localStorage.setItem("super_admin_viewer_name", viewerNameInput.value.trim());
     }
@@ -72,12 +73,7 @@
   }
 
   async function loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput }) {
-    const token = tokenInput.value.trim();
     const viewerName = viewerNameInput ? viewerNameInput.value.trim() : localStorage.getItem("super_admin_viewer_name") || "";
-
-    if (!token) {
-      throw new Error("Please enter your Super Admin token.");
-    }
 
     if (!viewerName) {
       throw new Error("Please enter the viewer name.");
@@ -265,12 +261,8 @@
     return url.toString();
   }
 
-  async function openProofDocument(url, token) {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  async function openProofDocument(url) {
+    const response = await fetch(url);
 
     if (!response.ok) {
       const contentType = response.headers.get("content-type") || "";
@@ -310,16 +302,10 @@
   function attachProofButtons(scope, tokenInput, viewerNameInput, errorBox) {
     for (const button of scope.querySelectorAll(".proof-button")) {
       button.addEventListener("click", async () => {
-        const token = tokenInput.value.trim();
         const viewerName = viewerNameInput.value.trim();
         const hotelId = button.dataset.hotelId;
         const guestId = button.dataset.guestId;
         const side = button.dataset.side;
-
-        if (!token) {
-          setMessage(errorBox, "Please enter your Super Admin token.", "error");
-          return;
-        }
 
         if (!viewerName) {
           setMessage(errorBox, "Please enter the viewer name before opening guest proofs.", "error");
@@ -335,7 +321,7 @@
         try {
           clearMessage(errorBox);
           localStorage.setItem("super_admin_viewer_name", viewerName);
-          await openProofDocument(buildProofUrl(hotelId, guestId, side, reason.trim(), viewerName), token);
+          await openProofDocument(buildProofUrl(hotelId, guestId, side, reason.trim(), viewerName));
         } catch (error) {
           setMessage(errorBox, error instanceof Error ? error.message : "Unable to open guest proof.", "error");
         }

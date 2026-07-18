@@ -1,15 +1,6 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import { getVapidPublicKey } from "../../_lib/push";
-
-function requireHotelAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
-}
 
 function isSafeHotelId(value) {
   return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
@@ -34,7 +25,14 @@ function normalizeSubscriptionPayload(payload) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
+  const url = new URL(context.request.url);
+  const hotelId = url.searchParams.get("hotel_id")?.trim() || "";
+
+  if (!isSafeHotelId(hotelId)) {
+    return badRequest("Valid hotel_id is required");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
     return unauthorized();
   }
 
@@ -49,12 +47,12 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = normalizeSubscriptionPayload(await context.request.json());
+
+    if (!(await requireHotelAdminSession(context.request, context.env, payload.hotelId))) {
+      return unauthorized();
+    }
 
     await context.env.DB.prepare(
       `INSERT INTO push_subscriptions (
@@ -82,16 +80,21 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestDelete(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const endpoint = typeof payload.endpoint === "string" ? payload.endpoint.trim() : "";
+    const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
 
     if (!endpoint) {
       return badRequest("endpoint is required");
+    }
+
+    if (!isSafeHotelId(hotelId)) {
+      return badRequest("Valid hotel_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     await context.env.DB.prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?1`)

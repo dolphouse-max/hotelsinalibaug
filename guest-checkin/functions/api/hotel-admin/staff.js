@@ -1,3 +1,5 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -47,16 +49,6 @@ function integerOrNull(value, key, min = 0) {
   }
 
   return value;
-}
-
-function requireHotelAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
 async function getTableColumns(db, tableName) {
@@ -143,16 +135,16 @@ function normalizeStaffPayload(payload) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const url = new URL(context.request.url);
     const hotelId = url.searchParams.get("hotel_id");
 
     if (!isSafeId(hotelId)) {
       return badRequest("Valid hotel_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     const columns = await getTableColumns(context.env.DB, "hotel_staff");
@@ -212,14 +204,14 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const staff = normalizeStaffPayload(payload);
     const staffId = crypto.randomUUID().replace(/-/g, "");
+
+    if (!(await requireHotelAdminSession(context.request, context.env, staff.hotelId))) {
+      return unauthorized();
+    }
 
     const result = await context.env.DB.prepare(
       `INSERT INTO hotel_staff (
@@ -277,16 +269,16 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestPut(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const staff = normalizeStaffPayload(payload);
 
     if (!isSafeId(staff.staffId)) {
       return badRequest("Valid staff_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, staff.hotelId))) {
+      return unauthorized();
     }
 
     const result = await context.env.DB.prepare(

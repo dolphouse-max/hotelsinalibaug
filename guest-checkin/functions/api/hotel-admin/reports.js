@@ -1,3 +1,5 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -20,16 +22,6 @@ function isSafeId(value) {
 
 function isIsoDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function requireHotelAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
 function formatDateOffset(daysAgo) {
@@ -69,10 +61,6 @@ async function countValue(statement) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
   const fromDate = url.searchParams.get("from") || formatDateOffset(29);
@@ -80,6 +68,10 @@ export async function onRequestGet(context) {
 
   if (!isSafeId(hotelId)) {
     return badRequest("Valid hotel_id is required");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   if (!isIsoDate(fromDate) || !isIsoDate(toDate) || fromDate > toDate) {

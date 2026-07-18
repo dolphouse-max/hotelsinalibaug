@@ -26,25 +26,25 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <script>
-        document.write(superAdminCommon.pageChrome("Access Setup", "Setup", "Save the superadmin token locally on this device so the mobile workflow stays quick and simple."));
+        document.write(superAdminCommon.pageChrome("Access Setup", "Setup", "Use your Google superadmin session on this device so the mobile workflow stays quick and simple."));
       </script>
         <script>
           document.write(superAdminCommon.quickNav("setup"));
         </script>
         <div class="p-5">
           <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            Save the token once on this phone, then the rest of the Superadmin pages can reuse it automatically.
+            Sign in once with Google on this phone, then the rest of the Superadmin pages can reuse the same session automatically.
           </div>
           <div class="space-y-4">
             <div>
-              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Super Admin Token</label>
-              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Paste SUPER_ADMIN_TOKEN">
+              <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Google superadmin session">
             </div>
             <button id="saveTokenButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
-              Save Token On This Device
+              Save Session On This Device
             </button>
             <button id="verifyTokenButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
-              Verify Token By Loading Hotels
+              Verify Access By Loading Hotels
             </button>
             <div id="tokenStatus" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
@@ -60,12 +60,12 @@
 
       superAdminCommon.restoreToken(tokenInput);
       if (tokenInput.value) {
-        superAdminCommon.setMessage(tokenStatus, "Saved token found on this device. You can verify it anytime.", "success");
+        superAdminCommon.setMessage(tokenStatus, "Saved session found on this device. You can verify access anytime.", "success");
       }
 
       saveTokenButton.addEventListener("click", () => {
         superAdminCommon.saveToken(tokenInput);
-        superAdminCommon.setMessage(tokenStatus, "Superadmin token saved on this device.", "success");
+        superAdminCommon.setMessage(tokenStatus, "Superadmin session saved on this device.", "success");
       });
 
       verifyTokenButton.addEventListener("click", async () => {
@@ -77,12 +77,12 @@
           });
           const data = await superAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to verify token");
+            throw new Error(data.error || "Unable to verify access");
           }
           superAdminCommon.saveToken(tokenInput);
-          superAdminCommon.setMessage(tokenStatus, `Token verified. ${data.hotels?.length || 0} hotel accounts are accessible.`, "success");
+          superAdminCommon.setMessage(tokenStatus, `Access verified. ${data.hotels?.length || 0} hotel accounts are accessible.`, "success");
         } catch (error) {
-          superAdminCommon.setMessage(tokenStatus, error instanceof Error ? error.message : "Unable to verify token", "error");
+          superAdminCommon.setMessage(tokenStatus, error instanceof Error ? error.message : "Unable to verify access", "error");
         } finally {
           superAdminCommon.setButtonLoading(verifyTokenButton, false);
         }

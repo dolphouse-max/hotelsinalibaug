@@ -1,3 +1,5 @@
+import { requireSuperAdminSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -12,16 +14,6 @@ function unauthorized() {
 
 function badRequest(message) {
   return json({ error: message }, { status: 400 });
-}
-
-function requireSuperAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.SUPER_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.SUPER_ADMIN_TOKEN;
 }
 
 function isIsoDate(value) {
@@ -62,7 +54,7 @@ async function countValue(statement) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireSuperAdmin(context.request, context.env)) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
     return unauthorized();
   }
 

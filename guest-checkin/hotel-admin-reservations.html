@@ -226,7 +226,7 @@
       function storedAuthHeaders(includeJson = true) {
         const storedToken = localStorage.getItem("hotel_admin_token") || "";
         if (!storedToken) {
-          throw new Error("Hotel admin token is not available on this device. Open the hotel admin pages once and log in before using Google Drive backup.");
+          throw new Error("Hotel admin session is not available on this device. Open the hotel admin pages once and sign in with Google before using Google Drive backup.");
         }
 
         return hotelAdminCommon.authHeaders({ value: storedToken }, includeJson);
@@ -536,7 +536,7 @@
             throw new Error("Enter a hotel ID first.");
           }
 
-          hotelAdminCommon.persistContext("", hotelId);
+          hotelAdminCommon.persistContext("__google_session__", hotelId);
 
           const checkInDate = document.getElementById("checkInDate").value;
           const checkOutDate = document.getElementById("checkOutDate").value;

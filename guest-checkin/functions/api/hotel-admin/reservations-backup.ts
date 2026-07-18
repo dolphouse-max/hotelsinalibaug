@@ -1,3 +1,4 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { badRequest, isSafeId, json, unauthorized } from "../../_lib/api";
 import {
   downloadHotelDriveFile,
@@ -8,21 +9,10 @@ import {
 
 interface Env {
   DB: D1Database;
-  HOTEL_ADMIN_TOKEN: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_REDIRECT_URI: string;
   ENCRYPTION_KEY: string;
-}
-
-function requireHotelAdmin(request: Request, env: Env): boolean {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
 }
 
 function isSafeGoogleDriveFileId(value: string | null): value is string {
@@ -32,16 +22,16 @@ function isSafeGoogleDriveFileId(value: string | null): value is string {
 const BACKUP_PREFIX = "reservations_backup_";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
   const fileId = url.searchParams.get("file_id");
 
   if (!isSafeId(hotelId)) {
     return badRequest("Invalid hotel_id");
+  }
+
+  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+    return unauthorized();
   }
 
   try {
@@ -81,10 +71,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 };
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
@@ -92,6 +78,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (!isSafeId(hotelId)) {
       return badRequest("Invalid hotel_id");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     if (!records) {

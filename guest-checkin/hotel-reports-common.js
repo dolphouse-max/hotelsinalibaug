@@ -16,7 +16,7 @@
   }
 
   function persistFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput) {
-    hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
+    hotelAdminCommon.persistContext("__google_session__", hotelIdInput.value.trim());
     if (fromDateInput) {
       localStorage.setItem("hotel_reports_from", fromDateInput.value);
     }
@@ -26,12 +26,7 @@
   }
 
   async function loadReport({ tokenInput, hotelIdInput, fromDateInput, toDateInput }) {
-    const token = tokenInput.value.trim();
     const hotelId = hotelIdInput.value.trim();
-
-    if (!token) {
-      throw new Error("Please enter your Hotel Admin token.");
-    }
 
     if (!hotelId) {
       throw new Error("Please enter the hotel ID.");
@@ -49,9 +44,7 @@
     }
 
     const response = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: {},
     });
     const data = await response.text().then((text) => {
       try {

@@ -1,19 +1,10 @@
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { badRequest, json, unauthorized } from "../../_lib/api";
 import {
   computeRenewalDates,
   databaseErrorMessage,
   getHotelSubscriptionSnapshot,
 } from "../../_lib/subscription-ledger";
-
-function requireHotelAdmin(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.HOTEL_ADMIN_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.HOTEL_ADMIN_TOKEN;
-}
 
 function isSafeId(value) {
   return typeof value === "string" && /^[a-z0-9]{16,64}$/i.test(value.trim());
@@ -55,16 +46,16 @@ async function loadSubscriptionData(db, hotelId) {
 }
 
 export async function onRequestGet(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const url = new URL(context.request.url);
     const hotelId = url.searchParams.get("hotel_id")?.trim() || "";
 
     if (!isSafeId(hotelId)) {
       return badRequest("Valid hotel_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     return json(await loadSubscriptionData(context.env.DB, hotelId));
@@ -77,10 +68,6 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!requireHotelAdmin(context.request, context.env)) {
-    return unauthorized();
-  }
-
   try {
     const payload = await context.request.json();
     const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
@@ -89,6 +76,10 @@ export async function onRequestPost(context) {
 
     if (!isSafeId(hotelId)) {
       return badRequest("Valid hotel_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
     }
 
     if (!Number.isInteger(requestedMonths) || requestedMonths < 1 || requestedMonths > 24) {
