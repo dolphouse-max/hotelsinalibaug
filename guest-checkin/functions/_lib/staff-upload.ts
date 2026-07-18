@@ -42,6 +42,12 @@ interface StaffRecord {
   updated_at: string;
 }
 
+interface StaffEmailRecord {
+  id: string;
+  full_name: string;
+  role: string;
+}
+
 function requireText(formData: FormData, key: string): string {
   const value = formData.get(key);
   if (typeof value !== "string" || !value.trim()) {
@@ -59,6 +65,11 @@ function optionalText(formData: FormData, key: string): string | null {
 
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function optionalEmail(formData: FormData, key: string): string | null {
+  const value = optionalText(formData, key);
+  return value ? value.toLowerCase() : null;
 }
 
 function optionalNumber(formData: FormData, key: string, minimum = 0): number | null {
@@ -208,6 +219,27 @@ async function getExistingStaff(env: Env, hotelId: string, staffId: string): Pro
     .first<StaffRecord>();
 }
 
+async function findStaffByEmail(
+  env: Env,
+  hotelId: string,
+  email: string,
+  excludeStaffId = ""
+): Promise<StaffEmailRecord | null> {
+  return env.DB.prepare(
+    `SELECT
+       id,
+       full_name,
+       role
+     FROM hotel_staff
+     WHERE lower(hotel_id) = lower(?1)
+       AND lower(email) = lower(?2)
+       AND (?3 = '' OR id <> ?3)
+     LIMIT 1`
+  )
+    .bind(hotelId, email, excludeStaffId)
+    .first<StaffEmailRecord>();
+}
+
 export async function processStaffUpload(formData: FormData, env: Env): Promise<{
   created: boolean;
   staff: StaffRecord;
@@ -219,7 +251,7 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
   const sex = requireSex(formData);
   const workingSinceMonth = requireText(formData, "working_since_month");
   const workingSinceYear = optionalNumber(formData, "working_since_year", 1900);
-  const email = optionalText(formData, "email");
+  const email = optionalEmail(formData, "email");
   const { mobile, whatsapp } = normalizeWhatsapp(
     formData,
     "phone",
@@ -251,6 +283,15 @@ export async function processStaffUpload(formData: FormData, env: Env): Promise<
   const existing = staffId ? await getExistingStaff(env, hotelId, staffId) : null;
   if (staffId && !existing) {
     throw new Error("Staff member not found");
+  }
+
+  if (email) {
+    const emailOwner = await findStaffByEmail(env, hotelId, email, existing?.id || "");
+    if (emailOwner) {
+      throw new Error(
+        `This email is already used for ${emailOwner.full_name} (${emailOwner.role}) in this hotel. Use a different email or leave the email field blank.`
+      );
+    }
   }
 
   const createMode = !existing;
