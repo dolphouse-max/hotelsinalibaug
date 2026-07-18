@@ -3,9 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:super-admin-home-css": "tailwindcss -c tailwind.super-admin-home.config.cjs -i ./styles/super-admin-home.css -o ./assets/super-admin-home.css --minify",
     "generate:vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {
     "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   }
 }

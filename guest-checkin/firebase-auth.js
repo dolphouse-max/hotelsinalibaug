@@ -96,10 +96,20 @@
     }
   }
 
-  async function sendPasswordReset(email) {
+  function buildContinueUrl(continueUrl) {
+    if (continueUrl) {
+      return String(continueUrl);
+    }
+
+    const url = new URL(window.location.href);
+    url.hash = "";
+    return url.toString();
+  }
+
+  async function sendPasswordReset(email, continueUrl) {
     try {
       await auth.sendPasswordResetEmail(String(email || "").trim(), {
-        url: "https://checkin.hotelsinalibaug.in/super-admin-home.html",
+        url: buildContinueUrl(continueUrl),
         handleCodeInApp: false,
       });
       return { ok: true };

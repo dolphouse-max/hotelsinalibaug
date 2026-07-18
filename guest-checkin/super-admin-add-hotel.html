@@ -290,8 +290,6 @@
         const hotelAdminUrl = new URL("/hotel-admin-home.html", window.location.origin);
         hotelAdminUrl.searchParams.set("hotel_id", hotel.id);
 
-        const hotelQrUrl = new URL("/super-admin-hotel-qr.html", window.location.origin);
-
         return [
           "Hello from Hotels In Alibaug.",
           "",
@@ -303,7 +301,6 @@
           `Temporary Password: ${hotel.id}`,
           "",
           `Open Hotel Admin: ${hotelAdminUrl.toString()}`,
-          `Open Hotel QR Page: ${hotelQrUrl.toString()}`,
           "",
           "Next steps:",
           "1. Open Hotel Admin page",
