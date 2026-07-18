@@ -536,7 +536,7 @@
             throw new Error("Enter a hotel ID first.");
           }
 
-          hotelAdminCommon.persistContext("__google_session__", hotelId);
+          hotelAdminCommon.persistContext("__app_session__", hotelId);
 
           const checkInDate = document.getElementById("checkInDate").value;
           const checkOutDate = document.getElementById("checkOutDate").value;

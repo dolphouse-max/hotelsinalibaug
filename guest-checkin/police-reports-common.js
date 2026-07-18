@@ -1,5 +1,6 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
+  const SESSION_PLACEHOLDER = "__app_session__";
 
   function formatDateOffset(daysAgo) {
     const date = new Date();
@@ -8,9 +9,24 @@
   }
 
   function authHeaders(tokenInput) {
-    return {
-      Authorization: `Bearer ${tokenInput.value.trim()}`,
-    };
+    return {};
+  }
+
+  async function getSession() {
+    const url = new URL("/api/auth/session", window.location.origin);
+    url.searchParams.set("role", "police");
+
+    const response = await fetch(url.toString());
+    const data = await readJson(response);
+    if (!response.ok) {
+      return null;
+    }
+
+    if (data.session) {
+      localStorage.setItem("police_access_token", SESSION_PLACEHOLDER);
+    }
+
+    return data.session || null;
   }
 
   async function readJson(response) {
@@ -49,6 +65,10 @@
 
   function hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput) {
     tokenInput.value = localStorage.getItem("police_access_token") || "";
+    const tokenWrapper = tokenInput.closest("div");
+    if (tokenWrapper) {
+      tokenWrapper.classList.add("hidden");
+    }
     officerNameInput.value = localStorage.getItem("police_officer_name") || "";
     fromDateInput.value = localStorage.getItem("police_reports_from") || formatDateOffset(29);
     toDateInput.value = localStorage.getItem("police_reports_to") || formatDateOffset(0);
@@ -60,7 +80,7 @@
   }
 
   function persistFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput) {
-    localStorage.setItem("police_access_token", tokenInput.value.trim());
+    localStorage.setItem("police_access_token", SESSION_PLACEHOLDER);
     localStorage.setItem("police_officer_name", officerNameInput.value.trim());
     localStorage.setItem("police_reports_hotel_id", hotelIdInput.value.trim());
     localStorage.setItem("police_reports_from", fromDateInput.value);
@@ -90,13 +110,9 @@
   }
 
   async function loadReport({ tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput }) {
-    const token = tokenInput.value.trim();
     const officerName = officerNameInput.value.trim();
     const hotelId = hotelIdInput.value.trim();
 
-    if (!token) {
-      throw new Error("Please enter the police access token.");
-    }
     if (!officerName || !hotelId) {
       throw new Error("Please enter officer name and hotel ID.");
     }
@@ -172,12 +188,8 @@
     return url.toString();
   }
 
-  async function openProofDocument(url, token) {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  async function openProofDocument(url) {
+    const response = await fetch(url);
     if (!response.ok) {
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -216,18 +228,17 @@
   function attachProofButtons(scope, tokenInput, officerNameInput, hotelIdInput, errorBox) {
     for (const button of scope.querySelectorAll(".proof-button")) {
       button.addEventListener("click", async () => {
-        const token = tokenInput.value.trim();
         const guestId = button.dataset.guestId;
         const side = button.dataset.side;
 
-        if (!token || !guestId || !side) {
-          showBox(errorBox, "Police access token, guest, or proof side is missing.", "error");
+        if (!guestId || !side) {
+          showBox(errorBox, "Guest or proof side is missing.", "error");
           return;
         }
 
         try {
           clearBox(errorBox);
-          await openProofDocument(buildProofUrl(hotelIdInput, officerNameInput, guestId, side), token);
+          await openProofDocument(buildProofUrl(hotelIdInput, officerNameInput, guestId, side));
         } catch (error) {
           showBox(errorBox, error instanceof Error ? error.message : "Unable to open guest proof.", "error");
         }
@@ -343,6 +354,7 @@
     params,
     formatDateOffset,
     authHeaders,
+    getSession,
     readJson,
     showBox,
     clearBox,

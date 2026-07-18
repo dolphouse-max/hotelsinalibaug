@@ -1,3 +1,4 @@
+import { requirePoliceSession } from "../../_lib/auth";
 import { getHotelDriveAccessToken } from "../../_lib/google-drive";
 
 function json(body, init = {}) {
@@ -22,16 +23,6 @@ function isSafeGuestId(value) {
 
 function isSafeHotelId(value) {
   return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
-}
-
-function requirePoliceAccess(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.POLICE_ACCESS_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.POLICE_ACCESS_TOKEN;
 }
 
 async function logPoliceAccess(db, officerName, guestId, hotelId) {
@@ -62,7 +53,7 @@ async function logPoliceAccess(db, officerName, guestId, hotelId) {
 }
 
 export async function onRequestGet(context) {
-  if (!requirePoliceAccess(context.request, context.env)) {
+  if (!(await requirePoliceSession(context.request, context.env))) {
     return unauthorized();
   }
 

@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hotel Admin Home</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="hotel-admin-common.js"></script>
     <script>
@@ -34,18 +33,28 @@
 
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p class="text-sm font-semibold text-ocean">Google login for hotel admin</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Enter the hotel ID, then sign in with the same Gmail saved as the hotel admin Gmail for that hotel.</p>
+            <p class="text-sm font-semibold text-ocean">Hotel admin login</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Use Hotel ID as the login ID. Initial password is also the Hotel ID until it is changed.</p>
           </div>
 
           <div class="mt-5 space-y-4">
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID / Login ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
             </div>
-            <div id="googleButtonWrap" class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4">
-              <div id="googleSignInButton" class="flex justify-center"></div>
+            <div>
+              <label for="hotelPassword" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
+              <input id="hotelPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
+            <button id="loginButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15">
+              Login
+            </button>
+            <button id="changePasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Change Password
+            </button>
+            <button id="forgotPasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Forgot Password
+            </button>
             <button id="logoutButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
               Logout
             </button>
@@ -113,9 +122,13 @@
 
     <script>
       const hotelIdInput = document.getElementById("hotelId");
+      const passwordInput = document.getElementById("hotelPassword");
       const contextMessage = document.getElementById("contextMessage");
       const launcherLinks = Array.from(document.querySelectorAll(".launcher-link"));
       const logoutButton = document.getElementById("logoutButton");
+      const loginButton = document.getElementById("loginButton");
+      const changePasswordButton = document.getElementById("changePasswordButton");
+      const forgotPasswordButton = document.getElementById("forgotPasswordButton");
 
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
 
@@ -123,8 +136,9 @@
         link.href = "#";
         link.addEventListener("click", (event) => {
           event.preventDefault();
-          const hotelId = hotelIdInput.value.trim();
-          hotelAdminCommon.persistContext("__google_session__", hotelId);
+          const hotelId = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
+          hotelIdInput.value = hotelId;
+          hotelAdminCommon.persistContext("__app_session__", hotelId);
 
           const url = new URL(link.dataset.target, window.location.href);
           if (hotelId) {
@@ -134,44 +148,16 @@
         });
       }
 
-      async function initializeGoogleLogin() {
+      async function initializePasswordLogin() {
         try {
-          const config = await hotelAdminCommon.loadGoogleConfig();
           const session = await hotelAdminCommon.getSession(hotelIdInput.value.trim());
           if (session) {
+            hotelIdInput.value = session.hotel_id || hotelIdInput.value;
             logoutButton.classList.remove("hidden");
-            hotelAdminCommon.setMessage(contextMessage, `Logged in as ${session.email} for ${session.hotel_id}`, "success");
+            hotelAdminCommon.setMessage(contextMessage, `Logged in for ${session.hotel_id}${session.must_change_password ? ". Please change your password now." : ""}`, "success");
           }
-
-          google.accounts.id.initialize({
-            client_id: config.clientId,
-            callback: async ({ credential }) => {
-              try {
-                const hotelId = hotelIdInput.value.trim().toLowerCase();
-                if (!hotelId) {
-                  throw new Error("Enter hotel ID before Google login.");
-                }
-
-                hotelAdminCommon.persistContext("__google_session__", hotelId);
-                const data = await hotelAdminCommon.loginWithGoogle(credential, hotelId);
-                hotelAdminCommon.setMessage(contextMessage, `Logged in as ${data.session.email} for ${data.session.hotel_id}`, "success");
-                logoutButton.classList.remove("hidden");
-                window.location.href = data.redirect;
-              } catch (error) {
-                hotelAdminCommon.setMessage(contextMessage, error.message || "Google login failed.", "error");
-              }
-            },
-          });
-
-          google.accounts.id.renderButton(document.getElementById("googleSignInButton"), {
-            theme: "outline",
-            size: "large",
-            text: "signin_with",
-            shape: "pill",
-            width: 280,
-          });
         } catch (error) {
-          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to load Google login.", "error");
+          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to load hotel session.", "error");
         }
       }
 
@@ -179,12 +165,72 @@
         hotelIdInput.value = hotelIdInput.value.toLowerCase();
       });
 
+      loginButton.addEventListener("click", async () => {
+        const hotelId = hotelIdInput.value.trim().toLowerCase();
+        hotelIdInput.value = hotelId;
+        if (!hotelId) {
+          hotelAdminCommon.setMessage(contextMessage, "Enter hotel ID before login.", "error");
+          return;
+        }
+
+        hotelAdminCommon.clearMessage(contextMessage);
+        hotelAdminCommon.setButtonLoading(loginButton, true, "Logging in...");
+        try {
+          hotelAdminCommon.persistContext("__app_session__", hotelId);
+          const data = await hotelAdminCommon.loginWithPassword(hotelId, passwordInput.value);
+          hotelAdminCommon.setMessage(contextMessage, `Logged in for ${data.session.hotel_id}${data.session.must_change_password ? ". Please change your password now." : ""}`, "success");
+          logoutButton.classList.remove("hidden");
+          window.location.href = data.redirect;
+        } catch (error) {
+          hotelAdminCommon.setMessage(contextMessage, error.message || "Login failed.", "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(loginButton, false);
+        }
+      });
+
+      changePasswordButton.addEventListener("click", async () => {
+        const currentPassword = window.prompt("Enter current password");
+        if (!currentPassword) {
+          return;
+        }
+        const newPassword = window.prompt("Enter new password (minimum 8 characters)");
+        if (!newPassword) {
+          return;
+        }
+        try {
+          await hotelAdminCommon.changePassword(currentPassword, newPassword);
+          hotelAdminCommon.setMessage(contextMessage, "Password changed successfully.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to change password.", "error");
+        }
+      });
+
+      forgotPasswordButton.addEventListener("click", async () => {
+        const hotelId = hotelIdInput.value.trim().toLowerCase();
+        hotelIdInput.value = hotelId;
+        if (!hotelId) {
+          hotelAdminCommon.setMessage(contextMessage, "Enter hotel ID first.", "error");
+          return;
+        }
+
+        const adminGmail = window.prompt("Enter the registered hotel admin Gmail");
+        if (!adminGmail) {
+          return;
+        }
+        try {
+          const data = await hotelAdminCommon.forgotPassword(hotelId, adminGmail);
+          hotelAdminCommon.setMessage(contextMessage, data.message || "Password reset completed.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to reset password.", "error");
+        }
+      });
+
       logoutButton.addEventListener("click", async () => {
         await hotelAdminCommon.logout();
         window.location.reload();
       });
 
-      initializeGoogleLogin();
+      initializePasswordLogin();
     </script>
   </body>
 </html>

@@ -16,7 +16,7 @@
   }
 
   function persistFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput) {
-    hotelAdminCommon.persistContext("__google_session__", hotelIdInput.value.trim());
+    hotelAdminCommon.persistContext("__app_session__", hotelIdInput.value.trim());
     if (fromDateInput) {
       localStorage.setItem("hotel_reports_from", fromDateInput.value);
     }

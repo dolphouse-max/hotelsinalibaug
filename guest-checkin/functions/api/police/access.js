@@ -1,3 +1,5 @@
+import { requirePoliceSession } from "../../_lib/auth";
+
 function json(body, init = {}) {
   const headers = new Headers(init.headers);
   headers.set("content-type", "application/json; charset=utf-8");
@@ -20,16 +22,6 @@ function isSafeGuestId(value) {
 
 function isSafeHotelId(value) {
   return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{5,63}$/.test(value.trim());
-}
-
-function requirePoliceAccess(request, env) {
-  const authHeader = request.headers.get("authorization");
-
-  if (!env.POLICE_ACCESS_TOKEN || !authHeader?.startsWith("Bearer ")) {
-    return false;
-  }
-
-  return authHeader.slice("Bearer ".length).trim() === env.POLICE_ACCESS_TOKEN;
 }
 
 async function insertPoliceLogs(db, officerName, guests) {
@@ -62,7 +54,7 @@ async function insertPoliceLogs(db, officerName, guests) {
 }
 
 export async function onRequestGet(context) {
-  if (!requirePoliceAccess(context.request, context.env)) {
+  if (!(await requirePoliceSession(context.request, context.env))) {
     return unauthorized();
   }
 
@@ -125,7 +117,7 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  if (!requirePoliceAccess(context.request, context.env)) {
+  if (!(await requirePoliceSession(context.request, context.env))) {
     return unauthorized();
   }
 

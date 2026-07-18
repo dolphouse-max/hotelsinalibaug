@@ -1,18 +1,18 @@
 import { json, unauthorized } from "../../_lib/api";
 import {
+  defaultPoliceLogin,
+  defaultSuperAdminLogin,
   getHotelAdminRecord,
   readSession,
   requireHotelAdminSession,
+  requirePoliceSession,
   requireSuperAdminSession,
 } from "../../_lib/auth";
 
 interface Env {
   DB: D1Database;
-  GOOGLE_CLIENT_SECRET?: string;
   ENCRYPTION_KEY?: string;
   SESSION_SECRET?: string;
-  SUPER_ADMIN_GOOGLE_EMAILS?: string;
-  SUPER_ADMIN_GOOGLE_EMAIL?: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -46,12 +46,33 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     });
   }
 
+  if (requestedRole === "police") {
+    const session = await requirePoliceSession(context.request, context.env);
+    if (!session) {
+      return unauthorized();
+    }
+
+    return json({
+      ok: true,
+      session: {
+        ...session,
+        login_id: session.login_id || defaultPoliceLogin(),
+      },
+    });
+  }
+
   const session = await readSession(context.request, context.env);
   if (!session) {
     return unauthorized();
   }
 
-  return json({ ok: true, session });
+  return json({
+    ok: true,
+    session: {
+      ...session,
+      login_id: session.login_id || (session.role === "super_admin" ? defaultSuperAdminLogin() : defaultPoliceLogin()),
+    },
+  });
 };
 
 export const onRequestOptions: PagesFunction<Env> = async () =>

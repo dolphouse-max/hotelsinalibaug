@@ -1,5 +1,5 @@
 (function () {
-  const SESSION_PLACEHOLDER = "__google_session__";
+  const SESSION_PLACEHOLDER = "__app_session__";
 
   function todayDate() {
     return new Date().toISOString().slice(0, 10);
@@ -13,9 +13,8 @@
 
   function restoreToken(tokenInput) {
     if (tokenInput) {
-      tokenInput.value = SESSION_PLACEHOLDER;
+      tokenInput.value = localStorage.getItem("super_admin_token") || "";
       hideLegacyField(tokenInput);
-      localStorage.setItem("super_admin_token", SESSION_PLACEHOLDER);
     }
   }
 
@@ -45,17 +44,6 @@
     }
   }
 
-  async function loadGoogleConfig() {
-    const response = await fetch("/api/auth/google-config");
-    const data = await readJson(response);
-
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to load Google login settings.");
-    }
-
-    return data;
-  }
-
   async function getSession(role) {
     const url = new URL("/api/auth/session", window.location.origin);
     if (role) {
@@ -69,28 +57,89 @@
       return null;
     }
 
+    if (data.session) {
+      saveToken();
+    }
+
     return data.session || null;
   }
 
-  async function loginWithGoogle(credential, role) {
-    const response = await fetch("/api/auth/google-login", {
+  async function loginWithPassword(role, loginId, password) {
+    const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ credential, role }),
+      body: JSON.stringify({ role, login_id: loginId, password }),
     });
     const data = await readJson(response);
 
     if (!response.ok) {
-      throw new Error(data.error || "Google login failed.");
+      throw new Error(data.error || "Login failed.");
     }
 
+    saveToken();
+    return data;
+  }
+
+  async function changePassword(currentPassword, newPassword) {
+    const response = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
+    const data = await readJson(response);
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to change password.");
+    }
+    return data;
+  }
+
+  async function forgotPassword(role, loginId, contactValue) {
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        role,
+        login_id: loginId,
+        contact_value: contactValue,
+      }),
+    });
+    const data = await readJson(response);
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to process forgot password.");
+    }
+    return data;
+  }
+
+  async function resetRolePassword(role, loginId) {
+    const response = await fetch("/api/super-admin/auth-reset", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        role,
+        login_id: loginId,
+      }),
+    });
+    const data = await readJson(response);
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to reset password.");
+    }
     return data;
   }
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    localStorage.removeItem("super_admin_token");
   }
 
   async function readJson(response) {
@@ -282,9 +331,11 @@
     saveToken,
     authHeaders,
     hideLegacyField,
-    loadGoogleConfig,
     getSession,
-    loginWithGoogle,
+    loginWithPassword,
+    changePassword,
+    forgotPassword,
+    resetRolePassword,
     logout,
     readJson,
     setMessage,

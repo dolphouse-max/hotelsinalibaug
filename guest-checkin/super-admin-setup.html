@@ -26,19 +26,19 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <script>
-        document.write(superAdminCommon.pageChrome("Access Setup", "Setup", "Use your Google superadmin session on this device so the mobile workflow stays quick and simple."));
+        document.write(superAdminCommon.pageChrome("Access Setup", "Setup", "Use this page after password login to keep the superadmin session ready on this device."));
       </script>
         <script>
           document.write(superAdminCommon.quickNav("setup"));
         </script>
         <div class="p-5">
           <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            Sign in once with Google on this phone, then the rest of the Superadmin pages can reuse the same session automatically.
+            Log in once from the Super Admin Home page, then the rest of the superadmin pages can reuse the same session automatically.
           </div>
           <div class="space-y-4">
             <div>
               <label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
-              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Google superadmin session">
+              <input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Saved superadmin session">
             </div>
             <button id="saveTokenButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">
               Save Session On This Device

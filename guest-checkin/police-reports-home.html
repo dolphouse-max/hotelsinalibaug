@@ -29,16 +29,16 @@
         <div class="bg-[linear-gradient(135deg,#111827_0%,#1f3b57_68%,#355879_100%)] px-5 py-6 text-white">
           <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug SaaS</p>
           <h1 class="mt-2 text-2xl font-semibold">Police Main Page</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Save the police access filters once, then open one focused console or report page at a time on mobile.</p>
+          <p class="mt-2 text-sm leading-6 text-white/80">Save the police report filters once, then open one focused console or report page at a time on mobile.</p>
         </div>
         <div class="p-5">
           <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            Save token, officer name, hotel, and date range once here. Then open only the police page you need on mobile.
+            Save officer name, hotel, and date range once here after police login. Then open only the police page you need on mobile.
           </div>
           <div class="space-y-4">
             <div>
-              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
-              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
+              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Saved police session">
             </div>
             <div>
               <label for="officerName" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
@@ -47,7 +47,7 @@
             <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
               <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
-                <option value="">Load hotels after entering token</option>
+                <option value="">Load hotels after logging in</option>
               </select>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -111,9 +111,6 @@
       const statusBox = document.getElementById("statusBox");
 
       policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
-      if (tokenInput.value.trim()) {
-        policeReportsCommon.showBox(statusBox, "Saved police filters found on this device. You can update them anytime.", "success");
-      }
 
       async function refreshHotels() {
         try {
@@ -128,11 +125,13 @@
         policeReportsCommon.showBox(statusBox, "Report filters saved on this device.", "success");
       });
 
-      tokenInput.addEventListener("change", refreshHotels);
-
-      if (tokenInput.value.trim()) {
-        refreshHotels();
-      }
+      policeReportsCommon.getSession().then((session) => {
+        if (session) {
+          tokenInput.value = "__app_session__";
+          policeReportsCommon.showBox(statusBox, "Saved police session found on this device. You can update filters anytime.", "success");
+          refreshHotels();
+        }
+      }).catch(() => {});
     </script>
   </body>
 </html>

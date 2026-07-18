@@ -1,9 +1,9 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
-  const SESSION_PLACEHOLDER = "__google_session__";
+  const SESSION_PLACEHOLDER = "__app_session__";
 
   function readStoredToken() {
-    return SESSION_PLACEHOLDER;
+    return localStorage.getItem("hotel_admin_token") || "";
   }
 
   function readStoredHotelId() {
@@ -15,6 +15,10 @@
       || "";
   }
 
+  function normalizeHotelId(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
   function hydrateContext(tokenInput, hotelIdInput) {
     if (tokenInput) {
       tokenInput.value = readStoredToken();
@@ -22,18 +26,19 @@
     }
 
     if (hotelIdInput) {
-      hotelIdInput.value = readStoredHotelId();
+      hotelIdInput.value = normalizeHotelId(readStoredHotelId());
     }
   }
 
   function persistContext(token, hotelId) {
+    const normalizedHotelId = normalizeHotelId(hotelId);
     localStorage.setItem("hotel_admin_token", SESSION_PLACEHOLDER);
-    localStorage.setItem("hotel_admin_hotel_id", hotelId || "");
+    localStorage.setItem("hotel_admin_hotel_id", normalizedHotelId);
 
-    if (hotelId) {
-      localStorage.setItem("dashboard_hotel_id", hotelId);
-      localStorage.setItem("guest_checkin_hotel_id", hotelId);
-      localStorage.setItem("staff_console_hotel_id", hotelId);
+    if (normalizedHotelId) {
+      localStorage.setItem("dashboard_hotel_id", normalizedHotelId);
+      localStorage.setItem("guest_checkin_hotel_id", normalizedHotelId);
+      localStorage.setItem("staff_console_hotel_id", normalizedHotelId);
     }
   }
 
@@ -59,17 +64,6 @@
     }
   }
 
-  async function loadGoogleConfig() {
-    const response = await fetch("/api/auth/google-config");
-    const data = await readJson(response);
-
-    if (!response.ok) {
-      throw new Error(data.error || "Unable to load Google login settings.");
-    }
-
-    return data;
-  }
-
   async function getSession(hotelId) {
     const url = new URL("/api/auth/session", window.location.origin);
     url.searchParams.set("role", "hotel_admin");
@@ -84,28 +78,71 @@
       return null;
     }
 
+    if (data.session) {
+      persistContext(SESSION_PLACEHOLDER, data.session.hotel_id || hotelId);
+    }
+
     return data.session || null;
   }
 
-  async function loginWithGoogle(credential, hotelId) {
-    const response = await fetch("/api/auth/google-login", {
+  async function loginWithPassword(hotelId, password) {
+    const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ credential, role: "hotel_admin", hotel_id: hotelId }),
+      body: JSON.stringify({ role: "hotel_admin", login_id: hotelId, password }),
     });
     const data = await readJson(response);
 
     if (!response.ok) {
-      throw new Error(data.error || "Google login failed.");
+      throw new Error(data.error || "Login failed.");
     }
 
+    persistContext(SESSION_PLACEHOLDER, data.session?.hotel_id || hotelId);
+    return data;
+  }
+
+  async function changePassword(currentPassword, newPassword) {
+    const response = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
+    const data = await readJson(response);
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to change password.");
+    }
+    return data;
+  }
+
+  async function forgotPassword(hotelId, adminGmail) {
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        role: "hotel_admin",
+        login_id: hotelId,
+        contact_value: adminGmail,
+      }),
+    });
+    const data = await readJson(response);
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to reset password.");
+    }
     return data;
   }
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    localStorage.removeItem("hotel_admin_token");
   }
 
   async function readJson(response) {
@@ -150,7 +187,7 @@
   }
 
   function safeHotelId(hotelIdInput) {
-    return hotelIdInput?.value?.trim() || "";
+    return normalizeHotelId(hotelIdInput?.value);
   }
 
   async function loadHotelProfile(tokenInput, hotelIdInput) {
@@ -274,15 +311,17 @@
     persistContext,
     authHeaders,
     hideLegacyField,
-    loadGoogleConfig,
     getSession,
-    loginWithGoogle,
+    loginWithPassword,
+    changePassword,
+    forgotPassword,
     logout,
     readJson,
     setMessage,
     clearMessage,
     setButtonLoading,
     safeHotelId,
+    normalizeHotelId,
     loadHotelProfile,
     quickNav,
     mountBrandChip,

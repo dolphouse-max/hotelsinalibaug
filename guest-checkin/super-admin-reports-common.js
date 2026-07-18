@@ -44,7 +44,7 @@
   }
 
   function hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput) {
-    tokenInput.value = "__google_session__";
+    tokenInput.value = localStorage.getItem("super_admin_token") || "";
     if (window.superAdminCommon?.hideLegacyField) {
       window.superAdminCommon.hideLegacyField(tokenInput);
     }
@@ -60,7 +60,7 @@
   }
 
   function persistFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput) {
-    localStorage.setItem("super_admin_token", "__google_session__");
+    localStorage.setItem("super_admin_token", "__app_session__");
     if (viewerNameInput) {
       localStorage.setItem("super_admin_viewer_name", viewerNameInput.value.trim());
     }

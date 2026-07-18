@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0f2436">
     <title>Super Admin Home</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="super-admin-common.js"></script>
     <script>
@@ -32,16 +31,30 @@
         </div>
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p class="text-sm font-semibold text-ocean">Google login for superadmin</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Use the allowed superadmin Gmail on this device. The session stays active across all superadmin pages.</p>
+            <p class="text-sm font-semibold text-ocean">Superadmin login</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Log in with your superadmin email and password. Initial password is the same as the login ID until you change it.</p>
           </div>
           <div class="mt-5 space-y-4">
-            <div id="allowedEmailCard" class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
-              Loading allowed superadmin Gmail...
+            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
+              Superadmin Login ID: <span class="font-semibold text-ocean">gjpatil@gmail.com</span>
             </div>
-            <div id="googleButtonWrap" class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4">
-              <div id="googleSignInButton" class="flex justify-center"></div>
+            <div>
+              <label for="superAdminLoginId" class="mb-2 block text-sm font-medium text-slate-700">Login ID</label>
+              <input id="superAdminLoginId" value="gjpatil@gmail.com" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
+            <div>
+              <label for="superAdminPassword" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
+              <input id="superAdminPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
+            <button id="loginButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15">
+              Login
+            </button>
+            <button id="changePasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Change Password
+            </button>
+            <button id="forgotPasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Forgot Password
+            </button>
             <button id="logoutButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
               Logout
             </button>
@@ -61,7 +74,7 @@
         <div class="grid gap-3">
           <a href="/super-admin-setup.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
             <p class="text-lg font-semibold text-ocean">Access Setup</p>
-            <p class="mt-1 text-sm text-slate-600">Verify your Google superadmin access on this device.</p>
+            <p class="mt-1 text-sm text-slate-600">Save the superadmin session on this device after password login.</p>
           </a>
           <a href="/super-admin-add-hotel.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
             <p class="text-lg font-semibold text-ocean">Add Hotel</p>
@@ -116,6 +129,26 @@
         </div>
       </section>
 
+      <section class="mt-5">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-ocean">Password Reset</h2>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Support</p>
+        </div>
+        <div class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-sm text-slate-600">Use this when police or a hotel admin cannot remember the password.</p>
+          <div class="mt-4 grid gap-3">
+            <select id="resetRole" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              <option value="police">Police</option>
+              <option value="hotel_admin">Hotel Admin</option>
+            </select>
+            <input id="resetLoginId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel ID for hotel reset">
+            <button id="resetPasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+              Reset Selected Password
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section class="mt-5 grid grid-cols-2 gap-3">
         <div class="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/40">
           <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Best Order</p>
@@ -131,54 +164,92 @@
     <script>
       const sessionStatus = document.getElementById("sessionStatus");
       const logoutButton = document.getElementById("logoutButton");
-      const allowedEmailCard = document.getElementById("allowedEmailCard");
+      const loginIdInput = document.getElementById("superAdminLoginId");
+      const passwordInput = document.getElementById("superAdminPassword");
+      const loginButton = document.getElementById("loginButton");
+      const changePasswordButton = document.getElementById("changePasswordButton");
+      const forgotPasswordButton = document.getElementById("forgotPasswordButton");
+      const resetRoleInput = document.getElementById("resetRole");
+      const resetLoginIdInput = document.getElementById("resetLoginId");
+      const resetPasswordButton = document.getElementById("resetPasswordButton");
 
       function setLoggedInState(session) {
         logoutButton.classList.remove("hidden");
-        superAdminCommon.setMessage(sessionStatus, `Logged in as ${session.email}`, "success");
+        superAdminCommon.setMessage(sessionStatus, `Logged in as ${session.login_id}${session.must_change_password ? ". Please change your password now." : ""}`, "success");
       }
 
-      async function initializeGoogleLogin() {
+      async function initializePasswordLogin() {
         try {
-          const config = await superAdminCommon.loadGoogleConfig();
-          allowedEmailCard.textContent = `Allowed superadmin Gmail: ${(config.superAdminEmails || []).join(", ")}`;
-
           const session = await superAdminCommon.getSession("super_admin");
           if (session) {
             setLoggedInState(session);
           }
-
-          google.accounts.id.initialize({
-            client_id: config.clientId,
-            callback: async ({ credential }) => {
-              try {
-                const data = await superAdminCommon.loginWithGoogle(credential, "super_admin");
-                setLoggedInState(data.session);
-                window.location.href = data.redirect;
-              } catch (error) {
-                superAdminCommon.setMessage(sessionStatus, error.message || "Google login failed.", "error");
-              }
-            },
-          });
-
-          google.accounts.id.renderButton(document.getElementById("googleSignInButton"), {
-            theme: "outline",
-            size: "large",
-            text: "signin_with",
-            shape: "pill",
-            width: 280,
-          });
         } catch (error) {
-          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to load Google login.", "error");
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to load superadmin session.", "error");
         }
       }
+
+      loginButton.addEventListener("click", async () => {
+        superAdminCommon.clearMessage(sessionStatus);
+        superAdminCommon.setButtonLoading(loginButton, true, "Logging in...");
+        try {
+          const data = await superAdminCommon.loginWithPassword("super_admin", loginIdInput.value.trim(), passwordInput.value);
+          setLoggedInState(data.session);
+          window.location.href = data.redirect;
+        } catch (error) {
+          superAdminCommon.setMessage(sessionStatus, error.message || "Login failed.", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(loginButton, false);
+        }
+      });
+
+      changePasswordButton.addEventListener("click", async () => {
+        const currentPassword = window.prompt("Enter current password");
+        if (!currentPassword) {
+          return;
+        }
+        const newPassword = window.prompt("Enter new password (minimum 8 characters)");
+        if (!newPassword) {
+          return;
+        }
+        try {
+          await superAdminCommon.changePassword(currentPassword, newPassword);
+          superAdminCommon.setMessage(sessionStatus, "Password changed successfully.", "success");
+        } catch (error) {
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to change password.", "error");
+        }
+      });
+
+      forgotPasswordButton.addEventListener("click", async () => {
+        try {
+          const data = await superAdminCommon.forgotPassword("super_admin", loginIdInput.value.trim(), loginIdInput.value.trim());
+          superAdminCommon.setMessage(sessionStatus, data.message || "Password reset completed.", "success");
+        } catch (error) {
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to reset password.", "error");
+        }
+      });
+
+      resetRoleInput.addEventListener("change", () => {
+        resetLoginIdInput.placeholder = resetRoleInput.value === "police" ? "Not needed for police reset" : "Hotel ID for hotel reset";
+      });
+
+      resetPasswordButton.addEventListener("click", async () => {
+        try {
+          const role = resetRoleInput.value;
+          const loginId = resetRoleInput.value === "police" ? "alibaug-police" : resetLoginIdInput.value.trim().toLowerCase();
+          const data = await superAdminCommon.resetRolePassword(role, loginId);
+          superAdminCommon.setMessage(sessionStatus, data.message || "Password reset completed.", "success");
+        } catch (error) {
+          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to reset password.", "error");
+        }
+      });
 
       logoutButton.addEventListener("click", async () => {
         await superAdminCommon.logout();
         window.location.reload();
       });
 
-      initializeGoogleLogin();
+      initializePasswordLogin();
     </script>
   </body>
 </html>
