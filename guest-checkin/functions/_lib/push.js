@@ -1,18 +1,9 @@
-import webpush from "web-push";
+export function configureWebPush() {
+  return false;
+}
 
-let vapidConfigured = false;
-
-export function configureWebPush(env) {
-  if (vapidConfigured) {
-    return;
-  }
-
-  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !env.VAPID_SUBJECT) {
-    throw new Error("VAPID configuration is missing");
-  }
-
-  webpush.setVapidDetails(env.VAPID_SUBJECT, env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY);
-  vapidConfigured = true;
+export function isPushDeliveryAvailable() {
+  return false;
 }
 
 export function getVapidPublicKey(env) {
@@ -23,17 +14,6 @@ export function getVapidPublicKey(env) {
   return env.VAPID_PUBLIC_KEY;
 }
 
-export async function sendPushToSubscription(env, subscription, payload) {
-  configureWebPush(env);
-
-  return webpush.sendNotification(
-    {
-      endpoint: subscription.endpoint,
-      keys: {
-        p256dh: subscription.p256dh,
-        auth: subscription.auth,
-      },
-    },
-    JSON.stringify(payload)
-  );
+export async function sendPushToSubscription() {
+  throw new Error("Push delivery is temporarily unavailable in this deployment");
 }

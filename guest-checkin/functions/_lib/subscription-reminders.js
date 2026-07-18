@@ -1,4 +1,4 @@
-import { sendPushToSubscription } from "./push";
+import { isPushDeliveryAvailable, sendPushToSubscription } from "./push";
 import { purgeExpiredHotelMessages } from "./hotel-messages";
 
 const REMINDER_DAYS = [15, 7, 3, 1];
@@ -95,23 +95,25 @@ export async function runSubscriptionReminderCycle(env, createdBy = "System Remi
       .all();
 
     let deliveredPushCount = 0;
-    for (const subscription of subscriptions.results || []) {
-      try {
-        await sendPushToSubscription(env, subscription, {
-          title,
-          message,
-          action_url: "/hotel-admin-renewal.html",
-          notification_id: notificationId,
-        });
-        deliveredPushCount += 1;
-      } catch (error) {
-        const statusCode = Number(error?.statusCode || error?.status || 0);
-        if (statusCode === 404 || statusCode === 410) {
-          await env.DB.prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?1`)
-            .bind(subscription.endpoint)
-            .run();
-        } else {
-          console.error("Failed to send scheduled push reminder", error);
+    if (isPushDeliveryAvailable(env)) {
+      for (const subscription of subscriptions.results || []) {
+        try {
+          await sendPushToSubscription(env, subscription, {
+            title,
+            message,
+            action_url: "/hotel-admin-renewal.html",
+            notification_id: notificationId,
+          });
+          deliveredPushCount += 1;
+        } catch (error) {
+          const statusCode = Number(error?.statusCode || error?.status || 0);
+          if (statusCode === 404 || statusCode === 410) {
+            await env.DB.prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?1`)
+              .bind(subscription.endpoint)
+              .run();
+          } else {
+            console.error("Failed to send scheduled push reminder", error);
+          }
         }
       }
     }

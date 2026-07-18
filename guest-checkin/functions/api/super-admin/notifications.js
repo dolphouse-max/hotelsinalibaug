@@ -1,5 +1,5 @@
 import { badRequest, json, unauthorized } from "../../_lib/api";
-import { sendPushToSubscription } from "../../_lib/push";
+import { isPushDeliveryAvailable, sendPushToSubscription } from "../../_lib/push";
 
 function requireSuperAdmin(request, env) {
   const authHeader = request.headers.get("authorization");
@@ -162,17 +162,19 @@ export async function onRequestPost(context) {
       notification_id: id,
     };
 
-    for (const subscription of targetSubscriptionsResult.results || []) {
-      try {
-        await sendPushToSubscription(context.env, subscription, pushPayload);
-      } catch (error) {
-        const statusCode = Number(error?.statusCode || error?.status || 0);
-        if (statusCode === 404 || statusCode === 410) {
-          await context.env.DB.prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?1`)
-            .bind(subscription.endpoint)
-            .run();
-        } else {
-          console.error("Failed to send push notification", error);
+    if (isPushDeliveryAvailable(context.env)) {
+      for (const subscription of targetSubscriptionsResult.results || []) {
+        try {
+          await sendPushToSubscription(context.env, subscription, pushPayload);
+        } catch (error) {
+          const statusCode = Number(error?.statusCode || error?.status || 0);
+          if (statusCode === 404 || statusCode === 410) {
+            await context.env.DB.prepare(`DELETE FROM push_subscriptions WHERE endpoint = ?1`)
+              .bind(subscription.endpoint)
+              .run();
+          } else {
+            console.error("Failed to send push notification", error);
+          }
         }
       }
     }
