@@ -120,6 +120,7 @@
       { id: "home", label: "Home", href: "/hotel-admin-home.html" },
       { id: "profile", label: "Profile", href: "/hotel-admin-profile.html" },
       { id: "drive", label: "Drive", href: "/hotel-admin-google-drive.html" },
+      { id: "staff", label: "Staff", href: "/hotel-admin-staff.html" },
       { id: "checkin", label: "Guest QR", href: "/hotel-admin-checkin.html" },
       { id: "payment", label: "Pay QR", href: "/hotel-admin-payment.html" },
       { id: "reservations", label: "Bookings", href: "/hotel-admin-reservations.html" },

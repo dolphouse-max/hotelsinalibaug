@@ -1,0 +1,17 @@
+Cloudflare account : dolphouse@gmail.com
+
+
+Page worker ...  
+hotelsinalibaug   hotelsinalibaug.pages.dev dolphouse-max/hotelsinalibaug
+
+
+If your live domain is https://checkin.hotelsinalibaug.in, the three main pages are:
+https://checkin.hotelsinalibaug.in/dashboard.html
+https://checkin.hotelsinalibaug.in/hotel-dashboard.html
+https://checkin.hotelsinalibaug.in/police-dashboard.html
+
+Git commands ...
+
+git add .
+git commit -m "Added QR code pages
+git push origin main

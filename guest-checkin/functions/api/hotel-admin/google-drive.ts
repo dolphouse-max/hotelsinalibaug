@@ -45,6 +45,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     ok: true,
     hotelId: hotel.id,
     hotelName: hotel.name,
+    adminEmail: hotel.admin_email || null,
     googleDriveConnected: Boolean(hotel.encrypted_refresh_token),
     googleDriveFolderId: hotel.google_drive_folder_id,
     connectUrl: `/api/auth/google-init?hotel_id=${encodeURIComponent(hotel.id)}`,

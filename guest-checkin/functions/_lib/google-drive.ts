@@ -31,6 +31,7 @@ interface HotelRecord {
   name: string;
   google_drive_folder_id: string | null;
   encrypted_refresh_token: string | null;
+  admin_email: string | null;
 }
 
 interface GoogleTokenResponse {
@@ -63,9 +64,16 @@ function ensureGoogleConfig(env: Env): void {
 
 export async function getHotelById(env: MinimalEnv, hotelId: string): Promise<HotelRecord | null> {
   return env.DB.prepare(
-    `SELECT id, name, google_drive_folder_id, encrypted_refresh_token
-     FROM hotels
-     WHERE id = ?1
+    `SELECT
+       h.id,
+       h.name,
+       h.google_drive_folder_id,
+       h.encrypted_refresh_token,
+       hs.email AS admin_email
+     FROM hotels h
+     LEFT JOIN hotel_staff hs
+       ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
+     WHERE h.id = ?1
      LIMIT 1`
   )
     .bind(hotelId)

@@ -14,6 +14,10 @@ function badRequest(message) {
   return json({ error: message }, { status: 400 });
 }
 
+function isEmail(value) {
+  return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 function isIsoDate(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
@@ -119,6 +123,7 @@ export async function onRequestPut(context) {
     const name = typeof payload.name === "string" ? payload.name.trim() : "";
     const contact = typeof payload.contact === "string" ? payload.contact.trim() : "";
     const address = typeof payload.address === "string" ? payload.address.trim() : "";
+    const adminEmail = typeof payload.admin_email === "string" ? payload.admin_email.trim().toLowerCase() : "";
     const totalRooms = Number.isInteger(payload.total_rooms) ? payload.total_rooms : 0;
     const occupiedRooms = Number.isInteger(payload.occupied_rooms) ? payload.occupied_rooms : 0;
 
@@ -128,6 +133,10 @@ export async function onRequestPut(context) {
 
     if (!name || !contact || !address) {
       return badRequest("name, contact, and address are required");
+    }
+
+    if (!adminEmail || !isEmail(adminEmail)) {
+      return badRequest("Valid admin_email is required");
     }
 
     if (totalRooms < 0 || occupiedRooms < 0 || occupiedRooms > totalRooms) {
@@ -154,11 +163,12 @@ export async function onRequestPut(context) {
 
     await context.env.DB.prepare(
       `UPDATE hotel_staff
-       SET phone = ?1,
+       SET email = ?1,
+           phone = ?2,
            updated_at = CURRENT_TIMESTAMP
-       WHERE hotel_id = ?2 AND role = 'admin' AND is_active = 1`
+       WHERE hotel_id = ?3 AND role = 'admin' AND is_active = 1`
     )
-      .bind(contact, hotelId)
+      .bind(adminEmail, contact, hotelId)
       .run();
 
     const hydrated = await context.env.DB.prepare(

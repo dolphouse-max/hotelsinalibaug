@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Staff Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+              shell: "#f6efe3",
+              breeze: "#9bc8c2",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Staff</span>
+      </div>
+      <script>
+        document.write(hotelAdminCommon.quickNav("staff"));
+      </script>
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 class="text-2xl font-semibold">Staff Entry</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Open the staff registration form for onboarding hotel staff and uploading ID proofs.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Use this page when you want to add a new staff member or update a staff record for this hotel.
+          </div>
+
+          <div class="mt-5 space-y-4">
+            <div>
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
+            </div>
+            <div>
+              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
+            </div>
+            <a id="openStaffConsoleLink" href="/staff-console.html" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+              Open Staff Registration Page
+            </a>
+            <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tokenInput = document.getElementById("hotelAdminToken");
+      const hotelIdInput = document.getElementById("hotelId");
+      const pageMessage = document.getElementById("pageMessage");
+      const openStaffConsoleLink = document.getElementById("openStaffConsoleLink");
+
+      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+
+      function syncLink() {
+        const hotelId = hotelIdInput.value.trim();
+        hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelId);
+
+        const url = new URL("/staff-console.html", window.location.origin);
+        if (hotelId) {
+          url.searchParams.set("hotel_id", hotelId);
+        }
+        openStaffConsoleLink.href = url.toString();
+      }
+
+      tokenInput.addEventListener("input", syncLink);
+      hotelIdInput.addEventListener("input", syncLink);
+      openStaffConsoleLink.addEventListener("click", () => {
+        syncLink();
+        hotelAdminCommon.setMessage(pageMessage, "Opening staff registration page with this hotel context.", "success");
+      });
+
+      syncLink();
+    </script>
+  </body>
+</html>

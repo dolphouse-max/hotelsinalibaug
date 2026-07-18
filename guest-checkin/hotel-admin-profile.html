@@ -77,6 +77,10 @@
               <input id="contact" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Mobile Number">
             </div>
             <div>
+              <label for="adminEmail" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Gmail</label>
+              <input id="adminEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="booking@gmail.com">
+            </div>
+            <div>
               <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Hotel Address</label>
               <textarea id="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Address"></textarea>
             </div>
@@ -110,6 +114,7 @@
       function fill(hotel) {
         document.getElementById("hotelName").value = hotel.name || "";
         document.getElementById("contact").value = hotel.contact || "";
+        document.getElementById("adminEmail").value = hotel.admin_email || "";
         document.getElementById("address").value = hotel.address || "";
         document.getElementById("totalRooms").value = hotel.total_rooms ?? 0;
         document.getElementById("occupiedRooms").value = hotel.occupied_rooms ?? 0;
@@ -146,6 +151,7 @@
               hotel_id: hotelIdInput.value.trim(),
               name: document.getElementById("hotelName").value.trim(),
               contact: document.getElementById("contact").value.trim(),
+              admin_email: document.getElementById("adminEmail").value.trim(),
               address: document.getElementById("address").value.trim(),
               total_rooms: Number(document.getElementById("totalRooms").value || "0"),
               occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),

@@ -56,6 +56,7 @@
           <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p class="text-sm text-slate-500">Status</p>
             <p id="driveStatus" class="mt-1 font-semibold text-slate-900">Not loaded</p>
+            <p id="adminEmail" class="mt-2 break-all text-sm text-slate-600">Admin Gmail not available</p>
             <p id="folderId" class="mt-2 break-all text-sm text-slate-600">Folder ID not available</p>
           </div>
 
@@ -89,6 +90,9 @@
       function render(data) {
         driveState = data;
         document.getElementById("driveStatus").textContent = data.googleDriveConnected ? "Connected" : "Not connected";
+        document.getElementById("adminEmail").textContent = data.adminEmail
+          ? `Connect with this Gmail: ${data.adminEmail}`
+          : "Admin Gmail not available";
         document.getElementById("folderId").textContent = data.googleDriveFolderId || "Folder ID not available";
         document.getElementById("disconnectButton").disabled = !data.googleDriveConnected;
       }
