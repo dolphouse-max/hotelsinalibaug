@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#0f2436">
     <title>Superadmin Dashboard | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="qrcode.js"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -73,32 +74,56 @@
         </div>
       </section>
 
-      <section class="mt-6 grid gap-5 md:grid-cols-2">
+      <section class="mt-6">
         <article class="rounded-[2rem] bg-white p-6 text-slate-900 shadow-resort">
           <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ocean-900 text-sand-50">
             <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7">
               <path d="M4 20h16M7 20v-8m10 8v-8M9 8h6m-7 4h8M8 4h8a2 2 0 0 1 2 2v14H6V6a2 2 0 0 1 2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <h3 class="mt-5 text-xl font-semibold text-ocean-900">Super Admin Console</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Create hotels, update account status, manage room data, and process renewals.</p>
+          <h3 class="mt-5 text-xl font-semibold text-ocean-900">Open Superadmin Main Page</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Use one private main page for all superadmin work. Add hotels, review tenants, handle renewals, and open reports from there.</p>
           <a href="/super-admin-home.html" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 font-semibold text-white transition hover:bg-ocean-800">
-            Open Super Admin
+            Open Superadmin Main Page
           </a>
         </article>
+      </section>
 
-        <article class="rounded-[2rem] bg-white p-6 text-slate-900 shadow-resort">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ocean-900 text-sand-50">
-            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7">
-              <path d="M5 19h14M7 16V9m5 7V5m5 11v-4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+      <section class="mt-6 rounded-[2rem] bg-white p-6 text-slate-900 shadow-resort">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold text-ocean-900">Launch QR Codes</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Share the Hotel or Police main page directly from the Superadmin dashboard.</p>
           </div>
-          <h3 class="mt-5 text-xl font-semibold text-ocean-900">Super Admin Reports</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Review expiring hotels, recent guest check-ins, hotel register, and police logs.</p>
-          <a href="/super-admin-reports-home.html" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 font-semibold text-white transition hover:bg-ocean-800">
-            Open Reports
-          </a>
-        </article>
+          <div class="rounded-2xl bg-slate-100 px-4 py-3 text-right text-xs text-slate-500">
+            <div class="font-semibold uppercase tracking-[0.24em] text-ocean-800">Quick Share</div>
+            <div class="mt-1 text-sm font-medium text-ocean-950">Scan to open launcher</div>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 lg:grid-cols-2">
+          <article class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-lg font-semibold text-ocean-900">Hotel Main Page QR</p>
+                <p class="mt-1 text-sm text-slate-600">For hotel owners or staff to open the hotel launcher page.</p>
+              </div>
+              <div id="hotelQrImage" class="h-[132px] w-[132px] shrink-0 rounded-[1.25rem] border border-slate-200 bg-white p-2"></div>
+            </div>
+            <p id="hotelQrLink" class="mt-4 break-all rounded-2xl bg-white px-4 py-3 text-sm text-slate-600"></p>
+          </article>
+
+          <article class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-lg font-semibold text-ocean-900">Police Main Page QR</p>
+                <p class="mt-1 text-sm text-slate-600">For police officers to open the police launcher page.</p>
+              </div>
+              <div id="policeQrImage" class="h-[132px] w-[132px] shrink-0 rounded-[1.25rem] border border-slate-200 bg-white p-2"></div>
+            </div>
+            <p id="policeQrLink" class="mt-4 break-all rounded-2xl bg-white px-4 py-3 text-sm text-slate-600"></p>
+          </article>
+        </div>
       </section>
 
       <footer class="mt-6 rounded-[2rem] border border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-200 shadow-resort backdrop-blur">
@@ -113,5 +138,30 @@
         </div>
       </footer>
     </main>
+
+    <script>
+      const hotelQrImage = document.getElementById("hotelQrImage");
+      const policeQrImage = document.getElementById("policeQrImage");
+      const hotelQrLink = document.getElementById("hotelQrLink");
+      const policeQrLink = document.getElementById("policeQrLink");
+
+      function renderQr(target, value) {
+        const qr = qrcode(0, "M");
+        qr.addData(value);
+        qr.make();
+        target.innerHTML = qr.createSvgTag(4, 6);
+      }
+
+      function renderLaunchQrs() {
+        const hotelUrl = new URL("/hotel-dashboard.html", window.location.origin).toString();
+        const policeUrl = new URL("/police-dashboard.html", window.location.origin).toString();
+        hotelQrLink.textContent = hotelUrl;
+        policeQrLink.textContent = policeUrl;
+        renderQr(hotelQrImage, hotelUrl);
+        renderQr(policeQrImage, policeUrl);
+      }
+
+      renderLaunchQrs();
+    </script>
   </body>
 </html>

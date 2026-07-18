@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#17324a">
     <title>Hotel Dashboard | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -53,24 +56,34 @@
         </div>
       </section>
 
-      <section class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <a data-target="hotel-admin-home.html" class="hotel-link rounded-[2rem] bg-white p-6 shadow-resort">
-          <p class="text-xl font-semibold text-ocean">Hotel Admin</p>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Open profile, Drive, guest QR, renewal, and guest check-out tools.</p>
-        </a>
-        <a data-target="index.html" class="hotel-link rounded-[2rem] bg-white p-6 shadow-resort">
-          <p class="text-xl font-semibold text-ocean">Guest Check-In</p>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Open the guest check-in form for reception or self check-in.</p>
-        </a>
-        <a data-target="staff-console.html" class="hotel-link rounded-[2rem] bg-white p-6 shadow-resort">
-          <p class="text-xl font-semibold text-ocean">Staff Register</p>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Register staff with proof images and employment details.</p>
-        </a>
-        <a data-target="hotel-reports-home.html" class="hotel-link rounded-[2rem] bg-white p-6 shadow-resort md:col-span-2 xl:col-span-3">
-          <p class="text-xl font-semibold text-ocean">Hotel Reports</p>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Open snapshot, check-ins, current guests, check-outs, guest register, and staff register reports.</p>
-        </a>
+      <section class="mt-6 grid gap-5">
+        <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+          <p class="text-xl font-semibold text-ocean">Hotel Main Page</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Use one private main page for all hotel work. From there, staff can open profile, Drive, guest QR, payments, reservations, notifications, reports, and other hotel-only pages.</p>
+          <a data-target="hotel-admin-home.html" class="hotel-link mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">
+            Open Hotel Main Page
+          </a>
+        </article>
       </section>
+
+      <section class="mt-6 grid gap-5 md:grid-cols-2">
+        <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+          <p class="text-xl font-semibold text-ocean">Download App</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Install this app on the current phone or laptop for quick access from the home screen.</p>
+          <button id="installAppButton" type="button" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+            Download App
+          </button>
+        </article>
+        <article class="rounded-[2rem] bg-white p-6 shadow-resort">
+          <p class="text-xl font-semibold text-ocean">Enable Notifications</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Turn on subscription reminders and alerts for this device directly from the hotel launch page.</p>
+          <button id="enableNotificationsButton" type="button" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">
+            Enable Notifications
+          </button>
+        </article>
+      </section>
+
+      <div id="actionMessage" class="mt-6 hidden rounded-2xl border px-4 py-3 text-sm"></div>
 
       <footer class="mt-6 rounded-[1.75rem] border border-slate-200 bg-white px-4 py-5 text-sm text-slate-600 shadow-sm">
         <p class="font-semibold text-slate-800">Hotels In Alibaug</p>
@@ -89,15 +102,136 @@
       const tokenInput = document.getElementById("hotelAdminToken");
       const hotelIdInput = document.getElementById("hotelId");
       const contextMessage = document.getElementById("contextMessage");
+      const actionMessage = document.getElementById("actionMessage");
       const links = Array.from(document.querySelectorAll(".hotel-link"));
+      const installAppButton = document.getElementById("installAppButton");
+      const enableNotificationsButton = document.getElementById("enableNotificationsButton");
+      let deferredInstallPrompt = null;
+
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
       if (tokenInput.value.trim() || hotelIdInput.value.trim()) {
         hotelAdminCommon.setMessage(contextMessage, "Saved hotel context found on this device.", "success");
       }
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      }
+
       document.getElementById("saveContextButton").addEventListener("click", () => {
         hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
         hotelAdminCommon.setMessage(contextMessage, "Hotel context saved on this device.", "success");
       });
+
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+      });
+
+      function urlBase64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+        const rawData = atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let index = 0; index < rawData.length; index += 1) {
+          outputArray[index] = rawData.charCodeAt(index);
+        }
+
+        return outputArray;
+      }
+
+      async function enableRealPushSubscription() {
+        if (!("Notification" in window)) {
+          throw new Error("This device does not support notifications.");
+        }
+
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          throw new Error("This device does not support background push alerts.");
+        }
+
+        const hotelId = hotelIdInput.value.trim();
+        const token = tokenInput.value.trim();
+
+        if (!hotelId) {
+          throw new Error("Enter hotel ID first.");
+        }
+
+        if (!token) {
+          throw new Error("Enter hotel admin token first.");
+        }
+
+        hotelAdminCommon.persistContext(token, hotelId);
+
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          throw new Error("Notification permission was not granted.");
+        }
+
+        const response = await fetch("/api/hotel-admin/push-subscription", {
+          headers: hotelAdminCommon.authHeaders(tokenInput, false),
+        });
+        const data = await hotelAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load push configuration");
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(data.vapidPublicKey),
+          });
+        }
+
+        const jsonSubscription = subscription.toJSON();
+        const saveResponse = await fetch("/api/hotel-admin/push-subscription", {
+          method: "POST",
+          headers: hotelAdminCommon.authHeaders(tokenInput),
+          body: JSON.stringify({
+            hotel_id: hotelId,
+            endpoint: jsonSubscription.endpoint,
+            p256dh: jsonSubscription.keys?.p256dh,
+            auth: jsonSubscription.keys?.auth,
+            user_agent: navigator.userAgent,
+          }),
+        });
+        const saveData = await hotelAdminCommon.readJson(saveResponse);
+        if (!saveResponse.ok) {
+          throw new Error(saveData.error || "Unable to save device push subscription");
+        }
+      }
+
+      installAppButton.addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(actionMessage);
+        try {
+          if (deferredInstallPrompt) {
+            await deferredInstallPrompt.prompt();
+            deferredInstallPrompt = null;
+            hotelAdminCommon.setMessage(actionMessage, "App install prompt opened on this device.", "success");
+            return;
+          }
+
+          hotelAdminCommon.setMessage(actionMessage, "If no install popup appears, use the browser menu and choose Add to Home Screen or Install App.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(actionMessage, error instanceof Error ? error.message : "Unable to open install prompt.", "error");
+        }
+      });
+
+      enableNotificationsButton.addEventListener("click", async () => {
+        hotelAdminCommon.clearMessage(actionMessage);
+        hotelAdminCommon.setButtonLoading(enableNotificationsButton, true, "Enabling...");
+        try {
+          await enableRealPushSubscription();
+          hotelAdminCommon.setMessage(actionMessage, "Notifications enabled on this device.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(actionMessage, error instanceof Error ? error.message : "Unable to enable notifications.", "error");
+        } finally {
+          hotelAdminCommon.setButtonLoading(enableNotificationsButton, false);
+        }
+      });
+
       links.forEach((link) => {
         link.href = "#";
         link.addEventListener("click", (event) => {

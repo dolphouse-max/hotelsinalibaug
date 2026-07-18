@@ -1,0 +1,6 @@
+name = "hotelsinalibaug-reminder-cron"
+main = "src/index.js"
+compatibility_date = "2026-07-16"
+
+[triggers]
+crons = ["30 3 * * *"]
