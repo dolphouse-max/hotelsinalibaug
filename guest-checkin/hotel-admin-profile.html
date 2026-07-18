@@ -112,6 +112,7 @@
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
 
       function fill(hotel) {
+        hotelIdInput.value = hotel.id || hotelIdInput.value;
         document.getElementById("hotelName").value = hotel.name || "";
         document.getElementById("contact").value = hotel.contact || "";
         document.getElementById("adminEmail").value = hotel.admin_email || "";
@@ -126,6 +127,7 @@
         hotelAdminCommon.clearMessage(pageMessage);
         const hotel = await hotelAdminCommon.loadHotelProfile(tokenInput, hotelIdInput);
         fill(hotel);
+        hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
       }
 
       document.getElementById("loadButton").addEventListener("click", async () => {

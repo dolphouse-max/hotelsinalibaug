@@ -93,7 +93,7 @@ export async function onRequestGet(context) {
      FROM hotels h
      LEFT JOIN hotel_staff hs
        ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
-     WHERE h.id = ?1
+     WHERE lower(h.id) = lower(?1)
      LIMIT 1`
   )
     .bind(hotelId.trim())
@@ -151,7 +151,7 @@ export async function onRequestPut(context) {
            total_rooms = ?4,
            occupied_rooms = ?5,
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?6
+       WHERE lower(id) = lower(?6)
        RETURNING id, name, contact, address, total_rooms, occupied_rooms, subscription_start_date, subscription_end_date, is_active`
     )
       .bind(name, contact, address, totalRooms, occupiedRooms, hotelId)
@@ -166,7 +166,7 @@ export async function onRequestPut(context) {
        SET email = ?1,
            phone = ?2,
            updated_at = CURRENT_TIMESTAMP
-       WHERE hotel_id = ?3 AND role = 'admin' AND is_active = 1`
+       WHERE lower(hotel_id) = lower(?3) AND role = 'admin' AND is_active = 1`
     )
       .bind(adminEmail, contact, hotelId)
       .run();
@@ -187,7 +187,7 @@ export async function onRequestPut(context) {
        FROM hotels h
        LEFT JOIN hotel_staff hs
          ON hs.hotel_id = h.id AND hs.role = 'admin' AND hs.is_active = 1
-       WHERE h.id = ?1
+       WHERE lower(h.id) = lower(?1)
        LIMIT 1`
     )
       .bind(hotelId)
