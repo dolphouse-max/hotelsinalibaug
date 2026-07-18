@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#0f2436">
     <title>Super Admin Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="qrcode.js"></script>
     <script src="super-admin-common.js"></script>
     <script>
       tailwind.config = {
@@ -103,9 +102,9 @@
                 <p class="text-lg font-semibold text-ocean">Hotel Main Page QR</p>
                 <p class="mt-1 text-sm text-slate-600">For hotel owners or hotel staff to open the hotel launcher page.</p>
               </div>
-              <div id="hotelQrImage" class="h-[132px] w-[132px] shrink-0 rounded-[1.25rem] border border-slate-200 bg-white p-2"></div>
+              <img src="/hotel-dashboard-qr.svg" alt="QR code for hotel dashboard" class="h-[132px] w-[132px] shrink-0 rounded-[1.25rem] border border-slate-200 bg-white p-2">
             </div>
-            <p id="hotelQrLink" class="mt-4 break-all rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600"></p>
+            <p class="mt-4 break-all rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">https://checkin.hotelsinalibaug.in/hotel-dashboard.html</p>
           </article>
           <article class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
             <div class="flex items-center justify-between gap-3">
@@ -113,9 +112,9 @@
                 <p class="text-lg font-semibold text-ocean">Police Main Page QR</p>
                 <p class="mt-1 text-sm text-slate-600">For police officers to open the police launcher page.</p>
               </div>
-              <div id="policeQrImage" class="h-[132px] w-[132px] shrink-0 rounded-[1.25rem] border border-slate-200 bg-white p-2"></div>
+              <img src="/police-dashboard-qr.svg" alt="QR code for police dashboard" class="h-[132px] w-[132px] shrink-0 rounded-[1.25rem] border border-slate-200 bg-white p-2">
             </div>
-            <p id="policeQrLink" class="mt-4 break-all rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600"></p>
+            <p class="mt-4 break-all rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">https://checkin.hotelsinalibaug.in/police-dashboard.html</p>
           </article>
         </div>
       </section>
@@ -136,35 +135,12 @@
       const tokenInput = document.getElementById("superAdminToken");
       const tokenStatus = document.getElementById("tokenStatus");
       const saveTokenButton = document.getElementById("saveTokenButton");
-      const hotelQrImage = document.getElementById("hotelQrImage");
-      const policeQrImage = document.getElementById("policeQrImage");
-      const hotelQrLink = document.getElementById("hotelQrLink");
-      const policeQrLink = document.getElementById("policeQrLink");
-
       superAdminCommon.restoreToken(tokenInput);
-
-      function renderQr(target, value) {
-        const qr = qrcode(0, "M");
-        qr.addData(value);
-        qr.make();
-        target.innerHTML = qr.createSvgTag(4, 6);
-      }
-
-      function renderLaunchQrs() {
-        const hotelUrl = new URL("/hotel-dashboard.html", window.location.origin).toString();
-        const policeUrl = new URL("/police-dashboard.html", window.location.origin).toString();
-        hotelQrLink.textContent = hotelUrl;
-        policeQrLink.textContent = policeUrl;
-        renderQr(hotelQrImage, hotelUrl);
-        renderQr(policeQrImage, policeUrl);
-      }
 
       saveTokenButton.addEventListener("click", () => {
         superAdminCommon.saveToken(tokenInput);
         superAdminCommon.setMessage(tokenStatus, "Superadmin token saved on this device.", "success");
       });
-
-      renderLaunchQrs();
     </script>
   </body>
 </html>
