@@ -129,6 +129,10 @@
     button.disabled = isLoading;
     button.textContent = isLoading ? loadingText : button.dataset.defaultText;
     button.classList.toggle("opacity-70", isLoading);
+    button.classList.toggle("scale-[0.98]", isLoading);
+    button.classList.toggle("ring-4", isLoading);
+    button.classList.toggle("ring-harbor/20", isLoading);
+    button.classList.toggle("cursor-wait", isLoading);
   }
 
   function safeHotelId(hotelIdInput) {

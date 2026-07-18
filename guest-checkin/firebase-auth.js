@@ -12,6 +12,7 @@
   const primaryApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
   const auth = primaryApp.auth();
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+  auth.useDeviceLanguage();
 
   async function readJson(response) {
     const text = await response.text();
@@ -21,6 +22,13 @@
     } catch {
       return { error: text || "Unexpected response" };
     }
+  }
+
+  function normalizeFirebaseError(error, fallbackMessage) {
+    const code = typeof error?.code === "string" ? error.code : "";
+    const message = typeof error?.message === "string" ? error.message : fallbackMessage;
+    const combined = code ? `${code}: ${message}` : message;
+    return new Error(combined || fallbackMessage);
   }
 
   async function createBackendSession(user, forceRefresh = false) {
@@ -46,16 +54,24 @@
   }
 
   async function signIn(email, password) {
-    const credential = await auth.signInWithEmailAndPassword(String(email || "").trim(), password);
-    return createBackendSession(credential.user, true);
+    try {
+      const credential = await auth.signInWithEmailAndPassword(String(email || "").trim(), password);
+      return createBackendSession(credential.user, true);
+    } catch (error) {
+      throw normalizeFirebaseError(error, "Unable to sign in.");
+    }
   }
 
   async function signUpPrimary(email, password, displayName = "") {
-    const credential = await auth.createUserWithEmailAndPassword(String(email || "").trim(), password);
-    if (displayName && credential.user) {
-      await credential.user.updateProfile({ displayName });
+    try {
+      const credential = await auth.createUserWithEmailAndPassword(String(email || "").trim(), password);
+      if (displayName && credential.user) {
+        await credential.user.updateProfile({ displayName });
+      }
+      return createBackendSession(credential.user, true);
+    } catch (error) {
+      throw normalizeFirebaseError(error, "Unable to create Firebase account.");
     }
-    return createBackendSession(credential.user, true);
   }
 
   async function ensureAppSession() {
@@ -70,15 +86,26 @@
       throw new Error("No Firebase user is signed in.");
     }
 
-    const credential = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
-    await auth.currentUser.reauthenticateWithCredential(credential);
-    await auth.currentUser.updatePassword(newPassword);
-    return { ok: true };
+    try {
+      const credential = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+      await auth.currentUser.reauthenticateWithCredential(credential);
+      await auth.currentUser.updatePassword(newPassword);
+      return { ok: true };
+    } catch (error) {
+      throw normalizeFirebaseError(error, "Unable to change password.");
+    }
   }
 
   async function sendPasswordReset(email) {
-    await auth.sendPasswordResetEmail(String(email || "").trim());
-    return { ok: true };
+    try {
+      await auth.sendPasswordResetEmail(String(email || "").trim(), {
+        url: "https://checkin.hotelsinalibaug.in/super-admin-home.html",
+        handleCodeInApp: false,
+      });
+      return { ok: true };
+    } catch (error) {
+      throw normalizeFirebaseError(error, "Unable to send password reset email.");
+    }
   }
 
   async function signOutEverywhere() {
@@ -106,6 +133,8 @@
 
       await secondaryAuth.signOut();
       return payload;
+    } catch (error) {
+      throw normalizeFirebaseError(error, "Unable to create Firebase user.");
     } finally {
       await secondaryApp.delete().catch(() => {});
     }
