@@ -22,6 +22,12 @@
   </head>
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <div class="mb-4">
+        <a id="backToHotelHomeLink" href="/hotel-admin-home.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300">
+          Go Back To Hotel Home
+        </a>
+      </div>
+
       <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
           <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
@@ -88,14 +94,29 @@
       const toDateInput = document.getElementById("toDate");
       const saveFiltersButton = document.getElementById("saveFiltersButton");
       const statusBox = document.getElementById("statusBox");
+      const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
 
       hotelReportsCommon.hydrateFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
+
+      function updateBackLink() {
+        const hotelId = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
+        const backUrl = new URL("/hotel-admin-home.html", window.location.origin);
+        if (hotelId) {
+          backUrl.searchParams.set("hotel_id", hotelId);
+        }
+        backToHotelHomeLink.href = backUrl.toString();
+      }
+
+      updateBackLink();
+      hotelIdInput.addEventListener("input", updateBackLink);
+
       if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
         hotelReportsCommon.setMessage(statusBox, "Saved hotel report filters found on this device.", "success");
       }
 
       saveFiltersButton.addEventListener("click", () => {
         hotelReportsCommon.persistFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
+        updateBackLink();
         hotelReportsCommon.setMessage(statusBox, "Hotel report filters saved on this device.", "success");
       });
     </script>

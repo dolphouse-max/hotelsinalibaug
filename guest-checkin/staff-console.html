@@ -43,6 +43,12 @@
     </div>
 
     <main class="relative mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-6 sm:px-6 sm:py-10">
+      <div class="mb-4">
+        <a id="backToStaffPageLink" href="/hotel-admin-staff.html" class="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/15">
+          Go Back To Hotel Staff Page
+        </a>
+      </div>
+
       <section class="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-resort backdrop-blur sm:p-7">
         <div class="flex items-center gap-3">
           <img src="/logo.webp" alt="Hotels In Alibaug" class="h-12 w-12 rounded-2xl object-cover">
@@ -302,6 +308,7 @@
 
     <script>
       const hotelIdInput = document.getElementById("hotelIdInput");
+      const backToStaffPageLink = document.getElementById("backToStaffPageLink");
       const saveSetupButton = document.getElementById("saveSetupButton");
       const toggleSetupButton = document.getElementById("toggleSetupButton");
       const setupFields = document.getElementById("setupFields");
@@ -368,7 +375,14 @@
       }
 
       function updateHotelLabel() {
-        hotelLabel.textContent = hotelIdInput.value.trim() || "Not set";
+        const hotelId = hotelIdInput.value.trim();
+        hotelLabel.textContent = hotelId || "Not set";
+
+        const backUrl = new URL("/hotel-admin-staff.html", window.location.origin);
+        if (hotelId) {
+          backUrl.searchParams.set("hotel_id", hotelId);
+        }
+        backToStaffPageLink.href = backUrl.toString();
       }
 
       function setSex(value) {
