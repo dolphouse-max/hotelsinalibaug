@@ -3,7 +3,7 @@ const textDecoder = new TextDecoder();
 
 const SESSION_COOKIE_NAME = "hia_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
-const PBKDF2_ITERATIONS = 150000;
+const PBKDF2_ITERATIONS = 100000;
 const DEFAULT_SUPERADMIN_LOGIN = "gjpatil@gmail.com";
 const DEFAULT_POLICE_LOGIN = "alibaug-police";
 const DEFAULT_POLICE_PASSWORD = "AlibaugPolice@2026!Secure";
