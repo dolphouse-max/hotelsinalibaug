@@ -43,6 +43,10 @@
     button.classList.toggle("opacity-70", isLoading);
   }
 
+  function normalizeFilterValue(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
   function hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput) {
     tokenInput.value = localStorage.getItem("super_admin_token") || "";
     if (window.superAdminCommon?.hideLegacyField) {
@@ -72,6 +76,71 @@
     }
   }
 
+  async function loadHotels() {
+    const response = await fetch("/api/super-admin/manage-hotel");
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load hotels");
+    }
+
+    return data.hotels || [];
+  }
+
+  function renderHotelOptions(hotelIdInput, hotels, filterValue = "") {
+    if (!hotelIdInput) {
+      return;
+    }
+
+    const selectedHotelId = hotelIdInput.dataset.preselectedHotelId || hotelIdInput.value.trim() || "";
+    const normalizedFilter = normalizeFilterValue(filterValue);
+
+    hotelIdInput.innerHTML = '<option value="">Select hotel</option>';
+    for (const hotel of hotels || []) {
+      const matches = !normalizedFilter
+        || normalizeFilterValue(hotel.name).includes(normalizedFilter)
+        || normalizeFilterValue(hotel.id).includes(normalizedFilter);
+
+      if (!matches) {
+        continue;
+      }
+
+      const option = document.createElement("option");
+      option.value = hotel.id;
+      option.textContent = `${hotel.name} (${hotel.id})`;
+      if (hotel.id === selectedHotelId) {
+        option.selected = true;
+      }
+      hotelIdInput.appendChild(option);
+    }
+  }
+
+  function attachHotelFilter(filterInput, hotelIdInput, hotels) {
+    if (!filterInput || !hotelIdInput) {
+      return;
+    }
+
+    if (filterInput.dataset.hotelFilterBound === "true") {
+      return;
+    }
+
+    filterInput.dataset.hotelFilterBound = "true";
+    hotelIdInput.dataset.preselectedHotelId = hotelIdInput.value.trim() || hotelIdInput.dataset.preselectedHotelId || "";
+
+    filterInput.addEventListener("input", () => {
+      const selectedHotelId = hotelIdInput.value.trim();
+      hotelIdInput.dataset.preselectedHotelId = selectedHotelId;
+      renderHotelOptions(hotelIdInput, hotels, filterInput.value);
+      if (selectedHotelId && !Array.from(hotelIdInput.options).some((option) => option.value === selectedHotelId)) {
+        hotelIdInput.value = "";
+      }
+    });
+
+    hotelIdInput.addEventListener("change", () => {
+      hotelIdInput.dataset.preselectedHotelId = hotelIdInput.value.trim();
+    });
+  }
+
   async function loadReports({ tokenInput, viewerNameInput, fromDateInput, toDateInput }) {
     const viewerName = viewerNameInput ? viewerNameInput.value.trim() : localStorage.getItem("super_admin_viewer_name") || "";
 
@@ -96,6 +165,42 @@
 
     if (!response.ok) {
       throw new Error(data.error || "Unable to load reports");
+    }
+
+    return data;
+  }
+
+  async function loadHotelReport({ tokenInput, viewerNameInput, hotelIdInput, fromDateInput, toDateInput }) {
+    const viewerName = viewerNameInput ? viewerNameInput.value.trim() : localStorage.getItem("super_admin_viewer_name") || "";
+    const hotelId = hotelIdInput ? hotelIdInput.value.trim() : "";
+
+    if (!viewerName) {
+      throw new Error("Please enter the viewer name.");
+    }
+
+    if (!hotelId) {
+      throw new Error("Please select a hotel.");
+    }
+
+    persistFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+    localStorage.setItem("super_admin_police_hotel_id", hotelId);
+
+    const url = new URL("/api/super-admin/hotel-report", window.location.origin);
+    url.searchParams.set("hotel_id", hotelId);
+    if (fromDateInput?.value) {
+      url.searchParams.set("from", fromDateInput.value);
+    }
+    if (toDateInput?.value) {
+      url.searchParams.set("to", toDateInput.value);
+    }
+
+    const response = await fetch(url.toString(), {
+      headers: authHeaders(tokenInput),
+    });
+    const data = await readJson(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to load hotel report");
     }
 
     return data;
@@ -336,9 +441,14 @@
     setMessage,
     clearMessage,
     setButtonLoading,
+    normalizeFilterValue,
     hydrateFilters,
     persistFilters,
+    loadHotels,
+    renderHotelOptions,
+    attachHotelFilter,
     loadReports,
+    loadHotelReport,
     createLine,
     renderCards,
     renderTable,

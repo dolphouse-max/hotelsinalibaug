@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Admin Police Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-reports-common.js?v=20260719-1"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { ocean: { 950: "#08131d", 900: "#0f2436", 800: "#17344d" } } } } };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminReportsCommon.pageChrome("Police Style Reports", "Police", "Use the same police-style guest and hotel report pages yourself with superadmin access."));
+        document.write(`
+          <div class="p-5">
+            <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+              Save viewer name, hotel, and date range once. Then open whichever police-style report you need.
+            </div>
+            <div class="space-y-4">
+              <div><label for="superAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label><input id="superAdminToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none"></div>
+              <div><label for="viewerName" class="mb-2 block text-sm font-medium text-slate-700">Viewer Name</label><input id="viewerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none" placeholder="Who is viewing proofs?"></div>
+              <div><label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Filter Hotels</label><input id="hotelFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none" placeholder="Search hotel name or hotel ID"></div>
+              <div><label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label><select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none"><option value="">Load hotels</option></select></div>
+              <div class="grid grid-cols-2 gap-3"><input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none"><input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none"></div>
+              <button id="saveFiltersButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 font-semibold text-white">Save Police Report Filters</button>
+              <div id="statusBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            </div>
+          </div>
+        </section>`);
+      </script>
+      <section class="mt-5 grid gap-3">
+        <a data-target="super-admin-police-all-hotels-search.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean-950">All Hotels Guest Search</p>
+          <p class="mt-1 text-sm text-slate-600">Search by guest name, mobile number, or car number across every hotel.</p>
+        </a>
+        <a data-target="super-admin-police-hotel-details.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean-950">Hotel Details</p>
+          <p class="mt-1 text-sm text-slate-600">See one hotel's identity, contact details, and room occupancy snapshot.</p>
+        </a>
+        <a data-target="super-admin-police-current-guests.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean-950">Current Guests</p>
+          <p class="mt-1 text-sm text-slate-600">Review current in-house guests with proof access.</p>
+        </a>
+        <a data-target="super-admin-police-guest-register.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean-950">Guest Register</p>
+          <p class="mt-1 text-sm text-slate-600">Search guest history by date range for the selected hotel.</p>
+        </a>
+        <a data-target="super-admin-police-staff-register.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean-950">Staff Register</p>
+          <p class="mt-1 text-sm text-slate-600">Review staff names, roles, and contact details for one hotel.</p>
+        </a>
+        <a data-target="super-admin-police-access-logs.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean-950">Police Access History</p>
+          <p class="mt-1 text-sm text-slate-600">See police access rows for the selected hotel.</p>
+        </a>
+      </section>
+    </main>
+    <script>
+      const tokenInput = document.getElementById("superAdminToken");
+      const viewerNameInput = document.getElementById("viewerName");
+      const hotelFilterInput = document.getElementById("hotelFilter");
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const saveFiltersButton = document.getElementById("saveFiltersButton");
+      const statusBox = document.getElementById("statusBox");
+      const policeLinks = Array.from(document.querySelectorAll(".police-link"));
+      let hotels = [];
+
+      superAdminReportsCommon.hydrateFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+      tokenInput.value = localStorage.getItem("super_admin_token") || "";
+      if (window.superAdminCommon?.hideLegacyField) { window.superAdminCommon.hideLegacyField(tokenInput); }
+      hotelIdInput.dataset.preselectedHotelId = localStorage.getItem("super_admin_police_hotel_id") || "";
+
+      async function refreshHotels() {
+        hotels = await superAdminReportsCommon.loadHotels();
+        superAdminReportsCommon.renderHotelOptions(hotelIdInput, hotels);
+        superAdminReportsCommon.attachHotelFilter(hotelFilterInput, hotelIdInput, hotels);
+      }
+
+      saveFiltersButton.addEventListener("click", () => {
+        superAdminReportsCommon.persistFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+        localStorage.setItem("super_admin_police_hotel_id", hotelIdInput.value.trim());
+        superAdminReportsCommon.setMessage(statusBox, "Police report filters saved on this device.", "success");
+      });
+
+      for (const link of policeLinks) {
+        link.href = "#";
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          superAdminReportsCommon.persistFilters(tokenInput, viewerNameInput, fromDateInput, toDateInput);
+          localStorage.setItem("super_admin_police_hotel_id", hotelIdInput.value.trim());
+          const url = new URL(link.dataset.target, window.location.origin);
+          if (hotelIdInput.value.trim()) {
+            url.searchParams.set("hotel_id", hotelIdInput.value.trim());
+          }
+          window.location.href = url.toString();
+        });
+      }
+
+      refreshHotels().catch((error) => superAdminReportsCommon.setMessage(statusBox, error instanceof Error ? error.message : "Unable to load hotels", "error"));
+    </script>
+  </body>
+</html>
