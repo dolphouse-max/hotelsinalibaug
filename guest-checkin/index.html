@@ -173,7 +173,7 @@
               </div>
               <div>
                 <label for="goingTo" class="mb-2 block text-sm font-medium text-slate-700">Going To</label>
-                <input id="goingTo" name="going_to" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Alibaug Beach">
+                <input id="goingTo" name="going_to" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Mumbai or Pune">
               </div>
             </div>
 
@@ -308,11 +308,15 @@
         const params = new URLSearchParams(window.location.search);
         return {
           hotelId: params.get("hotel_id") || localStorage.getItem("guest_checkin_hotel_id") || "",
+          access: params.get("access") || localStorage.getItem("guest_checkin_access") || "",
         };
       }
 
-      function storeConfig(hotelId) {
+      function storeConfig(hotelId, access = "") {
         localStorage.setItem("guest_checkin_hotel_id", hotelId);
+        if (access) {
+          localStorage.setItem("guest_checkin_access", access);
+        }
       }
 
       function showBanner(message, tone) {
@@ -548,7 +552,12 @@
         }
 
         const formData = buildApiFormData(entry.payload, entry.frontFile, entry.backFile, config.hotelId);
-        const response = await fetch("/api/guests/upload", {
+        const endpoint = config.access ? "/api/checkin/submit" : "/api/guests/upload";
+        if (config.access) {
+          formData.set("access", config.access);
+        }
+
+        const response = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
@@ -690,6 +699,7 @@
       function initialize() {
         const config = readStoredConfig();
         hotelIdInput.value = config.hotelId;
+        storeConfig(config.hotelId, config.access);
         updateHotelLabel();
         expectedCheckOutDateInput.min = new Date().toISOString().slice(0, 10);
         if (!expectedCheckOutDateInput.value) {
@@ -703,7 +713,7 @@
       }
 
       saveSetupButton.addEventListener("click", () => {
-        storeConfig(hotelIdInput.value.trim());
+        storeConfig(hotelIdInput.value.trim(), readStoredConfig().access);
         updateHotelLabel();
         showBanner("Device setup saved locally on this tablet.", "success");
       });

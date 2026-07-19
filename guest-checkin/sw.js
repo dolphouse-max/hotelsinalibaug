@@ -1,4 +1,4 @@
-const CACHE_NAME = "guest-checkin-pwa-v2";
+const CACHE_NAME = "guest-checkin-pwa-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -33,6 +33,29 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+  const isHomeNavigation =
+    event.request.mode === "navigate" &&
+    requestUrl.origin === self.location.origin &&
+    (requestUrl.pathname === "/" || requestUrl.pathname === "/index.html");
+
+  if (isHomeNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          return (await caches.match(event.request)) || (await caches.match("/index.html")) || Response.error();
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -49,19 +72,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           return networkResponse;
         })
-        .catch(async () => {
-          const requestUrl = new URL(event.request.url);
-          const isHomeNavigation =
-            event.request.mode === "navigate" &&
-            requestUrl.origin === self.location.origin &&
-            (requestUrl.pathname === "/" || requestUrl.pathname === "/index.html");
-
-          if (isHomeNavigation) {
-            return (await caches.match("/index.html")) || Response.error();
-          }
-
-          return Response.error();
-        });
+        .catch(() => Response.error());
     })
   );
 });
