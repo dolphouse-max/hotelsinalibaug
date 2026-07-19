@@ -133,6 +133,7 @@
   function quickNav(currentPage) {
     const pages = [
       { id: "home", label: "Home", href: "/hotel-reports-home.html" },
+      { id: "help", label: "Help", href: "/hotel-help.html" },
       { id: "snapshot", label: "Snapshot", href: "/hotel-report-snapshot.html" },
       { id: "checkins", label: "Check-Ins", href: "/hotel-report-checkins.html" },
       { id: "current", label: "Current Guests", href: "/hotel-report-current-guests.html" },

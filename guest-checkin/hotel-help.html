@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
+    <title>Hotel Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="hotel-admin-common.js?v=20260718-1"></script>
+    <script src="hotel-reports-common.js?v=20260718-1"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ocean: "#0b1824",
+              harbor: "#17324a",
+              shell: "#f6efe3",
+              breeze: "#9bc8c2",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-3xl px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a id="backToHotelHomeLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Hotel Home</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Help</span>
+      </div>
+      <script>
+        document.write(hotelAdminCommon.quickNav("help"));
+      </script>
+
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
+          <h1 class="mt-2 text-2xl font-semibold">Hotel Help</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Choose English or Marathi and review setup, daily usage, reports, guest register, and subscription guidance.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            Keep this page for hotel owners, managers, front desk staff, and anyone who needs step-by-step help while using the hotel admin app.
+          </div>
+
+          <div class="mt-5">
+            <label for="languageSelect" class="mb-2 block text-sm font-medium text-slate-700">Language</label>
+            <select id="languageSelect" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              <option value="en">English</option>
+              <option value="mr">Marathi</option>
+            </select>
+          </div>
+
+          <div id="contentEn" class="mt-6 space-y-5">
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">1. Initial Setup</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Open Hotel Admin Home and log in with the hotel admin email and password.</p>
+                <p>2. Confirm that the correct hotel ID appears on the home page.</p>
+                <p>3. Open Google Drive and connect the hotel’s own Gmail account. This is required for guest and staff proof image storage.</p>
+                <p>4. Open Guest QR & Link and generate the guest QR code for reception use.</p>
+                <p>5. Open Staff Entry and save one staff record to test that proof upload is working.</p>
+                <p>6. Open Reports once and save the date filters so future reports open faster on this device.</p>
+                <p>7. Use Install App from Hotel Admin Home if you want a full-screen app-like experience on the hotel phone or tablet.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">2. Page-by-Page Guide</h2>
+              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+                <div>
+                  <p class="font-semibold text-slate-900">Profile & Subscription</p>
+                  <p>Use this page to review hotel details, room count, active status, and hotel admin contact details. If profile data is incorrect, update it here first.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Google Drive</p>
+                  <p>Connect the hotel’s own Google account. Guest ID proofs and staff ID proofs are stored in the hotel’s `Alibaug_Guest_Register` folder. When connected successfully, the page shows `Connected`.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Guest QR & Link</p>
+                  <p>Generate the guest QR code and guest check-in link. Guests can scan the QR from their own phone and fill their own details. The same hotel link can be reused unless the hotel changes.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Pay Subscription</p>
+                  <p>Open the payment QR and pay through any UPI app. After payment, keep the payment reference or screenshot ready if superadmin asks for proof.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Bookings & Reservations</p>
+                  <p>This page saves walk-ins and future reservations on the current device browser only. It helps front desk staff track arrivals, departures, room planning, and advance payments before actual check-in.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Notifications</p>
+                  <p>Enable notifications on the hotel device to receive subscription reminders and other app messages. This is best used on the main hotel phone or front desk tablet.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Hotel Messages</p>
+                  <p>Use this section to communicate with nearby hotels about room availability, overflow guests, and other operational coordination.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Renewal Requests</p>
+                  <p>Send renewal requests to superadmin and review pending requests and payment history. This page does not take payment itself; it tracks the renewal workflow.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Staff Entry</p>
+                  <p>Use this to add staff details, mobile numbers, roles, addresses, and front/back ID proof images. The page uses the logged-in hotel session and stores proofs in the connected Google Drive.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Guest Check-Out</p>
+                  <p>Search current in-house guests and complete their checkout quickly when they leave.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Reports</p>
+                  <p>Open the report home to save filters and then use the report pages for snapshot, today’s check-ins, current guests, today’s check-outs, guest register, and staff register.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">3. Reports Explained</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p><span class="font-semibold text-slate-900">Hotel Snapshot:</span> View summary counts, occupied rooms, report date range, and trial/subscription status.</p>
+                <p><span class="font-semibold text-slate-900">Today's Check-Ins:</span> Guests who checked in today.</p>
+                <p><span class="font-semibold text-slate-900">Current Guests:</span> Guests currently staying in the hotel.</p>
+                <p><span class="font-semibold text-slate-900">Today's Check-Outs:</span> Guests who checked out today.</p>
+                <p><span class="font-semibold text-slate-900">Guest Register:</span> Guest history inside the selected date range, with search and CSV export.</p>
+                <p><span class="font-semibold text-slate-900">Staff Register:</span> Staff list with roles, status, and working-since data, with search and CSV export.</p>
+                <p>After you save hotel ID and dates once, most report pages open faster and auto-load on the same device.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">4. Guest Register and No Internet</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>The guest check-in page can still work if internet drops during submission.</p>
+                <p>If upload cannot reach the server, the guest entry is saved in the browser storage of the same device that submitted the form.</p>
+                <p>When internet returns on that same device, the pending guest entry syncs automatically.</p>
+                <p>If the guest fills the form on the guest’s own phone, the offline backup stays on the guest’s phone. If the hotel fills it on the hotel device, the offline backup stays on the hotel device.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">5. How to Pay Subscription and How It Extends</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Open <span class="font-semibold text-slate-900">Pay Subscription</span> and scan the UPI QR code.</p>
+                <p>2. Complete payment using any UPI app.</p>
+                <p>3. Open <span class="font-semibold text-slate-900">Renewal Requests</span> and send the required renewal duration to superadmin.</p>
+                <p>4. Superadmin records the payment and extends the subscription.</p>
+                <p>Extension rule: if the hotel is still active, the new paid period starts from the day after the current subscription end date. If the hotel has already expired, the new paid period starts from the payment date.</p>
+                <p>Example: if current end date is July 31, 2026 and you renew for 3 months before expiry, the next period starts on August 1, 2026 and ends after the added plan duration.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">6. Simple Daily Order</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Log in on Hotel Admin Home.</p>
+                <p>2. Check notifications or messages if needed.</p>
+                <p>3. Use Guest QR & Link for arrivals.</p>
+                <p>4. Use Guest Check-Out for departures.</p>
+                <p>5. Use Staff Entry whenever a new staff member joins.</p>
+                <p>6. Review Reports for daily checking and audits.</p>
+              </div>
+            </section>
+          </div>
+
+          <div id="contentMr" class="mt-6 hidden space-y-5">
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">1. सुरुवातीची सेटअप</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Hotel Admin Home उघडा आणि hotel admin email व password ने लॉगिन करा.</p>
+                <p>2. Home page वर योग्य hotel ID दिसत आहे का ते तपासा.</p>
+                <p>3. Google Drive page उघडून हॉटेलचे स्वतःचे Gmail account connect करा. Guest आणि staff proof image साठवण्यासाठी हे आवश्यक आहे.</p>
+                <p>4. Guest QR & Link page वर जाऊन reception साठी guest QR तयार करा.</p>
+                <p>5. Staff Entry page वर एक staff record टाकून proof upload व्यवस्थित चालते का ते तपासा.</p>
+                <p>6. Reports एकदा उघडून date filters save करा, म्हणजे पुढे report लवकर उघडतील.</p>
+                <p>7. Hotel Admin Home वरचा Install App वापरून hotel phone किंवा tablet वर app install करा.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">2. प्रत्येक page कसा वापरायचा</h2>
+              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+                <div>
+                  <p class="font-semibold text-slate-900">Profile & Subscription</p>
+                  <p>हॉटेलची माहिती, room count, active status आणि hotel admin contact तपासण्यासाठी व बदलण्यासाठी हा page वापरा.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Google Drive</p>
+                  <p>हॉटेलचे Google account connect करा. Guest आणि staff चे proof image हॉटेलच्या `Alibaug_Guest_Register` folder मध्ये save होतात. जोडणी झाल्यावर page वर `Connected` दिसेल.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Guest QR & Link</p>
+                  <p>Guest QR code आणि link तयार करा. Guest स्वतःच्या phone वर QR scan करून form भरू शकतो. Hotel बदलला नाही तर तोच link पुन्हा वापरता येतो.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Pay Subscription</p>
+                  <p>UPI QR वापरून subscription payment करा. Payment reference किंवा screenshot जपून ठेवा.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Bookings & Reservations</p>
+                  <p>हा page current device च्या browser मध्ये walk-in आणि future reservation साठवतो. D1 मध्ये save होत नाही. Arrival, departure आणि advance planning साठी उपयोगी आहे.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Notifications</p>
+                  <p>मुख्य hotel device वर notifications enable करा, म्हणजे subscription reminder आणि इतर message मिळतील.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Hotel Messages</p>
+                  <p>जवळच्या हॉटेलशी room availability, overflow guest किंवा इतर coordination साठी या page वरून message करा.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Renewal Requests</p>
+                  <p>Superadmin कडे renewal request पाठवण्यासाठी व pending request आणि payment history पाहण्यासाठी हा page वापरा.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Staff Entry</p>
+                  <p>Staff चे नाव, mobile, role, address आणि ID proof image टाकण्यासाठी हा page वापरा. Proof connected Google Drive मध्ये save होतात.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Guest Check-Out</p>
+                  <p>हॉटेलमध्ये सध्या राहणारे guest शोधून checkout complete करण्यासाठी हा page वापरा.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Reports</p>
+                  <p>Report home वर filters save करा आणि मग snapshot, check-ins, current guests, check-outs, guest register, staff register हे report page वापरा.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">3. Reports चे स्पष्टीकरण</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p><span class="font-semibold text-slate-900">Hotel Snapshot:</span> Summary count, occupied room, report date range आणि trial/subscription status दाखवतो.</p>
+                <p><span class="font-semibold text-slate-900">Today's Check-Ins:</span> आज check-in झालेले guest दाखवतो.</p>
+                <p><span class="font-semibold text-slate-900">Current Guests:</span> सध्या हॉटेलमध्ये राहणारे guest दाखवतो.</p>
+                <p><span class="font-semibold text-slate-900">Today's Check-Outs:</span> आज checkout झालेले guest दाखवतो.</p>
+                <p><span class="font-semibold text-slate-900">Guest Register:</span> निवडलेल्या date range मधील guest history, search आणि CSV export.</p>
+                <p><span class="font-semibold text-slate-900">Staff Register:</span> Staff list, role, status आणि working-since माहिती, search आणि CSV export.</p>
+                <p>Hotel ID आणि date एकदा save केल्यावर report page पुढे त्याच device वर पटकन उघडतात.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">4. इंटरनेट नसताना Guest Register</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>Guest check-in submit करताना इंटरनेट गेले तरी page काम करू शकतो.</p>
+                <p>Server ला upload जाता आला नाही तर entry त्याच device च्या browser storage मध्ये save होते.</p>
+                <p>त्या device वर इंटरनेट परत आल्यानंतर pending guest entry आपोआप sync होते.</p>
+                <p>Guest ने स्वतःच्या phone वर form भरला असेल तर offline backup guest च्या phone वर राहतो. Hotel device वर भरला असेल तर backup hotel device वर राहतो.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">5. Subscription कसे भरायचे आणि कसे वाढते</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. <span class="font-semibold text-slate-900">Pay Subscription</span> page उघडा आणि UPI QR scan करा.</p>
+                <p>2. कोणत्याही UPI app ने payment complete करा.</p>
+                <p>3. <span class="font-semibold text-slate-900">Renewal Requests</span> page वर जाऊन किती महिन्यांचे renewal हवे ते superadmin ला पाठवा.</p>
+                <p>4. Superadmin payment नोंदवतो आणि subscription वाढवतो.</p>
+                <p>नियम: subscription अजून चालू असेल तर नवीन paid period सध्याच्या end date च्या पुढच्या दिवसापासून सुरू होते. Subscription आधीच संपले असेल तर नवीन paid period payment date पासून सुरू होते.</p>
+                <p>उदाहरण: सध्याची end date July 31, 2026 असेल आणि expiry आधी 3 महिन्यांचे renewal केले तर नवीन period August 1, 2026 पासून सुरू होईल.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">6. रोजचा सोपा वापर क्रम</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Hotel Admin Home वर लॉगिन करा.</p>
+                <p>2. Notifications किंवा Messages तपासा.</p>
+                <p>3. Guest arrival साठी Guest QR & Link वापरा.</p>
+                <p>4. Departure साठी Guest Check-Out वापरा.</p>
+                <p>5. नवीन staff साठी Staff Entry वापरा.</p>
+                <p>6. Daily checking आणि audit साठी Reports वापरा.</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const hotelIdInput = { value: "" };
+      const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
+      const languageSelect = document.getElementById("languageSelect");
+      const contentEn = document.getElementById("contentEn");
+      const contentMr = document.getElementById("contentMr");
+
+      hotelAdminCommon.hydrateContext(null, hotelIdInput);
+
+      function updateBackLink() {
+        const hotelId = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
+        const backUrl = new URL("/hotel-admin-home.html", window.location.origin);
+        if (hotelId) {
+          backUrl.searchParams.set("hotel_id", hotelId);
+        }
+        backToHotelHomeLink.href = backUrl.toString();
+      }
+
+      function applyLanguage(language) {
+        const selected = language === "mr" ? "mr" : "en";
+        localStorage.setItem("hotel_help_language", selected);
+        contentEn.classList.toggle("hidden", selected !== "en");
+        contentMr.classList.toggle("hidden", selected !== "mr");
+      }
+
+      languageSelect.value = localStorage.getItem("hotel_help_language") || "en";
+      languageSelect.addEventListener("change", () => applyLanguage(languageSelect.value));
+
+      updateBackLink();
+      applyLanguage(languageSelect.value);
+    </script>
+  </body>
+</html>

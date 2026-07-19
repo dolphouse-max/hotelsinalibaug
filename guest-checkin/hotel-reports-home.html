@@ -56,27 +56,31 @@
       </section>
 
       <section class="mt-5 grid gap-3">
-        <a href="/hotel-report-snapshot.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="hotel-help.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-shell p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
+          <p class="text-lg font-semibold text-ocean">Help</p>
+          <p class="mt-1 text-sm text-slate-600">Read English and Marathi guidance for setup, reports, guest register, staff, payments, and renewals.</p>
+        </a>
+        <a data-target="hotel-report-snapshot.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ocean">Hotel Snapshot</p>
           <p class="mt-1 text-sm text-slate-600">Summary metrics, room occupancy, report range, and trial status.</p>
         </a>
-        <a href="/hotel-report-checkins.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="hotel-report-checkins.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ocean">Today's Check-Ins</p>
           <p class="mt-1 text-sm text-slate-600">Guests checked in today for the selected hotel.</p>
         </a>
-        <a href="/hotel-report-current-guests.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="hotel-report-current-guests.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ocean">Current Guests</p>
           <p class="mt-1 text-sm text-slate-600">All currently in-house guests for front desk review.</p>
         </a>
-        <a href="/hotel-report-checkouts.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="hotel-report-checkouts.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ocean">Today's Check-Outs</p>
           <p class="mt-1 text-sm text-slate-600">Guests checked out today.</p>
         </a>
-        <a href="/hotel-report-guest-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="hotel-report-guest-register.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ocean">Guest Register</p>
           <p class="mt-1 text-sm text-slate-600">Guest history with search and CSV export.</p>
         </a>
-        <a href="/hotel-report-staff-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="hotel-report-staff-register.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ocean">Staff Register</p>
           <p class="mt-1 text-sm text-slate-600">Staff list with search and CSV export.</p>
         </a>
@@ -90,6 +94,7 @@
       const saveFiltersButton = document.getElementById("saveFiltersButton");
       const statusBox = document.getElementById("statusBox");
       const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
+      const launcherLinks = Array.from(document.querySelectorAll(".launcher-link"));
 
       hotelReportsCommon.hydrateFilters(null, hotelIdInput, fromDateInput, toDateInput);
 
@@ -104,6 +109,22 @@
 
       updateBackLink();
       hotelIdInput.addEventListener("input", updateBackLink);
+
+      for (const link of launcherLinks) {
+        link.href = "#";
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          const hotelId = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
+          hotelIdInput.value = hotelId;
+          hotelReportsCommon.persistFilters(null, hotelIdInput, fromDateInput, toDateInput);
+
+          const url = new URL(link.dataset.target, window.location.href);
+          if (hotelId) {
+            url.searchParams.set("hotel_id", hotelId);
+          }
+          window.location.href = url.toString();
+        });
+      }
 
       if (hotelIdInput.value.trim()) {
         hotelReportsCommon.setMessage(statusBox, "Saved hotel report filters found on this device.", "success");
