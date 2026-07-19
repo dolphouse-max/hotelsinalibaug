@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#1f3b57">
     <title>Police Access Console | Hotels In Alibaug</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="police-reports-common.js?v=20260719-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -60,8 +61,8 @@
 
             <form id="policeForm" class="mt-8 space-y-5">
               <div>
-                <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
-                <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Paste police access token">
+                <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Saved Session</label>
+                <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Saved police login session">
               </div>
 
               <div class="grid gap-4 sm:grid-cols-2">
@@ -72,7 +73,7 @@
                 <div>
                   <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
                   <select id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
-                    <option value="">Load hotels after entering token</option>
+                    <option value="">Load hotels after login</option>
                   </select>
                 </div>
               </div>
@@ -100,7 +101,7 @@
                   <p class="mt-2 text-sm text-slate-600">Latest guest records returned for the selected hotel or guest.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                  <a href="/police-reports.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slateblue hover:text-ink">
+                  <a href="/police-reports-home.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slateblue hover:text-ink">
                     Open Reports
                   </a>
                   <div id="resultsState" class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No lookup run yet.</div>
@@ -137,11 +138,6 @@
       const resultsState = document.getElementById("resultsState");
       const resultsList = document.getElementById("resultsList");
 
-      function authHeader() {
-        const token = document.getElementById("policeToken").value.trim();
-        return token ? { Authorization: `Bearer ${token}` } : {};
-      }
-
       function showMessage(target, message) {
         target.textContent = message;
         target.classList.remove("hidden");
@@ -168,10 +164,8 @@
       }
 
       async function loadHotels() {
-        const response = await fetch("/api/police/hotels", {
-          headers: authHeader(),
-        });
-        const data = await readJson(response);
+        const response = await fetch("/api/police/hotels");
+        const data = await policeReportsCommon.readJson(response);
 
         if (!response.ok) {
           throw new Error(data.error || "Unable to load hotels");
@@ -207,12 +201,8 @@
         return url.toString();
       }
 
-      async function openProofDocument(url, token) {
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      async function openProofDocument(url) {
+        const response = await fetch(url);
 
         if (!response.ok) {
           const contentType = response.headers.get("content-type") || "";
@@ -254,19 +244,18 @@
       function attachProofButtons(scope) {
         for (const button of scope.querySelectorAll(".proof-button")) {
           button.addEventListener("click", async () => {
-            const token = tokenInput.value.trim();
             const guestId = button.dataset.guestId;
             const side = button.dataset.side;
 
-            if (!token || !guestId || !side) {
-              showMessage(policeError, "Police token, guest, or proof side is missing.");
+            if (!guestId || !side) {
+              showMessage(policeError, "Guest or proof side is missing.");
               return;
             }
 
             try {
               policeError.classList.add("hidden");
               policeError.textContent = "";
-              await openProofDocument(buildProofUrl(guestId, side), token);
+              await openProofDocument(buildProofUrl(guestId, side));
             } catch (error) {
               showMessage(policeError, error instanceof Error ? error.message : "Unable to open guest proof.");
             }
@@ -311,16 +300,6 @@
         attachProofButtons(resultsList);
       }
 
-      async function readJson(response) {
-        const text = await response.text();
-
-        try {
-          return text ? JSON.parse(text) : {};
-        } catch {
-          return { error: text || "Unexpected response" };
-        }
-      }
-
       policeForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         clearMessages();
@@ -341,10 +320,8 @@
             url.searchParams.set("guest_id", guestId);
           }
 
-          const response = await fetch(url.toString(), {
-            headers: authHeader(),
-          });
-          const data = await readJson(response);
+          const response = await fetch(url.toString());
+          const data = await policeReportsCommon.readJson(response);
 
           if (!response.ok) {
             throw new Error(data.error || "Unable to fetch police access records");
@@ -361,10 +338,15 @@
       });
 
       restoreContext();
-      tokenInput.addEventListener("change", () => {
-        loadHotels().catch(() => {});
-      });
-      loadHotels().catch(() => {});
+      policeReportsCommon.hideSessionField(tokenInput);
+      policeReportsCommon.getSession()
+        .then((session) => {
+          if (session) {
+            tokenInput.value = "__app_session__";
+            loadHotels().catch(() => {});
+          }
+        })
+        .catch(() => {});
     </script>
   </body>
 </html>

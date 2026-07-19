@@ -12,6 +12,18 @@
     return {};
   }
 
+  function hideSessionField(input) {
+    if (!input) {
+      return;
+    }
+
+    input.type = "hidden";
+    const wrapper = input.closest("div");
+    if (wrapper) {
+      wrapper.classList.add("hidden");
+    }
+  }
+
   async function getSession() {
     const url = new URL("/api/auth/session", window.location.origin);
     url.searchParams.set("role", "police");
@@ -64,10 +76,9 @@
   }
 
   function hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput) {
-    tokenInput.value = localStorage.getItem("police_access_token") || "";
-    const tokenWrapper = tokenInput.closest("div");
-    if (tokenWrapper) {
-      tokenWrapper.classList.add("hidden");
+    if (tokenInput) {
+      tokenInput.value = localStorage.getItem("police_access_token") || "";
+      hideSessionField(tokenInput);
     }
     officerNameInput.value = localStorage.getItem("police_officer_name") || "";
     fromDateInput.value = localStorage.getItem("police_reports_from") || formatDateOffset(29);
@@ -354,6 +365,7 @@
     params,
     formatDateOffset,
     authHeaders,
+    hideSessionField,
     getSession,
     readJson,
     showBox,

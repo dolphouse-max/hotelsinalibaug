@@ -127,6 +127,19 @@
           <h2 class="text-lg font-semibold text-ocean">Firebase Users</h2>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Provision</p>
         </div>
+        <div class="mb-4 rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+          <p class="text-lg font-semibold text-ocean">Create Police User</p>
+          <p class="mt-1 text-sm text-slate-600">Create police login rights with a generated Police ID like <span class="font-semibold">alibaug-police001</span>. The officer logs in with the actual Gmail address, and the temporary password defaults to the generated Police ID.</p>
+          <div class="mt-4 grid gap-3">
+            <input id="policeLoginId" readonly class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none" placeholder="Generated Police ID">
+            <input id="policeEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Police officer Gmail">
+            <input id="policePassword" readonly class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none" placeholder="Temporary password">
+            <button id="createPoliceUserButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15 transition active:scale-[0.98] disabled:cursor-not-allowed">
+              Create Police User
+            </button>
+          </div>
+          <div id="policeUserMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+        </div>
         <div class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
           <p class="text-sm text-slate-600">Create Firebase login users for superadmin, hotel admin, or police. Hotel admin users must be linked to a hotel.</p>
           <div class="mt-4 grid gap-3">
@@ -179,6 +192,12 @@
       const createUserButton = document.getElementById("createUserButton");
       const userMessage = document.getElementById("userMessage");
       const userList = document.getElementById("userList");
+      const policeLoginIdInput = document.getElementById("policeLoginId");
+      const policeEmailInput = document.getElementById("policeEmail");
+      const policePasswordInput = document.getElementById("policePassword");
+      const createPoliceUserButton = document.getElementById("createPoliceUserButton");
+      const policeUserMessage = document.getElementById("policeUserMessage");
+      let cachedUsers = [];
 
       function setLoggedInState(session) {
         logoutButton.classList.remove("hidden");
@@ -186,23 +205,39 @@
       }
 
       function renderUsers(users) {
+        cachedUsers = Array.isArray(users) ? users : [];
         userList.innerHTML = "";
-        if (!users.length) {
+        if (!cachedUsers.length) {
           userList.innerHTML = '<div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">No Firebase user mappings saved yet.</div>';
+          refreshPoliceDefaults();
           return;
         }
 
-        for (const user of users) {
+        for (const user of cachedUsers) {
           const card = document.createElement("article");
           card.className = "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4";
+          const roleLabel = String(user.role || "").replace("_", " ");
+          const detailLine = user.role === "police"
+            ? `Police ID: ${user.display_name || "Not set"}`
+            : user.hotel_name
+              ? `Hotel: ${user.hotel_name} (${user.hotel_id})`
+              : "No hotel linked";
           card.innerHTML = `
             <p class="font-semibold text-ocean">${user.display_name || user.email}</p>
             <p class="mt-1 text-sm text-slate-600">${user.email}</p>
-            <p class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">${user.role.replace("_", " ")}</p>
-            <p class="mt-1 text-sm text-slate-600">${user.hotel_name ? `Hotel: ${user.hotel_name} (${user.hotel_id})` : "No hotel linked"}</p>
+            <p class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">${roleLabel}</p>
+            <p class="mt-1 text-sm text-slate-600">${detailLine}</p>
           `;
           userList.appendChild(card);
         }
+
+        refreshPoliceDefaults();
+      }
+
+      function refreshPoliceDefaults() {
+        const nextPoliceId = superAdminCommon.suggestPoliceLoginId(cachedUsers);
+        policeLoginIdInput.value = nextPoliceId;
+        policePasswordInput.value = nextPoliceId;
       }
 
       async function hydrateHotels() {
@@ -340,11 +375,52 @@
         }
       });
 
+      createPoliceUserButton.addEventListener("click", async () => {
+        const policeEmail = policeEmailInput.value.trim().toLowerCase();
+        const policeLoginId = policeLoginIdInput.value.trim().toLowerCase();
+        const policePassword = policePasswordInput.value;
+
+        if (!policeEmail) {
+          superAdminCommon.setMessage(policeUserMessage, "Enter police officer Gmail first.", "error");
+          return;
+        }
+
+        superAdminCommon.clearMessage(policeUserMessage);
+        superAdminCommon.setButtonLoading(createPoliceUserButton, true, "Creating...");
+        try {
+          const created = await window.firebaseAuthBridge.createUserInFirebase(
+            policeEmail,
+            policePassword,
+            policeLoginId
+          );
+          await superAdminCommon.saveUser({
+            firebase_uid: created.uid,
+            email: created.email,
+            role: "police",
+            hotel_id: "",
+            display_name: policeLoginId,
+            is_active: 1,
+          });
+          superAdminCommon.setMessage(
+            policeUserMessage,
+            `Police user created. Police ID: ${policeLoginId}. Login email: ${created.email}. Temporary password: ${policePassword}.`,
+            "success"
+          );
+          policeEmailInput.value = "";
+          await hydrateUsers();
+        } catch (error) {
+          superAdminCommon.setMessage(policeUserMessage, error.message || "Unable to create police user.", "error");
+        } finally {
+          superAdminCommon.setButtonLoading(createPoliceUserButton, false);
+        }
+      });
+
       logoutButton.addEventListener("click", async () => {
         await window.firebaseAuthBridge.signOutEverywhere();
         window.location.reload();
       });
 
+      refreshPoliceDefaults();
       initializeFirebaseLogin();
     </script>
   </body>

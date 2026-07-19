@@ -8,7 +8,7 @@
     <link rel="manifest" href="/manifest.json">
     <title>Police Reports Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="police-reports-common.js?v=20260718-1"></script>
+    <script src="police-reports-common.js?v=20260719-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -37,8 +37,8 @@
           </div>
           <div class="space-y-4">
             <div>
-              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
-              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Saved police session">
+              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Saved Session</label>
+              <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Saved police login session">
             </div>
             <div>
               <label for="officerName" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
@@ -74,27 +74,27 @@
       </section>
 
       <section class="mt-5 grid gap-3">
-        <a href="/police-console.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="police-console.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ink">Police Console</p>
           <p class="mt-1 text-sm text-slate-600">Look up guest access records and open proof documents with audit logging.</p>
         </a>
-        <a href="/police-report-hotel-details.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="police-report-hotel-details.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ink">Hotel Details</p>
           <p class="mt-1 text-sm text-slate-600">Basic hotel identity, contact details, and room occupancy snapshot.</p>
         </a>
-        <a href="/police-report-current-guests.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="police-report-current-guests.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ink">Current Guests</p>
           <p class="mt-1 text-sm text-slate-600">Who is currently in-house, with proof access when available.</p>
         </a>
-        <a href="/police-report-guest-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="police-report-guest-register.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ink">Guest Register</p>
           <p class="mt-1 text-sm text-slate-600">Guest history for the selected date range with proof access.</p>
         </a>
-        <a href="/police-report-staff-register.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="police-report-staff-register.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ink">Staff Register</p>
           <p class="mt-1 text-sm text-slate-600">Hotel staff list, roles, phone numbers, and active status.</p>
         </a>
-        <a href="/police-report-access-logs.html" class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50">
+        <a data-target="police-report-access-logs.html" class="police-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
           <p class="text-lg font-semibold text-ink">Police Access History</p>
           <p class="mt-1 text-sm text-slate-600">Logged access rows for the selected hotel and date range.</p>
         </a>
@@ -109,6 +109,7 @@
       const toDateInput = document.getElementById("toDate");
       const saveFiltersButton = document.getElementById("saveFiltersButton");
       const statusBox = document.getElementById("statusBox");
+      const policeLinks = Array.from(document.querySelectorAll(".police-link"));
 
       policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
 
@@ -124,6 +125,22 @@
         policeReportsCommon.persistFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
         policeReportsCommon.showBox(statusBox, "Report filters saved on this device.", "success");
       });
+
+      for (const link of policeLinks) {
+        link.href = "#";
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          policeReportsCommon.persistFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+          const url = new URL(link.dataset.target, window.location.href);
+          if (hotelIdInput.value.trim()) {
+            url.searchParams.set("hotel_id", hotelIdInput.value.trim());
+          }
+          if (officerNameInput.value.trim()) {
+            url.searchParams.set("officer_name", officerNameInput.value.trim());
+          }
+          window.location.href = url.toString();
+        });
+      }
 
       policeReportsCommon.getSession().then((session) => {
         if (session) {

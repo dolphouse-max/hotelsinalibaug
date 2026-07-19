@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
     <script src="firebase-auth.js?v=20260718-3"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="police-reports-common.js?v=20260719-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -141,6 +142,35 @@
         localStorage.setItem("police_access_token", "__app_session__");
       }
 
+      async function refreshHotelsFromSession() {
+        try {
+          const selectedHotelId = hotelIdInput.value.trim();
+          const tempSelect = document.createElement("select");
+          tempSelect.dataset.preselectedHotelId = selectedHotelId;
+          await policeReportsCommon.loadHotels(null, tempSelect);
+          if (tempSelect.options.length > 1) {
+            const options = Array.from(tempSelect.options).map((option) => ({
+              value: option.value,
+              text: option.textContent,
+              selected: option.selected,
+            }));
+            hotelIdInput.setAttribute("list", "policeHotelOptions");
+            let dataList = document.getElementById("policeHotelOptions");
+            if (!dataList) {
+              dataList = document.createElement("datalist");
+              dataList.id = "policeHotelOptions";
+              document.body.appendChild(dataList);
+            }
+            dataList.innerHTML = options
+              .filter((option) => option.value)
+              .map((option) => `<option value="${option.value}">${option.text}</option>`)
+              .join("");
+          }
+        } catch {
+          // Keep manual hotel ID entry available even if hotel list load fails.
+        }
+      }
+
       loginButton.addEventListener("click", async () => {
         try {
           const email = policeEmailInput.value.trim().toLowerCase();
@@ -150,6 +180,7 @@
           const data = await window.firebaseAuthBridge.signIn(email, policePasswordInput.value);
           policeEmailInput.value = data.session.email || email;
           persistContext();
+          await refreshHotelsFromSession();
           showMessage("Police login successful.", "success");
         } catch (error) {
           showMessage(error instanceof Error ? error.message : "Unable to log in.", "error");
@@ -214,6 +245,7 @@
         .then((data) => {
           if (data?.session?.role === "police") {
             policeEmailInput.value = data.session.email || policeEmailInput.value;
+            refreshHotelsFromSession();
             showMessage("Police session restored.", "success");
           }
         })

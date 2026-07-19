@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Police Hotel Details</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="police-reports-common.js?v=20260718-1"></script>
+    <script src="police-reports-common.js?v=20260719-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -33,7 +33,7 @@
           </div>
           <div class="space-y-4">
             <div>
-              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Police Access Token</label>
+              <label for="policeToken" class="mb-2 block text-sm font-medium text-slate-700">Saved Session</label>
               <input id="policeToken" type="password" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <div>
@@ -43,7 +43,7 @@
             <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
               <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
-                <option value="">Load hotels after entering token</option>
+                <option value="">Load hotels after login</option>
               </select>
             </div>
             <div class="grid grid-cols-2 gap-3">

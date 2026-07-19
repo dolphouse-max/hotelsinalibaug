@@ -173,6 +173,29 @@
     return `${base}${String(maxSuffix + 1).padStart(4, "0")}`;
   }
 
+  function suggestPoliceLoginId(users) {
+    let maxSuffix = 0;
+
+    for (const user of users || []) {
+      if (String(user.role || "").trim() !== "police") {
+        continue;
+      }
+
+      const value = String(user.display_name || user.email || "").trim().toLowerCase();
+      const match = value.match(/^alibaug-police(\d{3})$/);
+      if (!match) {
+        continue;
+      }
+
+      const suffix = Number(match[1]);
+      if (Number.isFinite(suffix) && suffix > maxSuffix) {
+        maxSuffix = suffix;
+      }
+    }
+
+    return `alibaug-police${String(maxSuffix + 1).padStart(3, "0")}`;
+  }
+
   function pageChrome(pageTitle, badgeText, description) {
     return `
       <div class="flex items-center justify-between text-sm">
@@ -295,6 +318,7 @@
     clearMessage,
     setButtonLoading,
     suggestHotelId,
+    suggestPoliceLoginId,
     pageChrome,
     quickNav,
     mountBrandChip,
