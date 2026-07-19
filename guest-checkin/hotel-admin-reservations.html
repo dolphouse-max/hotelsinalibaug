@@ -206,7 +206,7 @@
       const reservationsState = document.getElementById("reservationsState");
       const calendarGrid = document.getElementById("calendarGrid");
       const calendarState = document.getElementById("calendarState");
-      const todayIso = new Date().toISOString().slice(0, 10);
+      const todayIso = new Date().toLocaleDateString("en-CA");
       const exportCsvButton = document.getElementById("exportCsvButton");
       const importCsvInput = document.getElementById("importCsvInput");
       const backupDriveButton = document.getElementById("backupDriveButton");
@@ -389,11 +389,29 @@
 
       function setDefaultDates() {
         document.getElementById("checkInDate").value = todayIso;
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        document.getElementById("checkOutDate").value = tomorrow.toISOString().slice(0, 10);
+        document.getElementById("checkOutDate").value = addDaysIso(todayIso, 1);
         document.getElementById("checkInDate").min = todayIso;
         document.getElementById("checkOutDate").min = todayIso;
+      }
+
+      function parseIsoDateParts(isoDate) {
+        const [year, month, day] = String(isoDate || "").split("-").map(Number);
+        return { year, month, day };
+      }
+
+      function toUtcDate(isoDate) {
+        const { year, month, day } = parseIsoDateParts(isoDate);
+        return new Date(Date.UTC(year, month - 1, day));
+      }
+
+      function formatUtcDate(date) {
+        return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+      }
+
+      function addDaysIso(isoDate, days) {
+        const date = toUtcDate(isoDate);
+        date.setUTCDate(date.getUTCDate() + days);
+        return formatUtcDate(date);
       }
 
       function reservationCoversDate(item, isoDate) {
@@ -410,26 +428,26 @@
 
         const counts = new Map();
         for (const item of futureItems) {
-          let cursor = new Date(`${item.check_in_date}T00:00:00`);
-          const checkOut = new Date(`${item.check_out_date}T00:00:00`);
+          let cursor = toUtcDate(item.check_in_date);
+          const checkOut = toUtcDate(item.check_out_date);
 
           while (cursor < checkOut) {
-            const iso = cursor.toISOString().slice(0, 10);
+            const iso = formatUtcDate(cursor);
             counts.set(iso, (counts.get(iso) || 0) + 1);
-            cursor.setDate(cursor.getDate() + 1);
+            cursor.setUTCDate(cursor.getUTCDate() + 1);
           }
         }
 
-        const base = new Date(`${todayIso}T00:00:00`);
+        const base = toUtcDate(todayIso);
         for (let index = 0; index < 30; index += 1) {
           const date = new Date(base);
-          date.setDate(base.getDate() + index);
-          const iso = date.toISOString().slice(0, 10);
+          date.setUTCDate(base.getUTCDate() + index);
+          const iso = formatUtcDate(date);
           const button = document.createElement("button");
           button.type = "button";
           button.className = `rounded-2xl border px-2 py-3 text-center text-xs ${selectedCalendarDate === iso ? "border-ocean bg-ocean text-white" : "border-slate-200 bg-slate-50 text-slate-700"}`;
           button.innerHTML = `
-            <div class="font-semibold">${date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</div>
+            <div class="font-semibold">${date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", timeZone: "UTC" })}</div>
             <div class="mt-1">${counts.get(iso) || 0} booking${(counts.get(iso) || 0) === 1 ? "" : "s"}</div>
           `;
           button.addEventListener("click", () => {
