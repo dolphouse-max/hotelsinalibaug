@@ -396,6 +396,10 @@
         document.getElementById("checkOutDate").min = todayIso;
       }
 
+      function reservationCoversDate(item, isoDate) {
+        return item.check_in_date <= isoDate && item.check_out_date > isoDate;
+      }
+
       function renderCalendar(items) {
         calendarGrid.innerHTML = "";
         const futureItems = items.filter((item) => item.check_in_date >= todayIso);
@@ -406,7 +410,14 @@
 
         const counts = new Map();
         for (const item of futureItems) {
-          counts.set(item.check_in_date, (counts.get(item.check_in_date) || 0) + 1);
+          let cursor = new Date(`${item.check_in_date}T00:00:00`);
+          const checkOut = new Date(`${item.check_out_date}T00:00:00`);
+
+          while (cursor < checkOut) {
+            const iso = cursor.toISOString().slice(0, 10);
+            counts.set(iso, (counts.get(iso) || 0) + 1);
+            cursor.setDate(cursor.getDate() + 1);
+          }
         }
 
         const base = new Date(`${todayIso}T00:00:00`);
@@ -429,8 +440,8 @@
         }
 
         calendarState.textContent = selectedCalendarDate
-          ? `Showing reservations for ${selectedCalendarDate}. Tap the selected day again to clear the filter.`
-          : "Tap a future date to filter reservations by check-in date.";
+          ? `Showing reservations staying on ${selectedCalendarDate}. Tap the selected day again to clear the filter.`
+          : "Tap a future date to filter reservations staying on that date.";
       }
 
       function reservationMatchesSearch(item, query) {
@@ -455,7 +466,7 @@
         const query = document.getElementById("reservationSearch").value.trim().toLowerCase();
 
         const filtered = items.filter((item) => {
-          if (selectedCalendarDate && item.check_in_date !== selectedCalendarDate) {
+          if (selectedCalendarDate && !reservationCoversDate(item, selectedCalendarDate)) {
             return false;
           }
 
