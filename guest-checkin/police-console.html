@@ -71,6 +71,10 @@
                   <input id="officerName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Inspector Anil Patil">
                 </div>
                 <div>
+                  <label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Filter Hotels</label>
+                  <input id="hotelFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search hotel name or hotel ID">
+                </div>
+                <div>
                   <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
                   <select id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
                     <option value="">Load hotels after login</option>
@@ -132,11 +136,15 @@
       const tokenInput = document.getElementById("policeToken");
       const policeError = document.getElementById("policeError");
       const policeSuccess = document.getElementById("policeSuccess");
+      const hotelFilterInput = document.getElementById("hotelFilter");
       const lookupButton = document.getElementById("lookupButton");
       const lookupText = document.getElementById("lookupText");
       const lookupSpinner = document.getElementById("lookupSpinner");
       const resultsState = document.getElementById("resultsState");
       const resultsList = document.getElementById("resultsList");
+      const hotelIdSelect = document.getElementById("hotelId");
+
+      policeReportsCommon.attachHotelFilter(hotelFilterInput, hotelIdSelect);
 
       function showMessage(target, message) {
         target.textContent = message;

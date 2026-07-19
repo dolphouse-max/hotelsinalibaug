@@ -41,6 +41,10 @@
               <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <div>
+              <label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Filter Hotels</label>
+              <input id="hotelFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search hotel name or hotel ID">
+            </div>
+            <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
               <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
                 <option value="">Load hotels after login</option>
@@ -56,7 +60,7 @@
             </div>
             <div>
               <label for="guestFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Guest</label>
-              <input id="guestFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search by guest name or mobile number">
+              <input id="guestFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search by guest name, mobile, room, car number, ID type, or ID number">
             </div>
             <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
@@ -84,6 +88,7 @@
     <script>
       const tokenInput = document.getElementById("policeToken");
       const officerNameInput = document.getElementById("officerName");
+      const hotelFilterInput = document.getElementById("hotelFilter");
       const hotelIdInput = document.getElementById("hotelId");
       const fromDateInput = document.getElementById("fromDate");
       const toDateInput = document.getElementById("toDate");
@@ -96,6 +101,7 @@
       let lastReportData = null;
 
       policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+      policeReportsCommon.attachHotelFilter(hotelFilterInput, hotelIdInput);
 
       async function initHotels() {
         if (tokenInput.value.trim()) {
@@ -104,21 +110,24 @@
         }
       }
 
-      function normalizeFilterValue(value) {
-        return String(value || "").trim().toLowerCase();
-      }
-
       function applyGuestFilter(guests) {
-        const filterValue = normalizeFilterValue(guestFilterInput.value);
+        const filterValue = policeReportsCommon.normalizeFilterValue(guestFilterInput.value);
         if (!filterValue) {
           return guests;
         }
 
-        return guests.filter((guest) => {
-          const name = normalizeFilterValue(guest.name);
-          const phone = normalizeFilterValue(guest.phone);
-          return name.includes(filterValue) || phone.includes(filterValue);
-        });
+        return guests.filter((guest) =>
+          [
+            guest.name,
+            guest.phone,
+            guest.room_number,
+            guest.vehicle_number,
+            guest.id_type,
+            guest.id_number,
+          ]
+            .filter(Boolean)
+            .some((value) => policeReportsCommon.normalizeFilterValue(value).includes(filterValue))
+        );
       }
 
       function renderGuestRegister(guests) {

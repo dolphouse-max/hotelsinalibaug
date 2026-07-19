@@ -86,6 +86,10 @@
     button.classList.toggle("opacity-70", isLoading);
   }
 
+  function normalizeFilterValue(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
   function createLine(label, value) {
     return `<p class="mt-1 text-sm text-slate-500">${label}: <span class="font-medium text-slate-700">${value}</span></p>`;
   }
@@ -168,6 +172,7 @@
     setMessage,
     clearMessage,
     setButtonLoading,
+    normalizeFilterValue,
     createLine,
     renderCards,
     renderTable,

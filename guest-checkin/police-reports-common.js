@@ -75,6 +75,10 @@
     button.classList.toggle("opacity-70", isLoading);
   }
 
+  function normalizeFilterValue(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
   function hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput) {
     if (tokenInput) {
       tokenInput.value = localStorage.getItem("police_access_token") || "";
@@ -108,8 +112,26 @@
     }
 
     const selectedHotelId = hotelIdInput.dataset.preselectedHotelId || hotelIdInput.value.trim() || "";
+    hotelIdInput.dataset.preselectedHotelId = selectedHotelId;
+    hotelIdInput._allHotels = data.hotels || [];
+    renderHotelOptions(hotelIdInput);
+  }
+
+  function renderHotelOptions(hotelIdInput, filterValue = "") {
+    const hotels = Array.isArray(hotelIdInput?._allHotels) ? hotelIdInput._allHotels : [];
+    const selectedHotelId = hotelIdInput?.dataset?.preselectedHotelId || hotelIdInput?.value?.trim() || "";
+    const normalizedFilter = normalizeFilterValue(filterValue);
+
     hotelIdInput.innerHTML = '<option value="">Select hotel</option>';
-    for (const hotel of data.hotels || []) {
+    for (const hotel of hotels) {
+      const matches = !normalizedFilter
+        || normalizeFilterValue(hotel.name).includes(normalizedFilter)
+        || normalizeFilterValue(hotel.id).includes(normalizedFilter);
+
+      if (!matches) {
+        continue;
+      }
+
       const option = document.createElement("option");
       option.value = hotel.id;
       option.textContent = `${hotel.name} (${hotel.id})`;
@@ -118,6 +140,30 @@
       }
       hotelIdInput.appendChild(option);
     }
+  }
+
+  function attachHotelFilter(filterInput, hotelIdInput) {
+    if (!filterInput || !hotelIdInput) {
+      return;
+    }
+
+    if (filterInput.dataset.hotelFilterBound === "true") {
+      return;
+    }
+
+    filterInput.dataset.hotelFilterBound = "true";
+    filterInput.addEventListener("input", () => {
+      const selectedHotelId = hotelIdInput.value.trim();
+      hotelIdInput.dataset.preselectedHotelId = selectedHotelId;
+      renderHotelOptions(hotelIdInput, filterInput.value);
+      if (selectedHotelId && !Array.from(hotelIdInput.options).some((option) => option.value === selectedHotelId)) {
+        hotelIdInput.value = "";
+      }
+    });
+
+    hotelIdInput.addEventListener("change", () => {
+      hotelIdInput.dataset.preselectedHotelId = hotelIdInput.value.trim();
+    });
   }
 
   async function loadReport({ tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput }) {
@@ -366,6 +412,7 @@
     formatDateOffset,
     authHeaders,
     hideSessionField,
+    normalizeFilterValue,
     getSession,
     readJson,
     showBox,
@@ -374,6 +421,8 @@
     hydrateFilters,
     persistFilters,
     loadHotels,
+    renderHotelOptions,
+    attachHotelFilter,
     loadReport,
     createLine,
     renderCards,

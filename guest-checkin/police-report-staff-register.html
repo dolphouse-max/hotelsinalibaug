@@ -41,6 +41,10 @@
               <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <div>
+              <label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Filter Hotels</label>
+              <input id="hotelFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search hotel name or hotel ID">
+            </div>
+            <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
               <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
                 <option value="">Load hotels after login</option>
@@ -83,6 +87,7 @@
     <script>
       const tokenInput = document.getElementById("policeToken");
       const officerNameInput = document.getElementById("officerName");
+      const hotelFilterInput = document.getElementById("hotelFilter");
       const hotelIdInput = document.getElementById("hotelId");
       const fromDateInput = document.getElementById("fromDate");
       const toDateInput = document.getElementById("toDate");
@@ -95,6 +100,7 @@
       let lastReportData = null;
 
       policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+      policeReportsCommon.attachHotelFilter(hotelFilterInput, hotelIdInput);
 
       async function initHotels() {
         if (tokenInput.value.trim()) {
@@ -103,12 +109,8 @@
         }
       }
 
-      function normalizeFilterValue(value) {
-        return String(value || "").trim().toLowerCase();
-      }
-
       function applyStaffFilter(staffRows) {
-        const filterValue = normalizeFilterValue(staffFilterInput.value);
+        const filterValue = policeReportsCommon.normalizeFilterValue(staffFilterInput.value);
         if (!filterValue) {
           return staffRows;
         }
@@ -121,7 +123,7 @@
             staff.email,
           ]
             .filter(Boolean)
-            .some((value) => normalizeFilterValue(value).includes(filterValue))
+            .some((value) => policeReportsCommon.normalizeFilterValue(value).includes(filterValue))
         );
       }
 

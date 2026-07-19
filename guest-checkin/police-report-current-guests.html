@@ -41,6 +41,10 @@
               <input id="officerName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <div>
+              <label for="hotelFilter" class="mb-2 block text-sm font-medium text-slate-700">Filter Hotels</label>
+              <input id="hotelFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search hotel name or hotel ID">
+            </div>
+            <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel Name</label>
               <select id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
                 <option value="">Load hotels after login</option>
@@ -51,6 +55,10 @@
               <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <button id="loadButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white">Load Report</button>
+            <div>
+              <label for="guestFilter" class="mb-2 block text-sm font-medium text-slate-700">Search Guests</label>
+              <input id="guestFilter" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10" placeholder="Search by name, mobile, room, car number, or ID number">
+            </div>
             <div id="errorBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
 
@@ -68,16 +76,61 @@
     <script>
       const tokenInput = document.getElementById("policeToken");
       const officerNameInput = document.getElementById("officerName");
+      const hotelFilterInput = document.getElementById("hotelFilter");
       const hotelIdInput = document.getElementById("hotelId");
       const fromDateInput = document.getElementById("fromDate");
       const toDateInput = document.getElementById("toDate");
       const loadButton = document.getElementById("loadButton");
+      const guestFilterInput = document.getElementById("guestFilter");
       const errorBox = document.getElementById("errorBox");
       const metricGuests = document.getElementById("metricGuests");
       const currentGuestsState = document.getElementById("currentGuestsState");
       const currentGuestsList = document.getElementById("currentGuestsList");
+      let lastReportData = null;
 
       policeReportsCommon.hydrateFilters(tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput);
+      policeReportsCommon.attachHotelFilter(hotelFilterInput, hotelIdInput);
+
+      function applyGuestFilter(guests) {
+        const filterValue = policeReportsCommon.normalizeFilterValue(guestFilterInput.value);
+        if (!filterValue) {
+          return guests;
+        }
+
+        return guests.filter((guest) =>
+          [
+            guest.name,
+            guest.phone,
+            guest.room_number,
+            guest.id_type,
+            guest.id_number,
+            guest.vehicle_number,
+          ]
+            .filter(Boolean)
+            .some((value) => policeReportsCommon.normalizeFilterValue(value).includes(filterValue))
+        );
+      }
+
+      function renderCurrentGuests(guests, officerName) {
+        const filteredGuests = applyGuestFilter(guests);
+        currentGuestsState.textContent = `${filteredGuests.length} current guest record${filteredGuests.length === 1 ? "" : "s"} loaded for ${officerName}.`;
+        policeReportsCommon.renderCards(
+          currentGuestsList,
+          filteredGuests,
+          "No guests are currently checked in at this hotel.",
+          (guest) => `
+            <h3 class="text-base font-semibold text-ink">${guest.name}</h3>
+            ${policeReportsCommon.createLine("Room", guest.room_number || "-")}
+            ${policeReportsCommon.createLine("Phone", guest.phone || "-")}
+            ${policeReportsCommon.createLine("ID Type", guest.id_type || "-")}
+            ${policeReportsCommon.createLine("ID Number", guest.id_number || "-")}
+            ${policeReportsCommon.createLine("Car Number", guest.vehicle_number || "-")}
+            ${policeReportsCommon.createLine("Expected Check-Out", guest.expected_check_out_date || "-")}
+            ${policeReportsCommon.proofButtons(guest)}
+          `
+        );
+        policeReportsCommon.attachProofButtons(currentGuestsList, tokenInput, officerNameInput, hotelIdInput, errorBox);
+      }
 
       async function initHotels() {
         if (tokenInput.value.trim()) {
@@ -89,22 +142,9 @@
       async function loadSection() {
         policeReportsCommon.clearBox(errorBox);
         const data = await policeReportsCommon.loadReport({ tokenInput, officerNameInput, hotelIdInput, fromDateInput, toDateInput });
+        lastReportData = data;
         metricGuests.textContent = data.summary.current_in_house_guests;
-        currentGuestsState.textContent = `${data.reports.current_guests.length} current guest record${data.reports.current_guests.length === 1 ? "" : "s"} loaded for ${data.officer_name}.`;
-        policeReportsCommon.renderCards(
-          currentGuestsList,
-          data.reports.current_guests,
-          "No guests are currently checked in at this hotel.",
-          (guest) => `
-            <h3 class="text-base font-semibold text-ink">${guest.name}</h3>
-            ${policeReportsCommon.createLine("Room", guest.room_number || "-")}
-            ${policeReportsCommon.createLine("Phone", guest.phone || "-")}
-            ${policeReportsCommon.createLine("ID Type", guest.id_type || "-")}
-            ${policeReportsCommon.createLine("Expected Check-Out", guest.expected_check_out_date || "-")}
-            ${policeReportsCommon.proofButtons(guest)}
-          `
-        );
-        policeReportsCommon.attachProofButtons(currentGuestsList, tokenInput, officerNameInput, hotelIdInput, errorBox);
+        renderCurrentGuests(data.reports.current_guests || [], data.officer_name);
       }
 
       loadButton.addEventListener("click", async () => {
@@ -116,6 +156,13 @@
         } finally {
           policeReportsCommon.setButtonLoading(loadButton, false);
         }
+      });
+
+      guestFilterInput.addEventListener("input", () => {
+        if (!lastReportData?.reports?.current_guests) {
+          return;
+        }
+        renderCurrentGuests(lastReportData.reports.current_guests, lastReportData.officer_name);
       });
 
       initHotels().catch(() => {});
