@@ -194,21 +194,29 @@
             <div class="space-y-4 rounded-[1.5rem] border border-slate-200 bg-white/70 p-4">
               <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Address</h3>
               <div>
-                <label for="addressLine1" class="mb-2 block text-sm font-medium text-slate-700">First Line</label>
-                <input id="addressLine1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <label for="addressLine1" class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
+                <input id="addressLine1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Keep blank if not needed">
+              </div>
+              <div>
+                <label for="addressVillage" class="mb-2 block text-sm font-medium text-slate-700">Village</label>
+                <input id="addressVillage" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Keep blank if not needed">
               </div>
               <div class="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label for="addressCity" class="mb-2 block text-sm font-medium text-slate-700">City</label>
-                  <input id="addressCity" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                  <label for="addressTaluka" class="mb-2 block text-sm font-medium text-slate-700">Taluka</label>
+                  <input id="addressTaluka" value="Alibaug" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
                 </div>
                 <div>
-                  <label for="addressPinCode" class="mb-2 block text-sm font-medium text-slate-700">Pin Code</label>
-                  <input id="addressPinCode" inputmode="numeric" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                  <label for="addressDistrict" class="mb-2 block text-sm font-medium text-slate-700">District</label>
+                  <input id="addressDistrict" value="Raigad" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none">
                 </div>
               </div>
+              <div>
+                <label for="addressPinCode" class="mb-2 block text-sm font-medium text-slate-700">Pincode</label>
+                <input id="addressPinCode" inputmode="numeric" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
             </div>
-
+            
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
                 <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Mobile Number</label>
@@ -463,6 +471,14 @@
         return [firstName, middleName, lastName].filter(Boolean).join(" ").trim();
       }
 
+      function buildStaffAddressCity(village, taluka, district) {
+        return [
+          `Village: ${village}`,
+          `Taluka: ${taluka || "Alibaug"}`,
+          `District: ${district || "Raigad"}`,
+        ].join("\n");
+      }
+
       async function compressProofFile(file) {
         if (!file || !file.type.startsWith("image/")) {
           return file;
@@ -534,7 +550,9 @@
           workingSinceMonth: document.getElementById("workingSinceMonth").value,
           workingSinceYear: document.getElementById("workingSinceYear").value.trim(),
           addressLine1: document.getElementById("addressLine1").value.trim(),
-          addressCity: document.getElementById("addressCity").value.trim(),
+          addressVillage: document.getElementById("addressVillage").value.trim(),
+          addressTaluka: document.getElementById("addressTaluka").value.trim(),
+          addressDistrict: document.getElementById("addressDistrict").value.trim(),
           addressPinCode: document.getElementById("addressPinCode").value.trim(),
           phone: phoneInput.value.trim(),
           whatsappPhone: whatsappPhoneInput.value.trim(),
@@ -563,7 +581,7 @@
         formData.set("working_since_month", payload.workingSinceMonth);
         formData.set("working_since_year", payload.workingSinceYear);
         formData.set("address_line_1", payload.addressLine1);
-        formData.set("address_city", payload.addressCity);
+        formData.set("address_city", buildStaffAddressCity(payload.addressVillage, payload.addressTaluka, payload.addressDistrict));
         formData.set("address_pin_code", payload.addressPinCode);
         formData.set("phone", payload.phone);
         formData.set("whatsapp_phone", payload.whatsappPhone);

@@ -210,18 +210,26 @@
               <div class="space-y-4 rounded-[1.5rem] border border-slate-200 bg-white/70 p-4">
                 <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Address</h3>
                 <div>
-                  <label for="staffAddressLine1" class="mb-2 block text-sm font-medium text-slate-700">First Line</label>
-                  <input id="staffAddressLine1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  <label for="staffAddressLine1" class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
+                  <input id="staffAddressLine1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Keep blank if not needed">
+                </div>
+                <div>
+                  <label for="staffAddressVillage" class="mb-2 block text-sm font-medium text-slate-700">Village</label>
+                  <input id="staffAddressVillage" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Keep blank if not needed">
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label for="staffAddressCity" class="mb-2 block text-sm font-medium text-slate-700">City</label>
-                    <input id="staffAddressCity" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <label for="staffAddressTaluka" class="mb-2 block text-sm font-medium text-slate-700">Taluka</label>
+                    <input id="staffAddressTaluka" value="Alibaug" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                   </div>
                   <div>
-                    <label for="staffAddressPinCode" class="mb-2 block text-sm font-medium text-slate-700">Pin Code</label>
-                    <input id="staffAddressPinCode" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <label for="staffAddressDistrict" class="mb-2 block text-sm font-medium text-slate-700">District</label>
+                    <input id="staffAddressDistrict" value="Raigad" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none">
                   </div>
+                </div>
+                <div>
+                  <label for="staffAddressPinCode" class="mb-2 block text-sm font-medium text-slate-700">Pincode</label>
+                  <input id="staffAddressPinCode" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                 </div>
               </div>
 
@@ -754,6 +762,41 @@
         return [firstName, middleName, lastName].filter(Boolean).join(" ").trim();
       }
 
+      function buildStaffAddressCity(village, taluka, district) {
+        return [
+          `Village: ${village}`,
+          `Taluka: ${taluka || "Alibaug"}`,
+          `District: ${district || "Raigad"}`,
+        ].join("\n");
+      }
+
+      function parseStaffAddressCity(addressCity) {
+        const value = String(addressCity || "").trim();
+        const parsed = {
+          village: "",
+          taluka: "Alibaug",
+          district: "Raigad",
+        };
+
+        if (!value) {
+          return parsed;
+        }
+
+        const villageMatch = value.match(/Village:\s*([^\n]+)/i);
+        const talukaMatch = value.match(/Taluka:\s*([^\n]+)/i);
+        const districtMatch = value.match(/District:\s*([^\n]+)/i);
+
+        if (villageMatch || talukaMatch || districtMatch) {
+          parsed.village = villageMatch?.[1]?.trim() || "";
+          parsed.taluka = talukaMatch?.[1]?.trim() || "Alibaug";
+          parsed.district = districtMatch?.[1]?.trim() || "Raigad";
+          return parsed;
+        }
+
+        parsed.village = value;
+        return parsed;
+      }
+
       function setSaving(isSaving) {
         saveButton.disabled = isSaving;
         saveText.textContent = isSaving ? "Saving Changes..." : "Save Hotel Profile";
@@ -1155,7 +1198,9 @@
         document.getElementById("staffPhone").value = "";
         document.getElementById("staffWhatsappPhone").value = "";
         document.getElementById("staffAddressLine1").value = "";
-        document.getElementById("staffAddressCity").value = "";
+        document.getElementById("staffAddressVillage").value = "";
+        document.getElementById("staffAddressTaluka").value = "Alibaug";
+        document.getElementById("staffAddressDistrict").value = "Raigad";
         document.getElementById("staffAddressPinCode").value = "";
         document.getElementById("staffVehicleType").value = "None";
         document.getElementById("staffVehicleNumber").value = "";
@@ -1199,7 +1244,7 @@
                 <p class="mt-1 text-sm text-slate-500">Email: <span class="font-medium text-slate-700">${staff.email || "Not set"}</span></p>
                 <p class="mt-1 text-sm text-slate-500">Phone: <span class="font-medium text-slate-700">${staff.phone || "Not set"}</span></p>
                 <p class="mt-1 text-sm text-slate-500">WhatsApp: <span class="font-medium text-slate-700">${staff.whatsapp_phone || "Not set"}</span></p>
-                <p class="mt-1 text-sm text-slate-500">Address: <span class="font-medium text-slate-700">${staff.address_line_1 || "-"}, ${staff.address_city || "-"} ${staff.address_pin_code || ""}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Address: <span class="font-medium whitespace-pre-line text-slate-700">${staff.address_line_1 || "-"}${staff.address_city ? `\n${staff.address_city}` : ""}${staff.address_pin_code ? `\nPincode: ${staff.address_pin_code}` : ""}</span></p>
                 <p class="mt-1 text-sm text-slate-500">Vehicle: <span class="font-medium text-slate-700">${staff.vehicle_type}${staff.vehicle_number ? ` (${staff.vehicle_number})` : ""}</span></p>
                 <p class="mt-1 text-sm text-slate-500">Proofs: <span class="font-medium text-slate-700">${staff.google_drive_file_id_front ? "Front saved" : "Front missing"} • ${staff.google_drive_file_id_back ? "Back saved" : "Back missing"}</span></p>
               </div>
@@ -1222,8 +1267,11 @@
             document.getElementById("staffEmail").value = staff.email || "";
             document.getElementById("staffPhone").value = staff.phone || "";
             document.getElementById("staffWhatsappPhone").value = staff.whatsapp_phone || "";
+            const addressParts = parseStaffAddressCity(staff.address_city);
             document.getElementById("staffAddressLine1").value = staff.address_line_1 || "";
-            document.getElementById("staffAddressCity").value = staff.address_city || "";
+            document.getElementById("staffAddressVillage").value = addressParts.village;
+            document.getElementById("staffAddressTaluka").value = addressParts.taluka;
+            document.getElementById("staffAddressDistrict").value = addressParts.district;
             document.getElementById("staffAddressPinCode").value = staff.address_pin_code || "";
             document.getElementById("staffVehicleType").value = staff.vehicle_type || "None";
             document.getElementById("staffVehicleNumber").value = staff.vehicle_number || "";
@@ -1463,7 +1511,14 @@
         formData.set("whatsapp_phone", document.getElementById("staffWhatsappPhone").value.trim());
         formData.set("whatsapp_same_as_mobile", staffWhatsappSame.checked ? "true" : "false");
         formData.set("address_line_1", document.getElementById("staffAddressLine1").value.trim());
-        formData.set("address_city", document.getElementById("staffAddressCity").value.trim());
+        formData.set(
+          "address_city",
+          buildStaffAddressCity(
+            document.getElementById("staffAddressVillage").value.trim(),
+            document.getElementById("staffAddressTaluka").value.trim(),
+            document.getElementById("staffAddressDistrict").value.trim(),
+          ),
+        );
         formData.set("address_pin_code", document.getElementById("staffAddressPinCode").value.trim());
         formData.set("vehicle_type", document.getElementById("staffVehicleType").value);
         formData.set("vehicle_number", document.getElementById("staffVehicleNumber").value.trim());
