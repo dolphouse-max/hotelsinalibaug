@@ -1,4 +1,5 @@
-import { badRequest, json, requireReadToken } from "../../_lib/api";
+import { badRequest, hasValidReadToken, json, unauthorized } from "../../_lib/api";
+import { requireHotelAdminSession } from "../../_lib/auth";
 import { processGuestUpload, statusForGuestUploadError } from "../../_lib/guest-upload";
 
 interface Env {
@@ -10,11 +11,6 @@ interface Env {
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
-  const authError = requireReadToken(context);
-  if (authError) {
-    return authError;
-  }
-
   const contentType = context.request.headers.get("content-type") || "";
   if (!contentType.includes("multipart/form-data")) {
     return badRequest("Expected multipart/form-data");
@@ -22,6 +18,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   try {
     const formData = await context.request.formData();
+    const hotelId = typeof formData.get("hotel_id") === "string" ? String(formData.get("hotel_id")).trim() : "";
+    const hasReadToken = hasValidReadToken(context.request, context.env);
+    const hasHotelSession = hotelId
+      ? Boolean(await requireHotelAdminSession(context.request, context.env, hotelId))
+      : false;
+
+    if (!hasReadToken && !hasHotelSession) {
+      return unauthorized();
+    }
+
     const result = await processGuestUpload(formData, context.env);
     return json({ ok: true, ...result });
   } catch (error) {

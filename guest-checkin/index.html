@@ -84,7 +84,7 @@
           <div class="flex items-center justify-between gap-3">
             <div>
               <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Device Setup</h3>
-              <p class="mt-1 text-sm text-slate-600">Stored only on this device so the PWA can keep working even after refresh.</p>
+              <p class="mt-1 text-sm text-slate-600">Stored only on this device so the PWA keeps the hotel context after refresh.</p>
             </div>
             <button id="toggleSetupButton" type="button" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
               Hide
@@ -94,10 +94,6 @@
             <div>
               <label for="hotelIdInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelIdInput" type="text" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="hotelalibaug0001">
-            </div>
-            <div>
-              <label for="apiTokenInput" class="mb-2 block text-sm font-medium text-slate-700">API Read Token</label>
-              <input id="apiTokenInput" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Paste API token for this device">
             </div>
             <button id="saveSetupButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean-800">
               Save Device Setup
@@ -283,7 +279,6 @@
       const form = document.getElementById("checkinForm");
       const hotelLabel = document.getElementById("hotelLabel");
       const hotelIdInput = document.getElementById("hotelIdInput");
-      const apiTokenInput = document.getElementById("apiTokenInput");
       const saveSetupButton = document.getElementById("saveSetupButton");
       const toggleSetupButton = document.getElementById("toggleSetupButton");
       const setupFields = document.getElementById("setupFields");
@@ -313,13 +308,11 @@
         const params = new URLSearchParams(window.location.search);
         return {
           hotelId: params.get("hotel_id") || localStorage.getItem("guest_checkin_hotel_id") || "",
-          apiToken: localStorage.getItem("guest_checkin_api_token") || "",
         };
       }
 
-      function storeConfig(hotelId, apiToken) {
+      function storeConfig(hotelId) {
         localStorage.setItem("guest_checkin_hotel_id", hotelId);
-        localStorage.setItem("guest_checkin_api_token", apiToken);
       }
 
       function showBanner(message, tone) {
@@ -550,16 +543,13 @@
 
       async function sendToApi(entry) {
         const config = readStoredConfig();
-        if (!config.hotelId || !config.apiToken) {
-          throw new Error("Hotel ID and API token must be configured on this device.");
+        if (!config.hotelId) {
+          throw new Error("Hotel ID must be configured on this device.");
         }
 
         const formData = buildApiFormData(entry.payload, entry.frontFile, entry.backFile, config.hotelId);
         const response = await fetch("/api/guests/upload", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${config.apiToken}`,
-          },
           body: formData,
         });
 
@@ -619,8 +609,8 @@
 
         try {
           const config = readStoredConfig();
-          if (!config.hotelId || !config.apiToken) {
-            throw new Error("Please save Hotel ID and API token in Device Setup first.");
+          if (!config.hotelId) {
+            throw new Error("Please save Hotel ID in Device Setup first.");
           }
 
           const rawFrontFile = frontFileInput.files && frontFileInput.files[0];
@@ -680,7 +670,6 @@
       function initialize() {
         const config = readStoredConfig();
         hotelIdInput.value = config.hotelId;
-        apiTokenInput.value = config.apiToken;
         updateHotelLabel();
         expectedCheckOutDateInput.min = new Date().toISOString().slice(0, 10);
         if (!expectedCheckOutDateInput.value) {
@@ -694,7 +683,7 @@
       }
 
       saveSetupButton.addEventListener("click", () => {
-        storeConfig(hotelIdInput.value.trim(), apiTokenInput.value.trim());
+        storeConfig(hotelIdInput.value.trim());
         updateHotelLabel();
         showBanner("Device setup saved locally on this tablet.", "success");
       });
