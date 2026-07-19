@@ -178,8 +178,8 @@ function normalizeWhatsapp(formData: FormData, mobileKey: string, whatsappKey: s
 
 function requireRole(formData: FormData): string {
   const value = requireText(formData, "role").toLowerCase();
-  if (!["admin", "manager", "frontdesk", "staff"].includes(value)) {
-    throw new Error("role must be one of admin, manager, frontdesk, or staff");
+  if (!["admin", "manager", "frontdesk", "staff", "kitchen", "waiter", "housekeeping", "security"].includes(value)) {
+    throw new Error("role must be one of admin, manager, frontdesk, staff, kitchen, waiter, housekeeping, or security");
   }
 
   return value;

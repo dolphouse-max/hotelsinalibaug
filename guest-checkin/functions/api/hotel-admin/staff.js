@@ -99,8 +99,8 @@ function normalizeStaffPayload(payload) {
     throw new Error("email must be valid");
   }
 
-  if (!["admin", "manager", "frontdesk", "staff"].includes(role)) {
-    throw new Error("role must be one of admin, manager, frontdesk, or staff");
+  if (!["admin", "manager", "frontdesk", "staff", "kitchen", "waiter", "housekeeping", "security"].includes(role)) {
+    throw new Error("role must be one of admin, manager, frontdesk, staff, kitchen, waiter, housekeeping, or security");
   }
 
   if (!["Male", "Female", "Other"].includes(sex)) {
