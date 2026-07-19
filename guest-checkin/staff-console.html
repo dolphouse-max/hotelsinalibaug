@@ -116,12 +116,20 @@
               <h3 class="mt-1 text-lg font-semibold text-ocean-900">Staff basics</h3>
               <p class="mt-1 text-sm leading-6 text-slate-600">Capture the staff member’s identity, role, and how long they have been working at the property.</p>
             </div>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label for="fullName" class="mb-2 block text-sm font-medium text-slate-700">Name</label>
-                <input id="fullName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <label for="firstName" class="mb-2 block text-sm font-medium text-slate-700">First Name</label>
+                <input id="firstName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
               </div>
               <div>
+                <label for="middleName" class="mb-2 block text-sm font-medium text-slate-700">Middle Name</label>
+                <input id="middleName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="lastName" class="mb-2 block text-sm font-medium text-slate-700">Last Name</label>
+                <input id="lastName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div class="lg:col-span-3">
                 <label for="age" class="mb-2 block text-sm font-medium text-slate-700">Age</label>
                 <input id="age" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
               </div>
@@ -451,6 +459,10 @@
         });
       }
 
+      function joinNameParts(firstName, middleName, lastName) {
+        return [firstName, middleName, lastName].filter(Boolean).join(" ").trim();
+      }
+
       async function compressProofFile(file) {
         if (!file || !file.type.startsWith("image/")) {
           return file;
@@ -505,6 +517,9 @@
 
       function buildPayload() {
         const hotelId = hotelIdInput.value.trim();
+        const firstName = document.getElementById("firstName").value.trim();
+        const middleName = document.getElementById("middleName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
 
         if (!hotelId) {
           throw new Error("Please save the Hotel ID first.");
@@ -512,7 +527,7 @@
 
         return {
           hotelId,
-          fullName: document.getElementById("fullName").value.trim(),
+          fullName: joinNameParts(firstName, middleName, lastName),
           age: document.getElementById("age").value.trim(),
           sex: sexInput.value,
           role: document.getElementById("role").value,

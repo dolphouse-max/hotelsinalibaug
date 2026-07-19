@@ -78,6 +78,19 @@
                 <input id="gmailId" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="booking@gmail.com">
               </div>
             </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="contactPersonTitle" class="mb-2 block text-sm font-medium text-slate-700">Contact Person Title</label>
+                <select id="contactPersonTitle" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+                  <option value="Mr">Mr</option>
+                  <option value="Ms">Ms</option>
+                </select>
+              </div>
+              <div>
+                <label for="contactPersonName" class="mb-2 block text-sm font-medium text-slate-700">Contact Person Name</label>
+                <input id="contactPersonName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Girish Patil">
+              </div>
+            </div>
             <div class="grid gap-3">
               <div>
                 <label for="addressHouseStreet" class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
@@ -365,7 +378,7 @@
       async function createHotelAdminUser(hotel) {
         const email = String(hotel.admin_email || "").trim().toLowerCase();
         const password = String(hotel.id || "").trim().toLowerCase();
-        const displayName = `${hotel.name} Admin`;
+        const displayName = String(hotel.admin_name || `${hotel.name} Admin`).trim();
 
         if (!email || !password) {
           throw new Error("Hotel admin email or Hotel ID is missing for Firebase user creation.");
@@ -388,6 +401,8 @@
           name: hotelNameInput.value.trim(),
           mobile_number: document.getElementById("mobileNumber").value.trim(),
           gmail_id: document.getElementById("gmailId").value.trim(),
+          contact_person_title: document.getElementById("contactPersonTitle").value,
+          contact_person_name: document.getElementById("contactPersonName").value.trim(),
           address_house_street: document.getElementById("addressHouseStreet").value.trim(),
           address_village: document.getElementById("addressVillage").value.trim(),
           address_taluka: document.getElementById("addressTaluka").value.trim(),

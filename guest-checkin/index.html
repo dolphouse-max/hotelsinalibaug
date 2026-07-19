@@ -86,12 +86,20 @@
               <h3 class="mt-1 text-lg font-semibold text-ocean-900">Guest basics</h3>
               <p class="mt-1 text-sm leading-6 text-slate-600">Start with the guest’s core details exactly as they should appear in the record.</p>
             </div>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label for="name" class="mb-2 block text-sm font-medium text-slate-700">Guest Name</label>
-                <input id="name" name="name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <label for="firstName" class="mb-2 block text-sm font-medium text-slate-700">First Name</label>
+                <input id="firstName" name="first_name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
               </div>
               <div>
+                <label for="middleName" class="mb-2 block text-sm font-medium text-slate-700">Middle Name</label>
+                <input id="middleName" name="middle_name" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div>
+                <label for="lastName" class="mb-2 block text-sm font-medium text-slate-700">Last Name</label>
+                <input id="lastName" name="last_name" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+              </div>
+              <div class="lg:col-span-3">
                 <label for="phone" class="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
                 <input id="phone" name="phone" type="tel" inputmode="tel" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
               </div>
@@ -137,8 +145,25 @@
             </div>
 
             <div class="mt-4">
-              <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Permanent Address</label>
-              <textarea id="address" name="address" rows="4" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Full permanent address"></textarea>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Permanent Address</label>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <label for="addressLine1" class="mb-2 block text-sm font-medium text-slate-600">House Name / Street</label>
+                  <input id="addressLine1" name="address_line_1" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="House name or street">
+                </div>
+                <div>
+                  <label for="addressCityVillage" class="mb-2 block text-sm font-medium text-slate-600">City / Village</label>
+                  <input id="addressCityVillage" name="address_city_village" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Mumbai">
+                </div>
+                <div>
+                  <label for="addressState" class="mb-2 block text-sm font-medium text-slate-600">State</label>
+                  <input id="addressState" name="address_state" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Maharashtra">
+                </div>
+                <div>
+                  <label for="addressPinCode" class="mb-2 block text-sm font-medium text-slate-600">Pin Code</label>
+                  <input id="addressPinCode" name="address_pin_code" inputmode="numeric" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="400001">
+                </div>
+              </div>
             </div>
 
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -478,15 +503,30 @@
         return compressImage(file);
       }
 
+      function joinNameParts(firstName, middleName, lastName) {
+        return [firstName, middleName, lastName].filter(Boolean).join(" ").trim();
+      }
+
+      function buildAddressCityValue(cityVillage, state) {
+        return [cityVillage, state].filter(Boolean).join(", ").trim();
+      }
+
       function createPayload() {
+        const firstName = document.getElementById("firstName").value.trim();
+        const middleName = document.getElementById("middleName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+
         return {
-          name: document.getElementById("name").value.trim(),
+          name: joinNameParts(firstName, middleName, lastName),
           phone: document.getElementById("phone").value.trim(),
           age: document.getElementById("age").value.trim(),
           sex: sexInput.value,
           id_type: document.getElementById("idType").value,
           room_number: document.getElementById("roomNumber").value.trim(),
-          address: document.getElementById("address").value.trim(),
+          addressLine1: document.getElementById("addressLine1").value.trim(),
+          addressCityVillage: document.getElementById("addressCityVillage").value.trim(),
+          addressState: document.getElementById("addressState").value.trim(),
+          addressPinCode: document.getElementById("addressPinCode").value.trim(),
           coming_from: document.getElementById("comingFrom").value.trim(),
           going_to: document.getElementById("goingTo").value.trim(),
           expected_check_out_date: document.getElementById("expectedCheckOutDate").value,
@@ -506,9 +546,9 @@
         formData.set("total_guests", "1");
         formData.set("room_number", payload.room_number);
         formData.set("expected_check_out_date", payload.expected_check_out_date);
-        formData.set("address_line_1", payload.address);
-        formData.set("address_city", "Not Provided");
-        formData.set("address_pin_code", "000000");
+        formData.set("address_line_1", payload.addressLine1);
+        formData.set("address_city", buildAddressCityValue(payload.addressCityVillage, payload.addressState));
+        formData.set("address_pin_code", payload.addressPinCode);
         formData.set("email", "");
         formData.set("vehicle_type", payload.vehicle_type || "None");
         formData.set("vehicle_number", payload.vehicle_type === "None" ? "" : payload.vehicle_number);

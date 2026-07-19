@@ -132,12 +132,20 @@
 
             <form id="staffForm" class="mt-8 space-y-4">
               <input id="staffId" type="hidden">
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                  <label for="staffName" class="mb-2 block text-sm font-medium text-slate-700">Full Name</label>
-                  <input id="staffName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Reception Manager">
+                  <label for="staffFirstName" class="mb-2 block text-sm font-medium text-slate-700">First Name</label>
+                  <input id="staffFirstName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Reception">
                 </div>
                 <div>
+                  <label for="staffMiddleName" class="mb-2 block text-sm font-medium text-slate-700">Middle Name</label>
+                  <input id="staffMiddleName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Optional">
+                </div>
+                <div>
+                  <label for="staffLastName" class="mb-2 block text-sm font-medium text-slate-700">Last Name</label>
+                  <input id="staffLastName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Manager">
+                </div>
+                <div class="lg:col-span-3">
                   <label for="staffAge" class="mb-2 block text-sm font-medium text-slate-700">Age</label>
                   <input id="staffAge" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                 </div>
@@ -724,6 +732,28 @@
         }
       }
 
+      function splitNameParts(fullName) {
+        const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) {
+          return { firstName: "", middleName: "", lastName: "" };
+        }
+        if (parts.length === 1) {
+          return { firstName: parts[0], middleName: "", lastName: "" };
+        }
+        if (parts.length === 2) {
+          return { firstName: parts[0], middleName: "", lastName: parts[1] };
+        }
+        return {
+          firstName: parts[0],
+          middleName: parts.slice(1, -1).join(" "),
+          lastName: parts[parts.length - 1],
+        };
+      }
+
+      function joinNameParts(firstName, middleName, lastName) {
+        return [firstName, middleName, lastName].filter(Boolean).join(" ").trim();
+      }
+
       function setSaving(isSaving) {
         saveButton.disabled = isSaving;
         saveText.textContent = isSaving ? "Saving Changes..." : "Save Hotel Profile";
@@ -1114,7 +1144,9 @@
 
       function resetStaffForm() {
         document.getElementById("staffId").value = "";
-        document.getElementById("staffName").value = "";
+        document.getElementById("staffFirstName").value = "";
+        document.getElementById("staffMiddleName").value = "";
+        document.getElementById("staffLastName").value = "";
         document.getElementById("staffAge").value = "";
         document.getElementById("staffSex").value = "Male";
         document.getElementById("staffWorkingSinceMonth").value = "January";
@@ -1178,8 +1210,11 @@
           `;
 
           card.querySelector("[data-edit-staff]").addEventListener("click", () => {
+            const nameParts = splitNameParts(staff.full_name);
             document.getElementById("staffId").value = staff.id;
-            document.getElementById("staffName").value = staff.full_name;
+            document.getElementById("staffFirstName").value = nameParts.firstName;
+            document.getElementById("staffMiddleName").value = nameParts.middleName;
+            document.getElementById("staffLastName").value = nameParts.lastName;
             document.getElementById("staffAge").value = staff.age ?? "";
             document.getElementById("staffSex").value = staff.sex || "Male";
             document.getElementById("staffWorkingSinceMonth").value = staff.working_since_month || "January";
@@ -1411,7 +1446,14 @@
         const formData = new FormData();
         formData.set("hotel_id", hotelId);
         formData.set("staff_id", document.getElementById("staffId").value.trim());
-        formData.set("full_name", document.getElementById("staffName").value.trim());
+        formData.set(
+          "full_name",
+          joinNameParts(
+            document.getElementById("staffFirstName").value.trim(),
+            document.getElementById("staffMiddleName").value.trim(),
+            document.getElementById("staffLastName").value.trim(),
+          ),
+        );
         formData.set("age", document.getElementById("staffAge").value.trim());
         formData.set("sex", document.getElementById("staffSex").value);
         formData.set("working_since_month", document.getElementById("staffWorkingSinceMonth").value);

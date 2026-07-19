@@ -137,6 +137,9 @@ function normalizeHotelPayload(payload) {
       : typeof payload.id === "string"
         ? payload.id.trim().toLowerCase()
         : "";
+  const contactPersonTitle = typeof payload.contact_person_title === "string" ? payload.contact_person_title.trim() : "";
+  const contactPersonName = typeof payload.contact_person_name === "string" ? payload.contact_person_name.trim() : "";
+  const adminName = [contactPersonTitle, contactPersonName].filter(Boolean).join(". ").trim().replace(/\.\s\./g, ". ");
 
   if (!name || !contact || !gmailId || !hotelId) {
     throw new Error("hotel_id, name, mobile_number/contact, and gmail_id are required");
@@ -178,6 +181,7 @@ function normalizeHotelPayload(payload) {
     contact,
     address,
     gmailId,
+    adminName: adminName || `${name} Admin`,
     totalRooms,
     occupiedRooms,
     subscriptionStartDate,
@@ -364,7 +368,7 @@ export async function onRequestPost(context) {
            role,
            is_active
          ) VALUES (?1, ?2, ?3, ?4, ?5, 'admin', 1)`
-      ).bind(staffId, hotel.id, `${hotel.name} Admin`, hotel.gmailId, hotel.contact),
+      ).bind(staffId, hotel.id, hotel.adminName, hotel.gmailId, hotel.contact),
     ]);
 
     const result = await context.env.DB.prepare(
