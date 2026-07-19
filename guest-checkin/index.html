@@ -563,10 +563,26 @@
         }
 
         if (!response.ok) {
-          throw new Error(data.error || "Unable to upload check-in");
+          const error = new Error(data.error || "Unable to upload check-in");
+          error.status = response.status;
+          error.code = data.code || "";
+          throw error;
         }
 
         return data;
+      }
+
+      function shouldSaveOffline(error) {
+        if (!navigator.onLine) {
+          return true;
+        }
+
+        if (error instanceof TypeError) {
+          return true;
+        }
+
+        const status = Number(error?.status || 0);
+        return status >= 500;
       }
 
       async function syncOfflineEntries() {
@@ -632,6 +648,10 @@
               successModal.classList.add("flex");
               showBanner("Check-in uploaded successfully.", "success");
             } catch (error) {
+              if (!shouldSaveOffline(error)) {
+                throw error;
+              }
+
               await addOfflineEntry(entry);
               await refreshQueueBanner();
               successMessage.textContent = "Internet was unstable, so the check-in was saved offline and will sync automatically.";
