@@ -40,10 +40,6 @@
           </div>
           <div class="space-y-4">
             <div>
-              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
-              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-            </div>
-            <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
@@ -88,7 +84,6 @@
     </main>
 
     <script>
-      const tokenInput = document.getElementById("hotelAdminToken");
       const hotelIdInput = document.getElementById("hotelId");
       const fromDateInput = document.getElementById("fromDate");
       const toDateInput = document.getElementById("toDate");
@@ -96,7 +91,7 @@
       const statusBox = document.getElementById("statusBox");
       const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
 
-      hotelReportsCommon.hydrateFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
+      hotelReportsCommon.hydrateFilters(null, hotelIdInput, fromDateInput, toDateInput);
 
       function updateBackLink() {
         const hotelId = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
@@ -110,12 +105,12 @@
       updateBackLink();
       hotelIdInput.addEventListener("input", updateBackLink);
 
-      if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
+      if (hotelIdInput.value.trim()) {
         hotelReportsCommon.setMessage(statusBox, "Saved hotel report filters found on this device.", "success");
       }
 
       saveFiltersButton.addEventListener("click", () => {
-        hotelReportsCommon.persistFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
+        hotelReportsCommon.persistFilters(null, hotelIdInput, fromDateInput, toDateInput);
         updateBackLink();
         hotelReportsCommon.setMessage(statusBox, "Hotel report filters saved on this device.", "success");
       });
