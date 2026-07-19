@@ -32,6 +32,14 @@ function isEmail(value) {
   return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function parseNonNegativeInteger(value) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return null;
+  }
+
+  return Math.floor(value);
+}
+
 function slugHotelIdBase(value) {
   const compact = String(value || "").replace(/[^a-zA-Z0-9]/g, "");
   const withoutTrailingDigits = compact.replace(/\d+$/, "");
@@ -119,14 +127,21 @@ function normalizeHotelPayload(payload) {
     throw new Error("subscription_end_date must be on or after subscription_start_date");
   }
 
+  const totalRooms = parseNonNegativeInteger(payload.total_rooms);
+  const occupiedRooms = parseNonNegativeInteger(payload.occupied_rooms) ?? 0;
+
+  if (totalRooms === null || totalRooms < 1) {
+    throw new Error("total_rooms is required and must be at least 1");
+  }
+
   return {
     id: hotelId,
     name,
     contact,
     address,
     gmailId,
-    totalRooms: Number.isInteger(payload.total_rooms) ? payload.total_rooms : 0,
-    occupiedRooms: Number.isInteger(payload.occupied_rooms) ? payload.occupied_rooms : 0,
+    totalRooms,
+    occupiedRooms,
     subscriptionStartDate,
     subscriptionEndDate,
     isActive,

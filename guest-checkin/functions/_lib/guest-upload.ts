@@ -108,6 +108,59 @@ function normalizeWhatsapp(formData: FormData, mobileKey: string, whatsappKey: s
   return { mobile, whatsapp };
 }
 
+async function assertRoomCapacityAvailable(env: Env, hotelId: string, roomNumber: string) {
+  const hotel = await env.DB.prepare(
+    `SELECT id, total_rooms
+     FROM hotels
+     WHERE lower(id) = lower(?1)
+     LIMIT 1`
+  )
+    .bind(hotelId)
+    .first<{ id: string; total_rooms: number | null }>();
+
+  if (!hotel) {
+    throw new Error("Hotel not found");
+  }
+
+  const totalRooms = Number(hotel.total_rooms || 0);
+  if (!Number.isFinite(totalRooms) || totalRooms < 1) {
+    throw new Error("This hotel does not have a valid room limit configured yet.");
+  }
+
+  const roomRow = await env.DB.prepare(
+    `SELECT room_number
+     FROM guests
+     WHERE lower(hotel_id) = lower(?1)
+       AND check_out_time IS NULL
+       AND lower(room_number) = lower(?2)
+     LIMIT 1`
+  )
+    .bind(hotelId, roomNumber)
+    .first<{ room_number: string | null }>();
+
+  if (roomRow?.room_number) {
+    return;
+  }
+
+  const activeRoomsRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS count
+     FROM (
+       SELECT lower(room_number) AS room_key
+       FROM guests
+       WHERE lower(hotel_id) = lower(?1)
+         AND check_out_time IS NULL
+       GROUP BY lower(room_number)
+     ) active_rooms`
+  )
+    .bind(hotelId)
+    .first<{ count: number | string | null }>();
+
+  const activeRooms = Number(activeRoomsRow?.count || 0);
+  if (activeRooms >= totalRooms) {
+    throw new Error(`Room limit reached for this hotel. Only ${totalRooms} active room${totalRooms === 1 ? "" : "s"} are allowed.`);
+  }
+}
+
 export async function processGuestUpload(formData: FormData, env: Env): Promise<{
   guestId: string;
   hotelId: string;
@@ -148,6 +201,7 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
   }
 
   await assertHotelCanAcceptGuestUploads(hotelId, env);
+  await assertRoomCapacityAvailable(env, hotelId, roomNumber);
 
   const { accessToken, folderId, hotel } = await getHotelDriveAccessToken(hotelId, env);
   const baseFileName = `${guestName}-${idType}`;
@@ -235,7 +289,9 @@ export function statusForGuestUploadError(message: string): number {
     message.includes("not connected") ||
     message.includes("expired") ||
     message.includes("inactive") ||
-    message.includes("not started")
+    message.includes("not started") ||
+    message.includes("Room limit reached") ||
+    message.includes("room limit configured")
   ) {
     return 409;
   }
