@@ -321,6 +321,7 @@
   function quickNav(currentPage) {
     const pages = [
       { id: "home", label: "Home", href: "/police-reports-home.html" },
+      { id: "search", label: "All Hotels", href: "/police-all-hotels-search.html" },
       { id: "hotel", label: "Hotel", href: "/police-report-hotel-details.html" },
       { id: "current", label: "Current Guests", href: "/police-report-current-guests.html" },
       { id: "register", label: "Guest Register", href: "/police-report-guest-register.html" },
