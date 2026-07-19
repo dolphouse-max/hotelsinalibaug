@@ -40,6 +40,44 @@ function parseNonNegativeInteger(value) {
   return Math.floor(value);
 }
 
+function composeAddress({
+  houseStreet = "",
+  village = "",
+  taluka = "Alibaug",
+  district = "Raigad",
+  pincode = "",
+} = {}) {
+  return [
+    `House/Street: ${String(houseStreet || "").trim()}`,
+    `Village: ${String(village || "").trim()}`,
+    `Taluka: ${String(taluka || "Alibaug").trim() || "Alibaug"}`,
+    `District: ${String(district || "Raigad").trim() || "Raigad"}`,
+    `Pincode: ${String(pincode || "").trim()}`,
+  ].join("\n");
+}
+
+function normalizeAddressPayload(payload) {
+  const hasStructuredAddress = [
+    "address_house_street",
+    "address_village",
+    "address_taluka",
+    "address_district",
+    "address_pincode",
+  ].some((key) => typeof payload[key] === "string");
+
+  if (hasStructuredAddress) {
+    return composeAddress({
+      houseStreet: payload.address_house_street,
+      village: payload.address_village,
+      taluka: payload.address_taluka,
+      district: payload.address_district,
+      pincode: payload.address_pincode,
+    });
+  }
+
+  return typeof payload.address === "string" ? payload.address.trim() : "";
+}
+
 function slugHotelIdBase(value) {
   const compact = String(value || "").replace(/[^a-zA-Z0-9]/g, "");
   const withoutTrailingDigits = compact.replace(/\d+$/, "");
@@ -85,7 +123,7 @@ function normalizeHotelPayload(payload) {
       : typeof payload.mobile_number === "string"
         ? payload.mobile_number.trim()
         : "";
-  const address = typeof payload.address === "string" ? payload.address.trim() : "";
+  const address = normalizeAddressPayload(payload);
   const gmailId =
     typeof payload.gmail_id === "string"
       ? payload.gmail_id.trim().toLowerCase()

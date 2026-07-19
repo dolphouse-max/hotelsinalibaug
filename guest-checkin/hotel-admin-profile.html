@@ -80,9 +80,29 @@
               <label for="adminEmail" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Gmail</label>
               <input id="adminEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="booking@gmail.com">
             </div>
-            <div>
-              <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Hotel Address</label>
-              <textarea id="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Address"></textarea>
+            <div class="grid gap-3">
+              <div>
+                <label for="addressHouseStreet" class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
+                <input id="addressHouseStreet" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Keep blank if not needed">
+              </div>
+              <div>
+                <label for="addressVillage" class="mb-2 block text-sm font-medium text-slate-700">Village</label>
+                <input id="addressVillage" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Keep blank if not needed">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="addressTaluka" class="mb-2 block text-sm font-medium text-slate-700">Taluka</label>
+                  <input id="addressTaluka" value="Alibaug" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                </div>
+                <div>
+                  <label for="addressDistrict" class="mb-2 block text-sm font-medium text-slate-700">District</label>
+                  <input id="addressDistrict" value="Raigad" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none">
+                </div>
+              </div>
+              <div>
+                <label for="addressPincode" class="mb-2 block text-sm font-medium text-slate-700">Pincode</label>
+                <input id="addressPincode" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Keep blank if not needed">
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -114,12 +134,64 @@
         hotelIdInput.value = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
       });
 
+      function parseStructuredAddress(address) {
+        const result = {
+          houseStreet: "",
+          village: "",
+          taluka: "Alibaug",
+          district: "Raigad",
+          pincode: "",
+        };
+
+        const text = String(address || "").trim();
+        if (!text) {
+          return result;
+        }
+
+        const patterns = [
+          ["houseStreet", /^House\/Street:\s*(.*)$/i],
+          ["village", /^Village:\s*(.*)$/i],
+          ["taluka", /^Taluka:\s*(.*)$/i],
+          ["district", /^District:\s*(.*)$/i],
+          ["pincode", /^Pincode:\s*(.*)$/i],
+        ];
+
+        let matchedStructured = false;
+        for (const line of text.split(/\r?\n/)) {
+          for (const [key, pattern] of patterns) {
+            const match = line.match(pattern);
+            if (match) {
+              result[key] = match[1].trim();
+              matchedStructured = true;
+            }
+          }
+        }
+
+        if (!matchedStructured) {
+          result.houseStreet = text;
+        }
+
+        if (!result.taluka) {
+          result.taluka = "Alibaug";
+        }
+        if (!result.district) {
+          result.district = "Raigad";
+        }
+
+        return result;
+      }
+
       function fill(hotel) {
+        const address = parseStructuredAddress(hotel.address);
         hotelIdInput.value = hotel.id || hotelIdInput.value;
         document.getElementById("hotelName").value = hotel.name || "";
         document.getElementById("contact").value = hotel.contact || "";
         document.getElementById("adminEmail").value = hotel.admin_email || "";
-        document.getElementById("address").value = hotel.address || "";
+        document.getElementById("addressHouseStreet").value = address.houseStreet;
+        document.getElementById("addressVillage").value = address.village;
+        document.getElementById("addressTaluka").value = address.taluka;
+        document.getElementById("addressDistrict").value = address.district;
+        document.getElementById("addressPincode").value = address.pincode;
         document.getElementById("totalRooms").value = hotel.total_rooms ?? 0;
         document.getElementById("occupiedRooms").value = hotel.occupied_rooms ?? 0;
         document.getElementById("accountStatus").textContent = hotel.is_active === 1 ? "Active" : "Inactive";
@@ -157,7 +229,11 @@
               name: document.getElementById("hotelName").value.trim(),
               contact: document.getElementById("contact").value.trim(),
               admin_email: document.getElementById("adminEmail").value.trim(),
-              address: document.getElementById("address").value.trim(),
+              address_house_street: document.getElementById("addressHouseStreet").value.trim(),
+              address_village: document.getElementById("addressVillage").value.trim(),
+              address_taluka: document.getElementById("addressTaluka").value.trim(),
+              address_district: document.getElementById("addressDistrict").value.trim(),
+              address_pincode: document.getElementById("addressPincode").value.trim(),
               total_rooms: Number(document.getElementById("totalRooms").value || "0"),
               occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
             }),

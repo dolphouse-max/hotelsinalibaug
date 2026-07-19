@@ -28,6 +28,44 @@ function isSafeId(value) {
   return typeof value === "string" && /^[a-z0-9]{16,64}$/i.test(value.trim());
 }
 
+function composeAddress({
+  houseStreet = "",
+  village = "",
+  taluka = "Alibaug",
+  district = "Raigad",
+  pincode = "",
+} = {}) {
+  return [
+    `House/Street: ${String(houseStreet || "").trim()}`,
+    `Village: ${String(village || "").trim()}`,
+    `Taluka: ${String(taluka || "Alibaug").trim() || "Alibaug"}`,
+    `District: ${String(district || "Raigad").trim() || "Raigad"}`,
+    `Pincode: ${String(pincode || "").trim()}`,
+  ].join("\n");
+}
+
+function normalizeAddressPayload(payload) {
+  const hasStructuredAddress = [
+    "address_house_street",
+    "address_village",
+    "address_taluka",
+    "address_district",
+    "address_pincode",
+  ].some((key) => typeof payload[key] === "string");
+
+  if (hasStructuredAddress) {
+    return composeAddress({
+      houseStreet: payload.address_house_street,
+      village: payload.address_village,
+      taluka: payload.address_taluka,
+      district: payload.address_district,
+      pincode: payload.address_pincode,
+    });
+  }
+
+  return typeof payload.address === "string" ? payload.address.trim() : "";
+}
+
 function diffInDays(fromDate, toDate) {
   const msPerDay = 24 * 60 * 60 * 1000;
   return Math.ceil((toDate.getTime() - fromDate.getTime()) / msPerDay);
@@ -110,7 +148,7 @@ export async function onRequestPut(context) {
     const hotelId = typeof payload.hotel_id === "string" ? payload.hotel_id.trim() : "";
     const name = typeof payload.name === "string" ? payload.name.trim() : "";
     const contact = typeof payload.contact === "string" ? payload.contact.trim() : "";
-    const address = typeof payload.address === "string" ? payload.address.trim() : "";
+    const address = normalizeAddressPayload(payload);
     const adminEmail = typeof payload.admin_email === "string" ? payload.admin_email.trim().toLowerCase() : "";
     const totalRooms = Number.isInteger(payload.total_rooms) ? payload.total_rooms : 0;
     const occupiedRooms = Number.isInteger(payload.occupied_rooms) ? payload.occupied_rooms : 0;
@@ -123,8 +161,8 @@ export async function onRequestPut(context) {
       return unauthorized();
     }
 
-    if (!name || !contact || !address) {
-      return badRequest("name, contact, and address are required");
+    if (!name || !contact) {
+      return badRequest("name and contact are required");
     }
 
     if (!adminEmail || !isEmail(adminEmail)) {

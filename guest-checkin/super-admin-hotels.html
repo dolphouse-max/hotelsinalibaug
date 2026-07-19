@@ -78,7 +78,7 @@
             <p class="mt-2 text-sm text-slate-500">Hotel ID: <span data-field="id" class="font-medium text-slate-700"></span></p>
             <p class="mt-1 text-sm text-slate-500">Admin Gmail: <span data-field="adminEmail" class="font-medium text-slate-700"></span></p>
             <p class="mt-1 text-sm text-slate-500">Mobile: <span data-field="adminPhone" class="font-medium text-slate-700"></span></p>
-            <p class="mt-1 text-sm text-slate-500">Address: <span data-field="address" class="font-medium text-slate-700"></span></p>
+            <p class="mt-1 text-sm text-slate-500">Address: <span data-field="address" class="font-medium whitespace-pre-line text-slate-700"></span></p>
           </div>
           <div class="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
             <p><span class="font-semibold text-ocean-950">Trial start:</span> <span data-field="startDate"></span></p>
@@ -108,9 +108,29 @@
                 <input data-input="gmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
               </div>
             </div>
-            <div>
-              <label class="mb-2 block text-sm font-medium text-slate-700">Address</label>
-              <textarea data-input="address" rows="2" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10"></textarea>
+            <div class="grid gap-3">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
+                <input data-input="addressHouseStreet" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Village</label>
+                <input data-input="addressVillage" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-slate-700">Taluka</label>
+                  <input data-input="addressTaluka" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-slate-700">District</label>
+                  <input data-input="addressDistrict" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none">
+                </div>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Pincode</label>
+                <input data-input="addressPincode" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -173,6 +193,53 @@
         superAdminCommon.setMessage(element, message, tone);
       }
 
+      function parseStructuredAddress(address) {
+        const result = {
+          houseStreet: "",
+          village: "",
+          taluka: "Alibaug",
+          district: "Raigad",
+          pincode: "",
+        };
+
+        const text = String(address || "").trim();
+        if (!text) {
+          return result;
+        }
+
+        const patterns = [
+          ["houseStreet", /^House\/Street:\s*(.*)$/i],
+          ["village", /^Village:\s*(.*)$/i],
+          ["taluka", /^Taluka:\s*(.*)$/i],
+          ["district", /^District:\s*(.*)$/i],
+          ["pincode", /^Pincode:\s*(.*)$/i],
+        ];
+
+        let matchedStructured = false;
+        for (const line of text.split(/\r?\n/)) {
+          for (const [key, pattern] of patterns) {
+            const match = line.match(pattern);
+            if (match) {
+              result[key] = match[1].trim();
+              matchedStructured = true;
+            }
+          }
+        }
+
+        if (!matchedStructured) {
+          result.houseStreet = text;
+        }
+
+        if (!result.taluka) {
+          result.taluka = "Alibaug";
+        }
+        if (!result.district) {
+          result.district = "Raigad";
+        }
+
+        return result;
+      }
+
       function renderHotelCard(hotel) {
         const fragment = hotelCardTemplate.content.cloneNode(true);
         const statusBadge = fragment.querySelector('[data-field="statusBadge"]');
@@ -181,7 +248,11 @@
         const editorMessageBox = fragment.querySelector('[data-role="editorMessage"]');
         const nameInput = fragment.querySelector('[data-input="name"]');
         const contactInput = fragment.querySelector('[data-input="contact"]');
-        const addressInput = fragment.querySelector('[data-input="address"]');
+        const addressHouseStreetInput = fragment.querySelector('[data-input="addressHouseStreet"]');
+        const addressVillageInput = fragment.querySelector('[data-input="addressVillage"]');
+        const addressTalukaInput = fragment.querySelector('[data-input="addressTaluka"]');
+        const addressDistrictInput = fragment.querySelector('[data-input="addressDistrict"]');
+        const addressPincodeInput = fragment.querySelector('[data-input="addressPincode"]');
         const gmailInput = fragment.querySelector('[data-input="gmail"]');
         const isActiveInput = fragment.querySelector('[data-input="isActive"]');
         const totalRoomsInput = fragment.querySelector('[data-input="totalRooms"]');
@@ -189,6 +260,7 @@
         const startDateInput = fragment.querySelector('[data-input="startDate"]');
         const endDateInput = fragment.querySelector('[data-input="endDate"]');
 
+        const parsedAddress = parseStructuredAddress(hotel.address);
         fragment.querySelector('[data-field="name"]').textContent = hotel.name;
         fragment.querySelector('[data-field="id"]').textContent = hotel.id;
         fragment.querySelector('[data-field="adminEmail"]').textContent = hotel.admin_email || "Not set";
@@ -214,7 +286,11 @@
 
         nameInput.value = hotel.name || "";
         contactInput.value = hotel.contact || "";
-        addressInput.value = hotel.address || "";
+        addressHouseStreetInput.value = parsedAddress.houseStreet;
+        addressVillageInput.value = parsedAddress.village;
+        addressTalukaInput.value = parsedAddress.taluka;
+        addressDistrictInput.value = parsedAddress.district;
+        addressPincodeInput.value = parsedAddress.pincode;
         gmailInput.value = hotel.admin_email || "";
         isActiveInput.value = String(hotel.is_active);
         totalRoomsInput.value = hotel.total_rooms ?? 0;
@@ -232,7 +308,11 @@
           superAdminCommon.clearMessage(editorMessageBox);
           nameInput.value = hotel.name || "";
           contactInput.value = hotel.contact || "";
-          addressInput.value = hotel.address || "";
+          addressHouseStreetInput.value = parsedAddress.houseStreet;
+          addressVillageInput.value = parsedAddress.village;
+          addressTalukaInput.value = parsedAddress.taluka;
+          addressDistrictInput.value = parsedAddress.district;
+          addressPincodeInput.value = parsedAddress.pincode;
           gmailInput.value = hotel.admin_email || "";
           isActiveInput.value = String(hotel.is_active);
           totalRoomsInput.value = hotel.total_rooms ?? 0;
@@ -254,7 +334,11 @@
                 name: nameInput.value.trim(),
                 contact: contactInput.value.trim(),
                 gmail_id: gmailInput.value.trim(),
-                address: addressInput.value.trim(),
+                address_house_street: addressHouseStreetInput.value.trim(),
+                address_village: addressVillageInput.value.trim(),
+                address_taluka: addressTalukaInput.value.trim(),
+                address_district: addressDistrictInput.value.trim(),
+                address_pincode: addressPincodeInput.value.trim(),
                 total_rooms: Number(totalRoomsInput.value || "0"),
                 occupied_rooms: Number(occupiedRoomsInput.value || "0"),
                 subscription_start_date: startDateInput.value,

@@ -78,9 +78,29 @@
                 <input id="gmailId" type="email" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="booking@gmail.com">
               </div>
             </div>
-            <div>
-              <label for="address" class="mb-2 block text-sm font-medium text-slate-700">Address</label>
-              <textarea id="address" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Property address or locality"></textarea>
+            <div class="grid gap-3">
+              <div>
+                <label for="addressHouseStreet" class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
+                <input id="addressHouseStreet" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Keep blank if not needed">
+              </div>
+              <div>
+                <label for="addressVillage" class="mb-2 block text-sm font-medium text-slate-700">Village</label>
+                <input id="addressVillage" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Keep blank if not needed">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="addressTaluka" class="mb-2 block text-sm font-medium text-slate-700">Taluka</label>
+                  <input id="addressTaluka" value="Alibaug" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10">
+                </div>
+                <div>
+                  <label for="addressDistrict" class="mb-2 block text-sm font-medium text-slate-700">District</label>
+                  <input id="addressDistrict" value="Raigad" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none">
+                </div>
+              </div>
+              <div>
+                <label for="addressPincode" class="mb-2 block text-sm font-medium text-slate-700">Pincode</label>
+                <input id="addressPincode" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-ocean-900 focus:ring-4 focus:ring-ocean-900/10" placeholder="Keep blank if not needed">
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -269,7 +289,7 @@
             <p class="mt-2 text-slate-700">Hotel ID: <span class="font-medium">${hotel.id}</span></p>
             <p class="mt-1 text-slate-700">Admin Gmail: <span class="font-medium">${hotel.admin_email || "Not set"}</span></p>
             <p class="mt-1 text-slate-700">Mobile: <span class="font-medium">${hotel.admin_phone || hotel.contact || "Not set"}</span></p>
-            <p class="mt-1 text-slate-700">Address: <span class="font-medium">${hotel.address || "Not set"}</span></p>
+            <p class="mt-1 text-slate-700">Address: <span class="font-medium whitespace-pre-line">${hotel.address || "Not set"}</span></p>
             <p class="mt-1 text-slate-700">Trial End: <span class="font-medium">${hotel.subscription_end_date || "Not set"}</span></p>
           `;
           liveMatchList.appendChild(card);
@@ -368,7 +388,11 @@
           name: hotelNameInput.value.trim(),
           mobile_number: document.getElementById("mobileNumber").value.trim(),
           gmail_id: document.getElementById("gmailId").value.trim(),
-          address: document.getElementById("address").value.trim(),
+          address_house_street: document.getElementById("addressHouseStreet").value.trim(),
+          address_village: document.getElementById("addressVillage").value.trim(),
+          address_taluka: document.getElementById("addressTaluka").value.trim(),
+          address_district: document.getElementById("addressDistrict").value.trim(),
+          address_pincode: document.getElementById("addressPincode").value.trim(),
           total_rooms: Number(document.getElementById("totalRooms").value || "0"),
           occupied_rooms: Number(document.getElementById("occupiedRooms").value || "0"),
           subscription_start_date: subscriptionStartDateInput.value,
