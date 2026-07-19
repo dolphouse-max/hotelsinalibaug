@@ -153,11 +153,19 @@
                 </div>
                 <div>
                   <label for="addressCityVillage" class="mb-2 block text-sm font-medium text-slate-600">City / Village</label>
-                  <input id="addressCityVillage" name="address_city_village" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Mumbai">
+                  <select id="addressCityVillage" name="address_city_village" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                    <option value="Pune">Pune</option>
+                    <option value="Mumbai" selected>Mumbai</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div id="addressCityVillageOtherWrap" class="hidden">
+                  <label for="addressCityVillageOther" class="mb-2 block text-sm font-medium text-slate-600">Other City / Village</label>
+                  <input id="addressCityVillageOther" name="address_city_village_other" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Enter city or village name">
                 </div>
                 <div>
                   <label for="addressState" class="mb-2 block text-sm font-medium text-slate-600">State</label>
-                  <input id="addressState" name="address_state" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Maharashtra">
+                  <input id="addressState" name="address_state" required value="Maharashtra" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20" placeholder="Maharashtra">
                 </div>
                 <div>
                   <label for="addressPinCode" class="mb-2 block text-sm font-medium text-slate-600">Pin Code</label>
@@ -359,6 +367,18 @@
           : emptyText;
       }
 
+      function syncAddressCityVillage() {
+        const selectedValue = document.getElementById("addressCityVillage").value;
+        const otherWrap = document.getElementById("addressCityVillageOtherWrap");
+        const otherInput = document.getElementById("addressCityVillageOther");
+        const showOther = selectedValue === "Other";
+        otherWrap.classList.toggle("hidden", !showOther);
+        otherInput.required = showOther;
+        if (!showOther) {
+          otherInput.value = "";
+        }
+      }
+
       function setSex(value) {
         sexInput.value = value;
         for (const button of sexButtons) {
@@ -515,6 +535,8 @@
         const firstName = document.getElementById("firstName").value.trim();
         const middleName = document.getElementById("middleName").value.trim();
         const lastName = document.getElementById("lastName").value.trim();
+        const selectedCityVillage = document.getElementById("addressCityVillage").value;
+        const otherCityVillage = document.getElementById("addressCityVillageOther").value.trim();
 
         return {
           name: joinNameParts(firstName, middleName, lastName),
@@ -524,7 +546,7 @@
           id_type: document.getElementById("idType").value,
           room_number: document.getElementById("roomNumber").value.trim(),
           addressLine1: document.getElementById("addressLine1").value.trim(),
-          addressCityVillage: document.getElementById("addressCityVillage").value.trim(),
+          addressCityVillage: selectedCityVillage === "Other" ? otherCityVillage : selectedCityVillage,
           addressState: document.getElementById("addressState").value.trim(),
           addressPinCode: document.getElementById("addressPinCode").value.trim(),
           coming_from: document.getElementById("comingFrom").value.trim(),
@@ -636,6 +658,9 @@
 
       function resetForm() {
         form.reset();
+        document.getElementById("addressCityVillage").value = "Mumbai";
+        document.getElementById("addressState").value = "Maharashtra";
+        syncAddressCityVillage();
         setSex("Male");
         syncVehicleFields();
         updateFileLabel(null, frontFileName, "No front image selected yet.");
@@ -720,6 +745,9 @@
         if (!expectedCheckOutDateInput.value) {
           expectedCheckOutDateInput.value = new Date().toISOString().slice(0, 10);
         }
+        document.getElementById("addressCityVillage").value = "Mumbai";
+        document.getElementById("addressState").value = "Maharashtra";
+        syncAddressCityVillage();
         setSex("Male");
         syncVehicleFields();
         refreshQueueBanner().catch(console.error);
@@ -739,6 +767,7 @@
       });
 
       hotelIdInput.addEventListener("input", updateHotelLabel);
+      document.getElementById("addressCityVillage").addEventListener("change", syncAddressCityVillage);
       vehicleTypeInput.addEventListener("change", syncVehicleFields);
       frontFileInput.addEventListener("change", () => updateFileLabel(frontFileInput.files && frontFileInput.files[0], frontFileName, "No front image selected yet."));
       backFileInput.addEventListener("change", () => updateFileLabel(backFileInput.files && backFileInput.files[0], backFileName, "No back image selected yet."));
