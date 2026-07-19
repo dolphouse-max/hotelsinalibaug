@@ -46,7 +46,7 @@
           <p class="mt-3 max-w-2xl text-sm leading-6 text-white/80">This dashboard is only for police access and hotel compliance reporting.</p>
         </div>
         <div class="p-6">
-          <div class="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+          <div class="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
             <div>
               <label for="policeEmailInput" class="mb-2 block text-sm font-medium text-slate-700">Police Email</label>
               <input id="policeEmailInput" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
@@ -54,10 +54,6 @@
             <div>
               <label for="policePasswordInput" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
               <input id="policePasswordInput" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
-            </div>
-            <div>
-              <label for="hotelIdInput" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
-              <input id="hotelIdInput" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
             </div>
             <div>
               <label for="officerNameInput" class="mb-2 block text-sm font-medium text-slate-700">Officer Name</label>
@@ -105,7 +101,6 @@
     </main>
 
     <script>
-      const hotelIdInput = document.getElementById("hotelIdInput");
       const officerNameInput = document.getElementById("officerNameInput");
       const policeEmailInput = document.getElementById("policeEmailInput");
       const policePasswordInput = document.getElementById("policePasswordInput");
@@ -113,11 +108,10 @@
       const links = Array.from(document.querySelectorAll(".police-link"));
       const loginButton = document.getElementById("loginButton");
 
-      hotelIdInput.value = localStorage.getItem("police_reports_hotel_id") || localStorage.getItem("dashboard_hotel_id") || "";
       officerNameInput.value = localStorage.getItem("police_officer_name") || localStorage.getItem("dashboard_officer_name") || "";
       localStorage.setItem("police_access_token", localStorage.getItem("police_access_token") || "");
 
-      if (hotelIdInput.value || officerNameInput.value) {
+      if (officerNameInput.value) {
         showMessage("Saved police context found on this device.", "success");
       }
 
@@ -133,42 +127,9 @@
       }
 
       function persistContext() {
-        const hotelId = hotelIdInput.value.trim().toLowerCase();
-        hotelIdInput.value = hotelId;
-        localStorage.setItem("police_reports_hotel_id", hotelId);
-        localStorage.setItem("dashboard_hotel_id", hotelId);
         localStorage.setItem("police_officer_name", officerNameInput.value.trim());
         localStorage.setItem("dashboard_officer_name", officerNameInput.value.trim());
         localStorage.setItem("police_access_token", "__app_session__");
-      }
-
-      async function refreshHotelsFromSession() {
-        try {
-          const selectedHotelId = hotelIdInput.value.trim();
-          const tempSelect = document.createElement("select");
-          tempSelect.dataset.preselectedHotelId = selectedHotelId;
-          await policeReportsCommon.loadHotels(null, tempSelect);
-          if (tempSelect.options.length > 1) {
-            const options = Array.from(tempSelect.options).map((option) => ({
-              value: option.value,
-              text: option.textContent,
-              selected: option.selected,
-            }));
-            hotelIdInput.setAttribute("list", "policeHotelOptions");
-            let dataList = document.getElementById("policeHotelOptions");
-            if (!dataList) {
-              dataList = document.createElement("datalist");
-              dataList.id = "policeHotelOptions";
-              document.body.appendChild(dataList);
-            }
-            dataList.innerHTML = options
-              .filter((option) => option.value)
-              .map((option) => `<option value="${option.value}">${option.text}</option>`)
-              .join("");
-          }
-        } catch {
-          // Keep manual hotel ID entry available even if hotel list load fails.
-        }
       }
 
       loginButton.addEventListener("click", async () => {
@@ -180,7 +141,6 @@
           const data = await window.firebaseAuthBridge.signIn(email, policePasswordInput.value);
           policeEmailInput.value = data.session.email || email;
           persistContext();
-          await refreshHotelsFromSession();
           showMessage("Police login successful.", "success");
         } catch (error) {
           showMessage(error instanceof Error ? error.message : "Unable to log in.", "error");
@@ -228,12 +188,8 @@
         link.href = "#";
         link.addEventListener("click", (event) => {
           event.preventDefault();
-          const hotelId = hotelIdInput.value.trim();
           persistContext();
           const url = new URL(link.dataset.target, window.location.href);
-          if (hotelId) {
-            url.searchParams.set("hotel_id", hotelId);
-          }
           if (officerNameInput.value.trim()) {
             url.searchParams.set("officer_name", officerNameInput.value.trim());
           }
@@ -245,7 +201,6 @@
         .then((data) => {
           if (data?.session?.role === "police") {
             policeEmailInput.value = data.session.email || policeEmailInput.value;
-            refreshHotelsFromSession();
             showMessage("Police session restored.", "success");
           }
         })
