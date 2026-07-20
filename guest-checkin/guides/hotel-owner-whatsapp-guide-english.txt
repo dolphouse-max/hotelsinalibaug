@@ -1,0 +1,43 @@
+Hello,
+
+Your hotel has been successfully created in the Hotels In Alibaug CHECKIN app.
+
+Login details:
+- Hotel ID: [hotel_id]
+- Hotel Admin Email: [email]
+- Temporary Password: [temporary_password]
+
+Hotel Admin link:
+https://checkin.hotelsinalibaug.in/hotel-admin-home.html?hotel_id=[hotel_id]
+
+Please follow these steps to start using the app:
+
+1. Open the Hotel Admin link
+2. Log in using your email and temporary password
+3. Change your password immediately after first login
+4. Connect your Google Drive
+5. Check and update your hotel profile details
+6. Add your staff members
+7. Start guest check-in using the reception QR or guest entry page
+8. Use Reservations and Reports for daily operations
+
+What the app helps you with:
+- Digital guest register
+- Staff register
+- Future reservation calendar
+- Police-ready reports
+- Hotel-owned Google Drive proof storage
+
+Pricing:
+- Rs. 10 per room per month
+- Rs. 100 per room per year
+
+Free trial:
+Available till 31 October 2026
+
+For help:
+WhatsApp: +91 72089 93899
+Email: checkin.hotelsinalibaug@gmail.com
+
+Thank you,
+Hotels In Alibaug CHECKIN

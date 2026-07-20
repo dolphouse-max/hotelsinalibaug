@@ -1,0 +1,43 @@
+नमस्कार.
+
+आपले हॉटेल Hotels In Alibaug CHECKIN अॅपमध्ये यशस्वीरीत्या तयार झाले आहे.
+
+लॉगिनसाठी माहिती:
+- Hotel ID: [hotel_id]
+- Hotel Admin Email: [email]
+- Temporary Password: [temporary_password]
+
+हॉटेल अॅडमिन लिंक:
+https://checkin.hotelsinalibaug.in/hotel-admin-home.html?hotel_id=[hotel_id]
+
+कृपया पुढील स्टेप्स फॉलो करा:
+
+1. वरील लिंक उघडा
+2. Email आणि Temporary Password ने लॉगिन करा
+3. लगेच नवीन Password सेट करा
+4. Google Drive कनेक्ट करा
+5. हॉटेल प्रोफाइल तपासा
+6. स्टाफ नोंदणी करा
+7. Guest Check-in QR वापरून पाहुण्यांची नोंद सुरू करा
+8. Reservations आणि Reports वापरायला सुरुवात करा
+
+अॅपमध्ये मिळणाऱ्या सुविधा:
+- डिजिटल गेस्ट रजिस्टर
+- स्टाफ रजिस्टर
+- फ्युचर रिझर्वेशन कॅलेंडर
+- पोलीसांसाठी उपयुक्त रिपोर्ट्स
+- हॉटेलच्या स्वतःच्या Google Drive मध्ये प्रूफ स्टोरेज
+
+चार्जेस:
+- रु. 10 प्रति रूम प्रति महिना
+- रु. 100 प्रति रूम प्रति वर्ष
+
+फ्री ट्रायल:
+31 ऑक्टोबर 2026 पर्यंत
+
+सहाय्यासाठी:
+WhatsApp: +91 72089 93899
+Email: checkin.hotelsinalibaug@gmail.com
+
+धन्यवाद.
+Hotels In Alibaug CHECKIN

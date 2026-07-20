@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="mr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>हॉटेल मालक मार्गदर्शक | Hotels In Alibaug CHECKIN</title>
+    <meta name="description" content="Hotels In Alibaug CHECKIN अॅप वापरण्यासाठी हॉटेल मालकांसाठी मराठी स्टेप-बाय-स्टेप मार्गदर्शक.">
+    <style>
+      :root{
+        --bg:#eef4f8;
+        --card:#ffffff;
+        --line:#d9e3ec;
+        --text:#183247;
+        --muted:#5f7283;
+        --brand:#0f2436;
+        --accent:#1f5f8b;
+      }
+      *{box-sizing:border-box}
+      body{
+        margin:0;
+        font-family:Segoe UI, Arial, sans-serif;
+        background:linear-gradient(180deg,#f8fbfd 0%,var(--bg) 100%);
+        color:var(--text);
+      }
+      .wrap{
+        max-width:960px;
+        margin:0 auto;
+        padding:24px 16px 40px;
+      }
+      .hero,
+      .card{
+        background:var(--card);
+        border:1px solid var(--line);
+        border-radius:28px;
+        box-shadow:0 20px 60px rgba(15,36,54,.08);
+      }
+      .hero{
+        padding:28px;
+        background:linear-gradient(135deg,#08131d 0%,#17344d 68%,#275273 100%);
+        color:#fff;
+      }
+      .eyebrow{
+        display:inline-block;
+        padding:8px 12px;
+        border-radius:999px;
+        background:rgba(255,255,255,.12);
+        font-size:12px;
+        font-weight:700;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+      }
+      h1,h2,h3{margin:0 0 12px}
+      h1{font-size:32px;line-height:1.2}
+      h2{font-size:22px;color:var(--brand)}
+      p,li{font-size:16px;line-height:1.7}
+      .lead{font-size:18px;color:rgba(255,255,255,.86)}
+      .grid{
+        display:grid;
+        gap:18px;
+        margin-top:20px;
+      }
+      .two{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .card{
+        padding:22px;
+      }
+      .steps{
+        counter-reset:step;
+        display:grid;
+        gap:14px;
+      }
+      .step{
+        border:1px solid var(--line);
+        border-radius:20px;
+        padding:16px 18px;
+        background:#f9fbfd;
+      }
+      .step h3::before{
+        counter-increment:step;
+        content:counter(step) ". ";
+        color:var(--accent);
+      }
+      ul{
+        margin:0;
+        padding-left:20px;
+      }
+      .price{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:14px;
+      }
+      .price-box{
+        border:1px solid var(--line);
+        border-radius:20px;
+        padding:18px;
+        background:#f9fbfd;
+      }
+      .price-box strong{
+        display:block;
+        font-size:28px;
+        color:var(--brand);
+        margin-top:10px;
+      }
+      .contact{
+        background:linear-gradient(135deg,#0f2436 0%,#17344d 100%);
+        color:#fff;
+      }
+      .contact h2,.contact p,.contact li{color:#fff}
+      @media (max-width: 760px){
+        .two,.price{grid-template-columns:1fr}
+        h1{font-size:26px}
+      }
+      @media print{
+        body{background:#fff}
+        .wrap{padding:0}
+        .hero,.card{box-shadow:none}
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <span class="eyebrow">Hotel Owner Guide</span>
+        <h1>Hotels In Alibaug CHECKIN</h1>
+        <p class="lead">हॉटेल सिस्टीममध्ये जोडल्यावर अॅप वापरण्यासाठी हॉटेल मालकांसाठी मराठी स्टेप-बाय-स्टेप मार्गदर्शक.</p>
+      </section>
+
+      <section class="grid two">
+        <article class="card">
+          <h2>आपल्याला काय मिळते</h2>
+          <ul>
+            <li>डिजिटल गेस्ट रजिस्टर</li>
+            <li>स्टाफ रजिस्टर</li>
+            <li>फ्युचर रिझर्वेशन कॅलेंडर</li>
+            <li>पोलीसांसाठी उपयुक्त रिपोर्ट्स</li>
+            <li>हॉटेलच्या स्वतःच्या Google Drive मध्ये प्रूफ स्टोरेज</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>लॉगिनसाठी आवश्यक माहिती</h2>
+          <ul>
+            <li>Hotel ID</li>
+            <li>Hotel Admin Email</li>
+            <li>Temporary Password</li>
+            <li>Hotel Admin Link</li>
+          </ul>
+          <p>ही माहिती हॉटेल तयार झाल्यानंतर WhatsApp किंवा ईमेलने पाठवली जाईल.</p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:20px;">
+        <h2>अॅप वापरण्याच्या स्टेप्स</h2>
+        <div class="steps">
+          <div class="step">
+            <h3>Hotel Admin पेज उघडा</h3>
+            <p>आपल्याला दिलेली हॉटेल अॅडमिन लिंक उघडा आणि Email व Temporary Password वापरून लॉगिन करा.</p>
+          </div>
+          <div class="step">
+            <h3>पहिल्या लॉगिननंतर पासवर्ड बदला</h3>
+            <p>सुरक्षेसाठी आपला स्वतःचा नवीन पासवर्ड सेट करा.</p>
+          </div>
+          <div class="step">
+            <h3>Google Drive कनेक्ट करा</h3>
+            <p>Guest proofs आणि staff documents सुरक्षितरीत्या साठवण्यासाठी Google Drive जोडून घ्या.</p>
+          </div>
+          <div class="step">
+            <h3>हॉटेल प्रोफाइल तपासा</h3>
+            <p>हॉटेलचे नाव, पत्ता, संपर्क व्यक्ती, मोबाईल, ईमेल आणि रूम्स संख्या योग्य आहेत का ते तपासा.</p>
+          </div>
+          <div class="step">
+            <h3>स्टाफ रजिस्टर भरा</h3>
+            <p>Reception, Manager, Housekeeping, Security, Kitchen, Waiter इत्यादी स्टाफची नोंद करा.</p>
+          </div>
+          <div class="step">
+            <h3>Guest Check-in सुरू करा</h3>
+            <p>रिसेप्शन QR किंवा गेस्ट एंट्री लिंक वापरून पाहुण्यांची माहिती भरण्यास सुरुवात करा.</p>
+          </div>
+          <div class="step">
+            <h3>Reservations वापरा</h3>
+            <p>भविष्यातील बुकिंग्स टाका आणि कॅलेंडरमध्ये कोणत्या तारखांना कोणत्या रूम्स बुक आहेत ते तपासा.</p>
+          </div>
+          <div class="step">
+            <h3>Reports पाहा</h3>
+            <p>Guest, Staff, Reservation आणि Police-ready reports वापरून नोंदी पटकन शोधा.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two" style="margin-top:20px;">
+        <article class="card">
+          <h2>दैनंदिन वापर</h2>
+          <ul>
+            <li>लॉगिन करा</li>
+            <li>QR उघडा</li>
+            <li>नवीन पाहुणे नोंदवा</li>
+            <li>स्टाफ किंवा बुकिंग अपडेट करा</li>
+            <li>Reports तपासा</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>महत्वाच्या सूचना</h2>
+          <ul>
+            <li>Email आणि Password सुरक्षित ठेवा</li>
+            <li>पहिल्या लॉगिननंतर पासवर्ड बदला</li>
+            <li>Google Drive नक्की कनेक्ट करा</li>
+            <li>Reception QR वेळोवेळी रीफ्रेश करा</li>
+            <li>Room number योग्य भरणे आवश्यक आहे</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:20px;">
+        <h2>चार्जेस आणि ट्रायल</h2>
+        <div class="price">
+          <div class="price-box">
+            मासिक योजना
+            <strong>रु. 10</strong>
+            <p>प्रति रूम प्रति महिना</p>
+          </div>
+          <div class="price-box">
+            वार्षिक योजना
+            <strong>रु. 100</strong>
+            <p>प्रति रूम प्रति वर्ष</p>
+          </div>
+          <div class="price-box">
+            फ्री ट्रायल
+            <strong>31 ऑक्टोबर 2026</strong>
+            <p>1 नोव्हेंबर 2026 पासून शुल्क लागू</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card contact" style="margin-top:20px;">
+        <h2>संपर्क</h2>
+        <p>सेटअप, डेमो किंवा वापरासाठी मदत हवी असल्यास संपर्क करा:</p>
+        <ul>
+          <li>WhatsApp: +91 72089 93899</li>
+          <li>Email: checkin.hotelsinalibaug@gmail.com</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
