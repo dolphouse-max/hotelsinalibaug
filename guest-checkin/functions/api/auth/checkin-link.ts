@@ -1,5 +1,5 @@
 import { badRequest, isSafeId, json, requireReadToken } from "../../_lib/api";
-import { createCheckinAccessToken } from "../../_lib/checkin-link";
+import { createCheckinAccessToken, getCheckinLinkLifetimeSeconds } from "../../_lib/checkin-link";
 import { getHotelById } from "../../_lib/google-drive";
 
 interface Env {
@@ -29,12 +29,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
     const accessToken = await createCheckinAccessToken(hotelId, context.env);
     const checkinUrl = `${url.origin}/?hotel_id=${encodeURIComponent(hotelId)}&access=${encodeURIComponent(accessToken)}`;
+    const expiresInSeconds = getCheckinLinkLifetimeSeconds();
+    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
 
     return json({
       hotelId,
       hotelName: hotel.name,
       checkinUrl,
       accessToken,
+      expiresAt,
+      expiresInSeconds,
     });
   } catch (error) {
     console.error("Failed to create check-in link", error);

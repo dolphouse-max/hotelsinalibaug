@@ -72,6 +72,22 @@ CREATE TABLE IF NOT EXISTS guests (
   FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS guest_family_members (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  guest_id TEXT NOT NULL,
+  hotel_id TEXT NOT NULL,
+  full_name TEXT NOT NULL,
+  age INTEGER CHECK (age IS NULL OR age >= 0),
+  sex TEXT NOT NULL DEFAULT 'Other',
+  id_type TEXT NOT NULL,
+  google_drive_file_id_front TEXT,
+  google_drive_file_id_back TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS police_access_logs (
   id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   officer_name TEXT NOT NULL,
@@ -207,6 +223,8 @@ CREATE INDEX IF NOT EXISTS idx_hotel_staff_hotel_id ON hotel_staff(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_hotel_staff_role ON hotel_staff(role);
 CREATE INDEX IF NOT EXISTS idx_guests_hotel_id ON guests(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_guests_check_in_time ON guests(check_in_time);
+CREATE INDEX IF NOT EXISTS idx_guest_family_members_guest_id ON guest_family_members(guest_id);
+CREATE INDEX IF NOT EXISTS idx_guest_family_members_hotel_id ON guest_family_members(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_police_logs_hotel_id ON police_access_logs(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_police_logs_guest_id ON police_access_logs(guest_id);
 CREATE INDEX IF NOT EXISTS idx_police_logs_accessed_at ON police_access_logs(accessed_at);

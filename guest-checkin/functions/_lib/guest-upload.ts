@@ -18,6 +18,16 @@ interface Env {
   ENCRYPTION_KEY: string;
 }
 
+interface GuestFamilyMemberInput {
+  id: string;
+  fullName: string;
+  age: number;
+  sex: string;
+  idType: string;
+  idFrontFile: File;
+  idBackFile: File;
+}
+
 function requireText(formData: FormData, key: string): string {
   const value = formData.get(key);
   if (typeof value !== "string" || !value.trim()) {
@@ -55,6 +65,28 @@ function sanitizeFileName(value: string): string {
 
 function createGuestId(): string {
   return crypto.randomUUID().replace(/-/g, "");
+}
+
+async function ensureGuestFamilyMembersTable(env: Env): Promise<void> {
+  await env.DB.exec(`
+    CREATE TABLE IF NOT EXISTS guest_family_members (
+      id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+      guest_id TEXT NOT NULL,
+      hotel_id TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      age INTEGER CHECK (age IS NULL OR age >= 0),
+      sex TEXT NOT NULL DEFAULT 'Other',
+      id_type TEXT NOT NULL,
+      google_drive_file_id_front TEXT,
+      google_drive_file_id_back TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (guest_id) REFERENCES guests(id) ON DELETE CASCADE,
+      FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_guest_family_members_guest_id ON guest_family_members(guest_id);
+    CREATE INDEX IF NOT EXISTS idx_guest_family_members_hotel_id ON guest_family_members(hotel_id);
+  `);
 }
 
 function requireUploadFile(formData: FormData, key: string): File {
@@ -106,6 +138,39 @@ function normalizeWhatsapp(formData: FormData, mobileKey: string, whatsappKey: s
   const whatsapp = sameAsMobile ? mobile : requireText(formData, whatsappKey);
 
   return { mobile, whatsapp };
+}
+
+function requireSexValue(value: string, key: string): string {
+  if (!["Male", "Female", "Other"].includes(value)) {
+    throw new Error(`Invalid ${key}`);
+  }
+
+  return value;
+}
+
+function parseGuestFamilyMembers(formData: FormData): GuestFamilyMemberInput[] {
+  const rawCount = optionalText(formData, "member_count");
+  const memberCount = rawCount ? Number(rawCount) : 0;
+
+  if (!Number.isFinite(memberCount) || memberCount < 0) {
+    throw new Error("Invalid member_count");
+  }
+
+  const members: GuestFamilyMemberInput[] = [];
+
+  for (let index = 0; index < memberCount; index += 1) {
+    members.push({
+      id: createGuestId(),
+      fullName: requireText(formData, `member_${index}_name`),
+      age: requireNumber(formData, `member_${index}_age`, 0),
+      sex: requireSexValue(requireText(formData, `member_${index}_sex`), `member_${index}_sex`),
+      idType: requireText(formData, `member_${index}_id_type`),
+      idFrontFile: requireUploadFile(formData, `member_${index}_id_front_file`),
+      idBackFile: requireUploadFile(formData, `member_${index}_id_back_file`),
+    });
+  }
+
+  return members;
 }
 
 async function assertRoomCapacityAvailable(env: Env, hotelId: string, roomNumber: string) {
@@ -170,8 +235,7 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
   const hotelId = requireText(formData, "hotel_id");
   const guestName = requireText(formData, "name");
   const age = requireNumber(formData, "age", 0);
-  const sex = requireText(formData, "sex");
-  const totalGuests = requireNumber(formData, "total_guests", 1);
+  const sex = requireSexValue(requireText(formData, "sex"), "sex");
   const roomNumber = requireText(formData, "room_number");
   const expectedCheckOutDate = requireText(formData, "expected_check_out_date");
   const addressLine1 = requireText(formData, "address_line_1");
@@ -187,13 +251,11 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
   const idNumber = optionalText(formData, "id_number") || "Captured from uploaded ID proof";
   const idFrontFile = requireUploadFile(formData, "id_front_file");
   const idBackFile = requireUploadFile(formData, "id_back_file");
+  const familyMembers = parseGuestFamilyMembers(formData);
+  const totalGuests = 1 + familyMembers.length;
 
   if (!isSafeId(hotelId)) {
     throw new Error("Invalid hotel_id");
-  }
-
-  if (!["Male", "Female", "Other"].includes(sex)) {
-    throw new Error("Invalid sex");
   }
 
   if (!["None", "Car", "Motor Bike"].includes(vehicleType)) {
@@ -202,11 +264,22 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
 
   await assertHotelCanAcceptGuestUploads(hotelId, env);
   await assertRoomCapacityAvailable(env, hotelId, roomNumber);
+  await ensureGuestFamilyMembersTable(env);
 
   const { accessToken, folderId, hotel } = await getHotelDriveAccessToken(hotelId, env);
   const baseFileName = `${guestName}-${idType}`;
   const frontFileId = await uploadProofFile(accessToken, folderId, idFrontFile, baseFileName, "front");
   const backFileId = await uploadProofFile(accessToken, folderId, idBackFile, baseFileName, "back");
+  const uploadedFamilyMembers = await Promise.all(
+    familyMembers.map(async (member) => {
+      const memberBaseFileName = `${member.fullName}-${member.idType}`;
+      return {
+        ...member,
+        frontFileId: await uploadProofFile(accessToken, folderId, member.idFrontFile, memberBaseFileName, "member-front"),
+        backFileId: await uploadProofFile(accessToken, folderId, member.idBackFile, memberBaseFileName, "member-back"),
+      };
+    })
+  );
 
   const guestId = createGuestId();
   await env.DB.prepare(
@@ -262,6 +335,36 @@ export async function processGuestUpload(formData: FormData, env: Env): Promise<
       backFileId
     )
     .run();
+
+  if (uploadedFamilyMembers.length) {
+    await env.DB.batch(
+      uploadedFamilyMembers.map((member) =>
+        env.DB.prepare(
+          `INSERT INTO guest_family_members (
+             id,
+             guest_id,
+             hotel_id,
+             full_name,
+             age,
+             sex,
+             id_type,
+             google_drive_file_id_front,
+             google_drive_file_id_back
+           ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`
+        ).bind(
+          member.id,
+          guestId,
+          hotel.id,
+          member.fullName,
+          member.age,
+          member.sex,
+          member.idType,
+          member.frontFileId,
+          member.backFileId
+        )
+      )
+    );
+  }
 
   return {
     guestId,

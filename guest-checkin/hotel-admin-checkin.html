@@ -37,7 +37,7 @@
 
         <div class="p-5">
           <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            Generate the QR once and reuse the same guest link at reception unless the hotel ID changes.
+            Each generated QR stays valid for 4 hours only. After that, generate a fresh QR before giving it to the next guest.
           </div>
           <div class="space-y-4">
             <div>
@@ -53,10 +53,11 @@
             </div>
           </div>
           <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          <div id="expiryNotice" class="mt-4 hidden rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900"></div>
 
           <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
             <p class="text-sm font-semibold text-ocean">Reception tip</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Open this page on the reception phone, generate the QR once, and let the guest scan it from their own phone to fill the form separately.</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Open this page on the reception phone, generate the QR, and let the guest scan it from their own phone. If the QR has expired, generate a fresh one before reuse.</p>
           </div>
 
           <textarea id="checkinLinkOutput" rows="4" readonly class="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">No check-in link generated yet.</textarea>
@@ -82,8 +83,17 @@
       const tokenInput = document.getElementById("hotelAdminToken");
       const hotelIdInput = document.getElementById("hotelId");
       const pageMessage = document.getElementById("pageMessage");
+      const expiryNotice = document.getElementById("expiryNotice");
       const generateButton = document.getElementById("generateButton");
       let checkinUrl = "";
+
+      function formatExpiry(value) {
+        const date = new Date(value);
+        return new Intl.DateTimeFormat("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(date);
+      }
 
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
 
@@ -114,8 +124,12 @@
           document.getElementById("checkinQrPlaceholder").classList.add("hidden");
           document.getElementById("copyButton").disabled = false;
           document.getElementById("openButton").disabled = false;
+          expiryNotice.textContent = `This reception QR will expire on ${formatExpiry(data.expiresAt)}. Generate a fresh QR after expiry.`;
+          expiryNotice.classList.remove("hidden");
           hotelAdminCommon.setMessage(pageMessage, "Guest check-in QR generated successfully.", "success");
         } catch (error) {
+          expiryNotice.classList.add("hidden");
+          expiryNotice.textContent = "";
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(generateButton, false);

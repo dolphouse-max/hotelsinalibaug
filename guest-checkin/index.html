@@ -43,6 +43,12 @@
     </div>
 
     <main class="relative mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:px-6 sm:py-10">
+      <div class="mb-4">
+        <button id="goBackButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white shadow-sm backdrop-blur transition hover:bg-white/15">
+          Go Back
+        </button>
+      </div>
+
       <section class="rounded-[2rem] bg-sand-50 p-5 text-slate-900 shadow-resort sm:p-7">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -83,8 +89,8 @@
           <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
             <div class="mb-4">
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 1</p>
-              <h3 class="mt-1 text-lg font-semibold text-ocean-900">Guest basics</h3>
-              <p class="mt-1 text-sm leading-6 text-slate-600">Start with the guest’s core details exactly as they should appear in the record.</p>
+              <h3 class="mt-1 text-lg font-semibold text-ocean-900">Main Guest Basics</h3>
+              <p class="mt-1 text-sm leading-6 text-slate-600">Start with the main guest for this room or family booking. Extra family members can be added below.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
@@ -207,10 +213,27 @@
           </div>
 
           <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
+            <div class="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 3</p>
+                <h3 class="mt-1 text-lg font-semibold text-ocean-900">Family Members In Same Room</h3>
+                <p class="mt-1 text-sm leading-6 text-slate-600">Add all other members staying in the same room. You can add as many as needed.</p>
+              </div>
+              <button id="addMemberButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-ocean-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-ocean-800">
+                Add Member
+              </button>
+            </div>
+            <div id="membersEmptyState" class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+              No extra family members added yet.
+            </div>
+            <div id="membersContainer" class="mt-4 space-y-4"></div>
+          </div>
+
+          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
             <div class="mb-4">
-              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 3</p>
-              <h3 class="mt-1 text-lg font-semibold text-ocean-900">ID proof capture</h3>
-              <p class="mt-1 text-sm leading-6 text-slate-600">Take clear front and back images. The app compresses them automatically before upload.</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 4</p>
+              <h3 class="mt-1 text-lg font-semibold text-ocean-900">Main Guest ID Proof Capture</h3>
+              <p class="mt-1 text-sm leading-6 text-slate-600">Take clear front and back images for the main guest. The app compresses them automatically before upload.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
             <div>
@@ -297,6 +320,7 @@
       const backFileInput = document.getElementById("idBackFile");
       const frontFileName = document.getElementById("frontFileName");
       const backFileName = document.getElementById("backFileName");
+      const goBackButton = document.getElementById("goBackButton");
       const submitButton = document.getElementById("submitButton");
       const buttonText = document.getElementById("buttonText");
       const buttonSpinner = document.getElementById("buttonSpinner");
@@ -309,8 +333,12 @@
       const vehicleNumberInput = document.getElementById("vehicleNumber");
       const vehicleNumberWrap = document.getElementById("vehicleNumberWrap");
       const expectedCheckOutDateInput = document.getElementById("expectedCheckOutDate");
+      const addMemberButton = document.getElementById("addMemberButton");
+      const membersContainer = document.getElementById("membersContainer");
+      const membersEmptyState = document.getElementById("membersEmptyState");
 
       let dbPromise;
+      let memberSerial = 0;
 
       function readStoredConfig() {
         const params = new URLSearchParams(window.location.search);
@@ -365,6 +393,117 @@
         label.textContent = file
           ? `${file.name} • ${(file.size / 1024 / 1024).toFixed(2)} MB`
           : emptyText;
+      }
+
+      function updateMembersEmptyState() {
+        membersEmptyState.classList.toggle("hidden", membersContainer.children.length > 0);
+      }
+
+      function createMemberCard() {
+        memberSerial += 1;
+        const card = document.createElement("section");
+        card.className = "rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4";
+        card.dataset.memberCard = String(memberSerial);
+        card.innerHTML = `
+          <div class="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <h4 class="text-base font-semibold text-ocean-900">Member ${memberSerial}</h4>
+              <p class="mt-1 text-sm text-slate-600">Add the details and ID proof for this family member.</p>
+            </div>
+            <button type="button" class="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700" data-remove-member>
+              Remove
+            </button>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">First Name</label>
+              <input data-member-field="firstName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Middle Name</label>
+              <input data-member-field="middleName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Last Name</label>
+              <input data-member-field="lastName" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+          </div>
+          <div class="mt-4 grid gap-4 sm:grid-cols-3">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Age</label>
+              <input data-member-field="age" type="number" min="0" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">Sex</label>
+              <select data-member-field="sex" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">ID Type</label>
+              <select data-member-field="idType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-lagoon focus:ring-2 focus:ring-lagoon/20">
+                <option value="aadhaar">Aadhaar</option>
+                <option value="passport">Passport</option>
+                <option value="driving_licence">Driving Licence</option>
+                <option value="voter_id">Voter ID</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Front</label>
+              <label class="flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
+                <span class="text-sm font-medium text-ocean-900">Capture front side</span>
+                <span class="mt-1 text-xs text-slate-500">Camera or gallery</span>
+                <input data-member-field="frontFile" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+              </label>
+              <p data-member-field="frontFileName" class="mt-2 text-sm text-slate-500">No front image selected yet.</p>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700">ID Proof Back</label>
+              <label class="flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-6 text-center transition hover:border-lagoon hover:bg-sky-50/40">
+                <span class="text-sm font-medium text-ocean-900">Capture back side</span>
+                <span class="mt-1 text-xs text-slate-500">Camera or gallery</span>
+                <input data-member-field="backFile" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+              </label>
+              <p data-member-field="backFileName" class="mt-2 text-sm text-slate-500">No back image selected yet.</p>
+            </div>
+          </div>
+        `;
+
+        const removeButton = card.querySelector("[data-remove-member]");
+        const memberFrontFileInput = card.querySelector('[data-member-field="frontFile"]');
+        const memberBackFileInput = card.querySelector('[data-member-field="backFile"]');
+        const memberFrontFileName = card.querySelector('[data-member-field="frontFileName"]');
+        const memberBackFileName = card.querySelector('[data-member-field="backFileName"]');
+
+        removeButton.addEventListener("click", () => {
+          card.remove();
+          updateMembersEmptyState();
+        });
+        memberFrontFileInput.addEventListener("change", () => updateFileLabel(memberFrontFileInput.files && memberFrontFileInput.files[0], memberFrontFileName, "No front image selected yet."));
+        memberBackFileInput.addEventListener("change", () => updateFileLabel(memberBackFileInput.files && memberBackFileInput.files[0], memberBackFileName, "No back image selected yet."));
+
+        return card;
+      }
+
+      function collectMemberEntries() {
+        return Array.from(membersContainer.querySelectorAll("[data-member-card]")).map((card) => {
+          const firstName = card.querySelector('[data-member-field="firstName"]').value.trim();
+          const middleName = card.querySelector('[data-member-field="middleName"]').value.trim();
+          const lastName = card.querySelector('[data-member-field="lastName"]').value.trim();
+
+          return {
+            name: joinNameParts(firstName, middleName, lastName),
+            age: card.querySelector('[data-member-field="age"]').value.trim(),
+            sex: card.querySelector('[data-member-field="sex"]').value,
+            id_type: card.querySelector('[data-member-field="idType"]').value,
+            frontFile: card.querySelector('[data-member-field="frontFile"]').files?.[0] || null,
+            backFile: card.querySelector('[data-member-field="backFile"]').files?.[0] || null,
+          };
+        });
       }
 
       function syncAddressCityVillage() {
@@ -554,10 +693,11 @@
           expected_check_out_date: document.getElementById("expectedCheckOutDate").value,
           vehicle_type: document.getElementById("vehicleType").value,
           vehicle_number: document.getElementById("vehicleNumber").value.trim(),
+          members: collectMemberEntries(),
         };
       }
 
-      function buildApiFormData(payload, frontFile, backFile, hotelId) {
+      function buildApiFormData(payload, frontFile, backFile, memberFiles, hotelId) {
         const formData = new FormData();
         formData.set("hotel_id", hotelId);
         formData.set("name", payload.name);
@@ -565,7 +705,7 @@
         formData.set("whatsapp_same_as_mobile", "true");
         formData.set("age", payload.age);
         formData.set("sex", payload.sex);
-        formData.set("total_guests", "1");
+        formData.set("total_guests", String(1 + payload.members.length));
         formData.set("room_number", payload.room_number);
         formData.set("expected_check_out_date", payload.expected_check_out_date);
         formData.set("address_line_1", payload.addressLine1);
@@ -579,6 +719,15 @@
         formData.set("id_type", payload.id_type);
         formData.set("id_front_file", frontFile);
         formData.set("id_back_file", backFile);
+        formData.set("member_count", String(payload.members.length));
+        memberFiles.forEach((member, index) => {
+          formData.set(`member_${index}_name`, member.name);
+          formData.set(`member_${index}_age`, member.age);
+          formData.set(`member_${index}_sex`, member.sex);
+          formData.set(`member_${index}_id_type`, member.id_type);
+          formData.set(`member_${index}_id_front_file`, member.frontFile);
+          formData.set(`member_${index}_id_back_file`, member.backFile);
+        });
         return formData;
       }
 
@@ -588,7 +737,7 @@
           throw new Error("Hotel ID must be configured on this device.");
         }
 
-        const formData = buildApiFormData(entry.payload, entry.frontFile, entry.backFile, config.hotelId);
+        const formData = buildApiFormData(entry.payload, entry.frontFile, entry.backFile, entry.memberFiles || [], config.hotelId);
         const endpoint = config.access ? "/api/checkin/submit" : "/api/guests/upload";
         if (config.access) {
           formData.set("access", config.access);
@@ -658,6 +807,8 @@
 
       function resetForm() {
         form.reset();
+        membersContainer.innerHTML = "";
+        updateMembersEmptyState();
         document.getElementById("addressCityVillage").value = "Mumbai";
         document.getElementById("addressState").value = "Maharashtra";
         syncAddressCityVillage();
@@ -683,10 +834,18 @@
           const preparedFrontFile = await prepareFile(rawFrontFile, "Front ID proof");
           const preparedBackFile = await prepareFile(rawBackFile, "Back ID proof");
           const payload = createPayload();
+          const memberFiles = await Promise.all(
+            payload.members.map(async (member, index) => ({
+              ...member,
+              frontFile: await prepareFile(member.frontFile, `Member ${index + 1} front ID proof`),
+              backFile: await prepareFile(member.backFile, `Member ${index + 1} back ID proof`),
+            }))
+          );
           const entry = {
             payload,
             frontFile: preparedFrontFile,
             backFile: preparedBackFile,
+            memberFiles,
           };
 
           if (navigator.onLine) {
@@ -748,6 +907,7 @@
         document.getElementById("addressCityVillage").value = "Mumbai";
         document.getElementById("addressState").value = "Maharashtra";
         syncAddressCityVillage();
+        updateMembersEmptyState();
         setSex("Male");
         syncVehicleFields();
         refreshQueueBanner().catch(console.error);
@@ -768,6 +928,26 @@
 
       hotelIdInput.addEventListener("input", updateHotelLabel);
       document.getElementById("addressCityVillage").addEventListener("change", syncAddressCityVillage);
+      addMemberButton.addEventListener("click", () => {
+        membersContainer.appendChild(createMemberCard());
+        updateMembersEmptyState();
+      });
+      goBackButton.addEventListener("click", () => {
+        if (window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+
+        const config = readStoredConfig();
+        if (config.hotelId) {
+          const fallbackUrl = new URL("/hotel-admin-checkin.html", window.location.origin);
+          fallbackUrl.searchParams.set("hotel_id", config.hotelId);
+          window.location.href = fallbackUrl.toString();
+          return;
+        }
+
+        window.location.href = "/";
+      });
       vehicleTypeInput.addEventListener("change", syncVehicleFields);
       frontFileInput.addEventListener("change", () => updateFileLabel(frontFileInput.files && frontFileInput.files[0], frontFileName, "No front image selected yet."));
       backFileInput.addEventListener("change", () => updateFileLabel(backFileInput.files && backFileInput.files[0], backFileName, "No back image selected yet."));

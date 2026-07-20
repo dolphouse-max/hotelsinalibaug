@@ -9,6 +9,8 @@ interface CheckinLinkPayload {
   hotelId: string;
 }
 
+const CHECKIN_LINK_LIFETIME_SECONDS = 60 * 60 * 4;
+
 function ensureLinkSecret(env: Env): void {
   if (!env.CHECKIN_LINK_SECRET) {
     throw new Error("Missing required environment variable: CHECKIN_LINK_SECRET");
@@ -19,7 +21,7 @@ export async function createCheckinAccessToken(hotelId: string, env: Env): Promi
   ensureLinkSecret(env);
 
   const payload: CheckinLinkPayload = {
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+    exp: Math.floor(Date.now() / 1000) + CHECKIN_LINK_LIFETIME_SECONDS,
     hotelId,
   };
 
@@ -54,4 +56,8 @@ export async function verifyCheckinAccessToken(
   if (payload.exp < Math.floor(Date.now() / 1000)) {
     throw new Error("Access token expired");
   }
+}
+
+export function getCheckinLinkLifetimeSeconds(): number {
+  return CHECKIN_LINK_LIFETIME_SECONDS;
 }
