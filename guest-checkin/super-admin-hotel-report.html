@@ -279,6 +279,7 @@
             ${createLine("ID", `${guest.id_type || "-"} • ${guest.id_number || "-"}`)}
             ${createLine("Check-In", guest.check_in_time || "-")}
             ${createLine("Expected Check-Out", guest.expected_check_out_date || "-")}
+            ${superAdminReportsCommon.familyMemberSummary(guest)}
             ${superAdminReportsCommon.proofButtons(guest)}
           `
         );

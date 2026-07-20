@@ -25,6 +25,16 @@ async function getTableColumns(db, tableName) {
   return new Set((results || []).map((column) => column.name));
 }
 
+async function tableExists(db, tableName) {
+  const row = await db.prepare(
+    `SELECT name
+     FROM sqlite_master
+     WHERE type = 'table' AND name = ?1
+     LIMIT 1`
+  ).bind(tableName).first();
+  return Boolean(row?.name);
+}
+
 function selectColumn(columns, columnName) {
   return columns.has(columnName) ? columnName : `NULL AS ${columnName}`;
 }
@@ -79,6 +89,7 @@ export async function onRequestGet(context) {
     }
 
     const columns = await getTableColumns(context.env.DB, "guests");
+    const familyMembersTableExists = await tableExists(context.env.DB, "guest_family_members");
     const clauses = ["hotel_id = ?1"];
     const bindings = [hotelId.trim()];
     const checkoutExpression = columns.has("check_out_time")
@@ -95,9 +106,24 @@ export async function onRequestGet(context) {
 
     if (query) {
       const roomExpression = columns.has("room_number") ? "room_number" : "''";
-      clauses.push(`(lower(name) LIKE ?2 OR lower(${roomExpression}) LIKE ?2 OR lower(id) LIKE ?2 OR lower(phone) LIKE ?2)`);
+      const familyMemberSearch = familyMembersTableExists
+        ? `OR EXISTS (
+             SELECT 1
+             FROM guest_family_members gfm
+             WHERE gfm.guest_id = guests.id
+               AND lower(gfm.full_name) LIKE ?2
+           )`
+        : "";
+      clauses.push(`(lower(name) LIKE ?2 OR lower(${roomExpression}) LIKE ?2 OR lower(id) LIKE ?2 OR lower(phone) LIKE ?2 ${familyMemberSearch})`);
       bindings.push(`%${query}%`);
     }
+
+    const familyMemberCountSelect = familyMembersTableExists
+      ? `(SELECT COUNT(*) FROM guest_family_members gfm WHERE gfm.guest_id = guests.id) AS family_member_count`
+      : "0 AS family_member_count";
+    const familyMemberNamesSelect = familyMembersTableExists
+      ? `(SELECT GROUP_CONCAT(gfm.full_name, ', ') FROM guest_family_members gfm WHERE gfm.guest_id = guests.id) AS family_member_names`
+      : "NULL AS family_member_names";
 
     const selectedColumns = [
       "id",
@@ -116,8 +142,10 @@ export async function onRequestGet(context) {
       "id_type",
       "id_number",
       "check_out_time",
+      familyMemberCountSelect,
+      familyMemberNamesSelect,
     ]
-      .map((columnName) => selectColumn(columns, columnName))
+      .map((columnName) => columnName.includes(" AS ") || columnName.includes("(SELECT") ? columnName : selectColumn(columns, columnName))
       .join(",\n       ");
 
     const checkInColumn = columns.has("check_in_time") ? "check_in_time" : "created_at";

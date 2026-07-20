@@ -60,6 +60,16 @@ async function countValue(statement) {
   return Number(row?.count || 0);
 }
 
+async function tableExists(db, tableName) {
+  const row = await db.prepare(
+    `SELECT name
+     FROM sqlite_master
+     WHERE type = 'table' AND name = ?1
+     LIMIT 1`
+  ).bind(tableName).first();
+  return Boolean(row?.name);
+}
+
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const hotelId = url.searchParams.get("hotel_id");
@@ -92,6 +102,13 @@ export async function onRequestGet(context) {
   }
 
   const today = formatDateOffset(0);
+  const familyMembersTableExists = await tableExists(context.env.DB, "guest_family_members");
+  const familyMemberCountSelect = familyMembersTableExists
+    ? `(SELECT COUNT(*) FROM guest_family_members gfm WHERE gfm.guest_id = guests.id) AS family_member_count`
+    : "0 AS family_member_count";
+  const familyMemberNamesSelect = familyMembersTableExists
+    ? `(SELECT GROUP_CONCAT(gfm.full_name, ', ') FROM guest_family_members gfm WHERE gfm.guest_id = guests.id) AS family_member_names`
+    : "NULL AS family_member_names";
 
   const [
     totalCheckins,
@@ -137,7 +154,9 @@ export async function onRequestGet(context) {
       ).bind(hotel.id)
     ),
     context.env.DB.prepare(
-      `SELECT id, name, room_number, total_guests, phone, check_in_time
+      `SELECT id, name, room_number, total_guests, phone, check_in_time,
+              ${familyMemberCountSelect},
+              ${familyMemberNamesSelect}
        FROM guests
        WHERE hotel_id = ?1
          AND substr(check_in_time, 1, 10) = ?2
@@ -145,7 +164,9 @@ export async function onRequestGet(context) {
        LIMIT 50`
     ).bind(hotel.id, today).all(),
     context.env.DB.prepare(
-      `SELECT id, name, room_number, total_guests, phone, check_in_time, expected_check_out_date
+      `SELECT id, name, room_number, total_guests, phone, check_in_time, expected_check_out_date,
+              ${familyMemberCountSelect},
+              ${familyMemberNamesSelect}
        FROM guests
        WHERE hotel_id = ?1
          AND check_out_time IS NULL
@@ -153,7 +174,9 @@ export async function onRequestGet(context) {
        LIMIT 100`
     ).bind(hotel.id).all(),
     context.env.DB.prepare(
-      `SELECT id, name, room_number, phone, check_in_time, check_out_time
+      `SELECT id, name, room_number, phone, check_in_time, check_out_time,
+              ${familyMemberCountSelect},
+              ${familyMemberNamesSelect}
        FROM guests
        WHERE hotel_id = ?1
          AND substr(check_out_time, 1, 10) = ?2
@@ -161,7 +184,9 @@ export async function onRequestGet(context) {
        LIMIT 50`
     ).bind(hotel.id, today).all(),
     context.env.DB.prepare(
-      `SELECT id, name, room_number, phone, id_type, id_number, check_in_time, check_out_time
+      `SELECT id, name, room_number, phone, id_type, id_number, check_in_time, check_out_time,
+              ${familyMemberCountSelect},
+              ${familyMemberNamesSelect}
        FROM guests
        WHERE hotel_id = ?1
          AND substr(check_in_time, 1, 10) BETWEEN ?2 AND ?3

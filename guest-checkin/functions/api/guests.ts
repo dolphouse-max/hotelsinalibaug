@@ -39,7 +39,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
            id_number,
            check_in_time,
            check_out_time,
-           google_drive_file_id,
+           google_drive_file_id_front,
+           google_drive_file_id_back,
            created_at,
            updated_at
          FROM guests
@@ -66,7 +67,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
          id_number,
          check_in_time,
          check_out_time,
-         google_drive_file_id,
+         google_drive_file_id_front,
+         google_drive_file_id_back,
          created_at,
          updated_at
        FROM guests

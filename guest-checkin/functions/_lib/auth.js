@@ -77,7 +77,11 @@ function parseCookieHeader(cookieHeader) {
 }
 
 function getSessionSecret(env) {
-  return env.SESSION_SECRET || env.ENCRYPTION_KEY || "hia_default_session_secret";
+  const secret = env.SESSION_SECRET || env.ENCRYPTION_KEY;
+  if (!secret) {
+    throw new Error("Missing required session secret configuration.");
+  }
+  return secret;
 }
 
 function getCookieAttributes(maxAgeSeconds) {
@@ -272,16 +276,6 @@ async function upsertAuthUser(env, user) {
   return findAuthUserByFirebaseIdentity(env.DB, firebaseUid, email);
 }
 
-async function ensureDefaultSuperAdmin(env, firebaseUid = "") {
-  return upsertAuthUser(env, {
-    firebase_uid: firebaseUid || null,
-    email: DEFAULT_SUPERADMIN_EMAIL,
-    role: "super_admin",
-    display_name: "Superadmin",
-    is_active: 1,
-  });
-}
-
 export async function saveAuthUser(env, user) {
   return upsertAuthUser(env, user);
 }
@@ -358,10 +352,11 @@ export async function resolveFirebaseSession(env, idToken) {
     throw new Error("This Firebase account does not have an email address.");
   }
 
-  await ensureAuthTables(env.DB);
-  if (email === DEFAULT_SUPERADMIN_EMAIL) {
-    await ensureDefaultSuperAdmin(env, firebaseUid);
+  if (claims.email_verified !== true) {
+    throw new Error("Please verify your email address before using this app.");
   }
+
+  await ensureAuthTables(env.DB);
 
   const user = await findAuthUserByFirebaseIdentity(env.DB, firebaseUid, email);
   if (!user || Number(user.is_active) !== 1) {

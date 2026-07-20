@@ -266,9 +266,59 @@
     setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
   }
 
+  function parseFamilyMembers(entry) {
+    if (Array.isArray(entry?.family_members)) {
+      return entry.family_members;
+    }
+
+    if (typeof entry?.family_members_json !== "string" || !entry.family_members_json.trim()) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(entry.family_members_json);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function familyMemberSummary(entry) {
+    const members = parseFamilyMembers(entry);
+    if (!members.length) {
+      return "";
+    }
+
+    return `
+      <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
+        <p class="font-medium text-slate-800">Family Members</p>
+        <p class="mt-1">${members.map((member) => member.full_name).filter(Boolean).join(", ")}</p>
+      </div>
+    `;
+  }
+
   function proofButtons(guest) {
     const hasFront = Boolean(guest.google_drive_file_id_front);
     const hasBack = Boolean(guest.google_drive_file_id_back);
+    const members = parseFamilyMembers(guest);
+    const memberButtons = members.map((member) => {
+      const memberHasFront = Boolean(member.google_drive_file_id_front);
+      const memberHasBack = Boolean(member.google_drive_file_id_back);
+
+      return `
+        <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+          <p class="text-sm font-medium text-slate-800">${member.full_name || "Family member"}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slateblue hover:text-ink disabled:cursor-not-allowed disabled:opacity-50" data-guest-id="${guest.id}" data-family-member-id="${member.id}" data-side="front" ${memberHasFront ? "" : "disabled"}>
+              ${member.full_name || "Member"} Front ID
+            </button>
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slateblue hover:text-ink disabled:cursor-not-allowed disabled:opacity-50" data-guest-id="${guest.id}" data-family-member-id="${member.id}" data-side="back" ${memberHasBack ? "" : "disabled"}>
+              ${member.full_name || "Member"} Back ID
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
 
     return `
       <div class="mt-3 flex flex-wrap gap-2">
@@ -279,6 +329,7 @@
           View Back ID
         </button>
       </div>
+      ${memberButtons}
     `;
   }
 
@@ -286,6 +337,7 @@
     for (const button of scope.querySelectorAll(".proof-button")) {
       button.addEventListener("click", async () => {
         const guestId = button.dataset.guestId;
+        const familyMemberId = button.dataset.familyMemberId;
         const side = button.dataset.side;
 
         if (!guestId || !side) {
@@ -295,7 +347,11 @@
 
         try {
           clearBox(errorBox);
-          await openProofDocument(buildProofUrl(hotelIdInput, officerNameInput, guestId, side));
+          const url = new URL(buildProofUrl(hotelIdInput, officerNameInput, guestId, side));
+          if (familyMemberId) {
+            url.searchParams.set("family_member_id", familyMemberId);
+          }
+          await openProofDocument(url.toString());
         } catch (error) {
           showBox(errorBox, error instanceof Error ? error.message : "Unable to open guest proof.", "error");
         }
@@ -429,6 +485,7 @@
     renderCards,
     renderTable,
     downloadCsv,
+    familyMemberSummary,
     proofButtons,
     attachProofButtons,
     pageChrome,

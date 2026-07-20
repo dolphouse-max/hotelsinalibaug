@@ -388,9 +388,59 @@
     setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
   }
 
+  function parseFamilyMembers(entry) {
+    if (Array.isArray(entry?.family_members)) {
+      return entry.family_members;
+    }
+
+    if (typeof entry?.family_members_json !== "string" || !entry.family_members_json.trim()) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(entry.family_members_json);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function familyMemberSummary(entry) {
+    const members = parseFamilyMembers(entry);
+    if (!members.length) {
+      return "";
+    }
+
+    return `
+      <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
+        <p class="font-medium text-slate-800">Family Members</p>
+        <p class="mt-1">${members.map((member) => member.full_name).filter(Boolean).join(", ")}</p>
+      </div>
+    `;
+  }
+
   function proofButtons(entry) {
     const hasFront = Boolean(entry.google_drive_file_id_front);
     const hasBack = Boolean(entry.google_drive_file_id_back);
+    const members = parseFamilyMembers(entry);
+    const memberButtons = members.map((member) => {
+      const memberHasFront = Boolean(member.google_drive_file_id_front);
+      const memberHasBack = Boolean(member.google_drive_file_id_back);
+
+      return `
+        <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+          <p class="text-sm font-medium text-slate-800">${member.full_name || "Family member"}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950 disabled:cursor-not-allowed disabled:opacity-50" data-hotel-id="${entry.hotel_id}" data-guest-id="${entry.id}" data-family-member-id="${member.id}" data-side="front" ${memberHasFront ? "" : "disabled"}>
+              ${member.full_name || "Member"} Front ID
+            </button>
+            <button type="button" class="proof-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-ocean-800 hover:text-ocean-950 disabled:cursor-not-allowed disabled:opacity-50" data-hotel-id="${entry.hotel_id}" data-guest-id="${entry.id}" data-family-member-id="${member.id}" data-side="back" ${memberHasBack ? "" : "disabled"}>
+              ${member.full_name || "Member"} Back ID
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
 
     return `
       <div class="mt-3 flex flex-wrap gap-2">
@@ -401,6 +451,7 @@
           View Back ID
         </button>
       </div>
+      ${memberButtons}
     `;
   }
 
@@ -410,6 +461,7 @@
         const viewerName = viewerNameInput.value.trim();
         const hotelId = button.dataset.hotelId;
         const guestId = button.dataset.guestId;
+        const familyMemberId = button.dataset.familyMemberId;
         const side = button.dataset.side;
 
         if (!viewerName) {
@@ -426,7 +478,11 @@
         try {
           clearMessage(errorBox);
           localStorage.setItem("super_admin_viewer_name", viewerName);
-          await openProofDocument(buildProofUrl(hotelId, guestId, side, reason.trim(), viewerName));
+          const url = new URL(buildProofUrl(hotelId, guestId, side, reason.trim(), viewerName));
+          if (familyMemberId) {
+            url.searchParams.set("family_member_id", familyMemberId);
+          }
+          await openProofDocument(url.toString());
         } catch (error) {
           setMessage(errorBox, error instanceof Error ? error.message : "Unable to open guest proof.", "error");
         }
@@ -457,6 +513,7 @@
     quickNav,
     mountBrandChip,
     mountLegalFooter,
+    familyMemberSummary,
     proofButtons,
     attachProofButtons,
   };

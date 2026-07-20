@@ -39,9 +39,6 @@
             <button id="loginButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15 transition active:scale-[0.98] disabled:cursor-not-allowed">
               Login
             </button>
-            <button id="createSuperadminButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700 transition active:scale-[0.98] disabled:cursor-not-allowed">
-              Create Superadmin Firebase Account
-            </button>
             <button id="changePasswordButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700 transition active:scale-[0.98] disabled:cursor-not-allowed">
               Change Password
             </button>
@@ -181,7 +178,6 @@
       const loginIdInput = document.getElementById("superAdminLoginId");
       const passwordInput = document.getElementById("superAdminPassword");
       const loginButton = document.getElementById("loginButton");
-      const createSuperadminButton = document.getElementById("createSuperadminButton");
       const changePasswordButton = document.getElementById("changePasswordButton");
       const forgotPasswordButton = document.getElementById("forgotPasswordButton");
       const userRoleInput = document.getElementById("userRole");
@@ -297,22 +293,6 @@
           superAdminCommon.setMessage(sessionStatus, error.message || "Login failed.", "error");
         } finally {
           superAdminCommon.setButtonLoading(loginButton, false);
-        }
-      });
-
-      createSuperadminButton.addEventListener("click", async () => {
-        superAdminCommon.clearMessage(sessionStatus);
-        superAdminCommon.setButtonLoading(createSuperadminButton, true, "Creating...");
-        try {
-          const data = await window.firebaseAuthBridge.signUpPrimary(loginIdInput.value.trim(), passwordInput.value, "Superadmin");
-          setLoggedInState(data.session);
-          await hydrateHotels();
-          await hydrateUsers();
-          superAdminCommon.setMessage(sessionStatus, "Superadmin Firebase account created and logged in.", "success");
-        } catch (error) {
-          superAdminCommon.setMessage(sessionStatus, error.message || "Unable to create superadmin account.", "error");
-        } finally {
-          superAdminCommon.setButtonLoading(createSuperadminButton, false);
         }
       });
 

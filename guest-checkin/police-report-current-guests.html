@@ -126,6 +126,7 @@
             ${policeReportsCommon.createLine("ID Number", guest.id_number || "-")}
             ${policeReportsCommon.createLine("Car Number", guest.vehicle_number || "-")}
             ${policeReportsCommon.createLine("Expected Check-Out", guest.expected_check_out_date || "-")}
+            ${policeReportsCommon.familyMemberSummary(guest)}
             ${policeReportsCommon.proofButtons(guest)}
           `
         );

@@ -37,7 +37,7 @@
 
         <div class="p-5">
           <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            Each generated QR stays valid for 4 hours only. After that, generate a fresh QR before giving it to the next guest.
+            Each generated QR stays valid for 4 hours only. If you generate a new QR, the previous one stops working immediately.
           </div>
           <div class="space-y-4">
             <div>
@@ -57,7 +57,7 @@
 
           <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
             <p class="text-sm font-semibold text-ocean">Reception tip</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Open this page on the reception phone, generate the QR, and let the guest scan it from their own phone. If the QR has expired, generate a fresh one before reuse.</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Open this page on the reception phone, generate the QR, and let the guest scan it from their own phone. Always use the latest QR because generating a fresh one disables the older one.</p>
           </div>
 
           <textarea id="checkinLinkOutput" rows="4" readonly class="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">No check-in link generated yet.</textarea>
@@ -124,7 +124,7 @@
           document.getElementById("checkinQrPlaceholder").classList.add("hidden");
           document.getElementById("copyButton").disabled = false;
           document.getElementById("openButton").disabled = false;
-          expiryNotice.textContent = `This reception QR will expire on ${formatExpiry(data.expiresAt)}. Generate a fresh QR after expiry.`;
+          expiryNotice.textContent = `This reception QR will expire on ${formatExpiry(data.expiresAt)}. If you generate a fresh QR before that, the older QR will stop working immediately.`;
           expiryNotice.classList.remove("hidden");
           hotelAdminCommon.setMessage(pageMessage, "Guest check-in QR generated successfully.", "success");
         } catch (error) {

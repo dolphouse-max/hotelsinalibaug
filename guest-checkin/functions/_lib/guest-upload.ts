@@ -3,6 +3,7 @@ import { getHotelDriveAccessToken, uploadFileToHotelDrive } from "./google-drive
 import { assertHotelCanAcceptGuestUploads } from "./hotel-subscription";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_FAMILY_MEMBERS = 8;
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -154,6 +155,10 @@ function parseGuestFamilyMembers(formData: FormData): GuestFamilyMemberInput[] {
 
   if (!Number.isFinite(memberCount) || memberCount < 0) {
     throw new Error("Invalid member_count");
+  }
+
+  if (memberCount > MAX_FAMILY_MEMBERS) {
+    throw new Error(`Only ${MAX_FAMILY_MEMBERS} family members can be added in one room.`);
   }
 
   const members: GuestFamilyMemberInput[] = [];

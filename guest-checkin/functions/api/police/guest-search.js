@@ -41,6 +41,16 @@ async function getTableColumns(db, tableName) {
   return new Set((results || []).map((column) => column.name));
 }
 
+async function tableExists(db, tableName) {
+  const row = await db.prepare(
+    `SELECT name
+     FROM sqlite_master
+     WHERE type = 'table' AND name = ?1
+     LIMIT 1`
+  ).bind(tableName).first();
+  return Boolean(row?.name);
+}
+
 function selectColumn(columns, columnName) {
   return columns.has(columnName) ? columnName : `NULL AS ${columnName}`;
 }
@@ -101,12 +111,44 @@ export async function onRequestGet(context) {
 
     const guestColumns = await getTableColumns(context.env.DB, "guests");
     const logColumns = await getTableColumns(context.env.DB, "police_access_logs");
+    const familyMembersTableExists = await tableExists(context.env.DB, "guest_family_members");
     const guestCheckInColumn = guestColumns.has("check_in_time") ? "g.check_in_time" : "g.created_at";
     const guestDateColumn = guestColumns.has("check_in_time") ? "g.check_in_time" : "g.created_at";
     const guestNameSearch = searchableGuestColumn(guestColumns, "name");
     const guestPhoneSearch = searchableGuestColumn(guestColumns, "phone");
     const guestVehicleSearch = searchableGuestColumn(guestColumns, "vehicle_number");
     const searchTerm = `%${query.toLowerCase()}%`;
+    const familyMemberSearch = familyMembersTableExists
+      ? `OR EXISTS (
+           SELECT 1
+           FROM guest_family_members gfm
+           WHERE gfm.guest_id = g.id
+             AND lower(gfm.full_name) LIKE ?1
+         )`
+      : "";
+    const familyMemberCountSelect = familyMembersTableExists
+      ? `(SELECT COUNT(*) FROM guest_family_members gfm WHERE gfm.guest_id = g.id) AS family_member_count`
+      : "0 AS family_member_count";
+    const familyMemberNamesSelect = familyMembersTableExists
+      ? `(SELECT GROUP_CONCAT(gfm.full_name, ', ') FROM guest_family_members gfm WHERE gfm.guest_id = g.id) AS family_member_names`
+      : "NULL AS family_member_names";
+    const familyMembersJsonSelect = familyMembersTableExists
+      ? `COALESCE((
+           SELECT json_group_array(
+             json_object(
+               'id', gfm.id,
+               'full_name', gfm.full_name,
+               'age', gfm.age,
+               'sex', gfm.sex,
+               'id_type', gfm.id_type,
+               'google_drive_file_id_front', gfm.google_drive_file_id_front,
+               'google_drive_file_id_back', gfm.google_drive_file_id_back
+             )
+           )
+           FROM guest_family_members gfm
+           WHERE gfm.guest_id = g.id
+         ), '[]') AS family_members_json`
+      : "'[]' AS family_members_json";
 
     const result = await context.env.DB.prepare(
       `SELECT
@@ -122,6 +164,9 @@ export async function onRequestGet(context) {
          ${selectColumn(guestColumns, "check_out_time").replace(/^check_out_time\b/, "g.check_out_time")},
          ${selectColumn(guestColumns, "google_drive_file_id_front").replace(/^google_drive_file_id_front\b/, "g.google_drive_file_id_front")},
          ${selectColumn(guestColumns, "google_drive_file_id_back").replace(/^google_drive_file_id_back\b/, "g.google_drive_file_id_back")},
+         ${familyMemberCountSelect},
+         ${familyMemberNamesSelect},
+         ${familyMembersJsonSelect},
          h.name AS hotel_name
        FROM guests g
        INNER JOIN hotels h ON lower(h.id) = lower(g.hotel_id)
@@ -130,6 +175,7 @@ export async function onRequestGet(context) {
            ${guestNameSearch} LIKE ?1
            OR ${guestPhoneSearch} LIKE ?1
            OR ${guestVehicleSearch} LIKE ?1
+           ${familyMemberSearch}
          )
          AND substr(${guestDateColumn}, 1, 10) BETWEEN ?2 AND ?3
        ORDER BY ${guestCheckInColumn} DESC
