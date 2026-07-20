@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reports Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="super-admin-common.js?v=20260718-1"></script>
     <script src="super-admin-reports-common.js?v=20260718-1"></script>
     <script>
       tailwind.config = {
@@ -21,6 +22,9 @@
   </head>
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
+      <script>
+        document.write(superAdminCommon.quickNav("reports"));
+      </script>
       <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#08131d_0%,#17344d_68%,#275273_100%)] px-5 py-6 text-white">
           <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug SaaS</p>
