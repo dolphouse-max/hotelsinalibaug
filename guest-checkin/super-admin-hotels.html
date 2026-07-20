@@ -63,6 +63,17 @@
 
           <div id="listState" class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">Load hotels to view account status.</div>
           <div id="hotelsGrid" class="mt-4 grid gap-4"></div>
+          <div id="paginationBar" class="mt-4 hidden rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+              <button id="previousPageButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-50">
+                Previous
+              </button>
+              <p id="paginationState" class="text-sm font-medium text-slate-600">Page 1 of 1</p>
+              <button id="nextPageButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-50">
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -179,7 +190,13 @@
       const reminderHotelsStat = document.getElementById("reminderHotelsStat");
       const inactiveHotelsStat = document.getElementById("inactiveHotelsStat");
       const hotelCardTemplate = document.getElementById("hotelCardTemplate");
+      const paginationBar = document.getElementById("paginationBar");
+      const previousPageButton = document.getElementById("previousPageButton");
+      const nextPageButton = document.getElementById("nextPageButton");
+      const paginationState = document.getElementById("paginationState");
+      const HOTELS_PER_PAGE = 20;
       let allHotels = [];
+      let currentPage = 1;
 
       superAdminCommon.restoreToken(tokenInput);
 
@@ -360,7 +377,7 @@
         return fragment;
       }
 
-      function applyHotelFilter() {
+      function applyHotelFilter(resetPage = false) {
         const query = hotelFilter.value.trim().toLowerCase();
         const filteredHotels = !query
           ? allHotels
@@ -381,18 +398,37 @@
         updateStats(allHotels);
         if (!allHotels.length) {
           listState.textContent = "No hotels found yet.";
+          paginationBar.classList.add("hidden");
           return;
         }
 
         if (!filteredHotels.length) {
           listState.textContent = "No hotels match this search.";
+          paginationBar.classList.add("hidden");
           return;
         }
 
-        listState.textContent = `${filteredHotels.length} of ${allHotels.length} hotel account${allHotels.length === 1 ? "" : "s"} shown.`;
-        for (const hotel of filteredHotels) {
+        if (resetPage) {
+          currentPage = 1;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filteredHotels.length / HOTELS_PER_PAGE));
+        if (currentPage > totalPages) {
+          currentPage = totalPages;
+        }
+
+        const startIndex = (currentPage - 1) * HOTELS_PER_PAGE;
+        const paginatedHotels = filteredHotels.slice(startIndex, startIndex + HOTELS_PER_PAGE);
+
+        listState.textContent = `${filteredHotels.length} of ${allHotels.length} hotel account${allHotels.length === 1 ? "" : "s"} shown. Showing ${paginatedHotels.length} on this page.`;
+        for (const hotel of paginatedHotels) {
           hotelsGrid.appendChild(renderHotelCard(hotel));
         }
+
+        paginationState.textContent = `Page ${currentPage} of ${totalPages}`;
+        previousPageButton.disabled = currentPage <= 1;
+        nextPageButton.disabled = currentPage >= totalPages;
+        paginationBar.classList.toggle("hidden", totalPages <= 1);
       }
 
       async function loadHotels() {
@@ -407,11 +443,12 @@
             throw new Error(data.error || "Unable to load hotels");
           }
           allHotels = data.hotels || [];
-          applyHotelFilter();
+          applyHotelFilter(true);
         } catch (error) {
           allHotels = [];
           updateStats([]);
           listState.textContent = error instanceof Error ? error.message : "Unable to load hotels";
+          paginationBar.classList.add("hidden");
         }
       }
 
@@ -425,7 +462,20 @@
         }
       });
 
-      hotelFilter.addEventListener("input", applyHotelFilter);
+      previousPageButton.addEventListener("click", () => {
+        if (currentPage <= 1) {
+          return;
+        }
+        currentPage -= 1;
+        applyHotelFilter(false);
+      });
+
+      nextPageButton.addEventListener("click", () => {
+        currentPage += 1;
+        applyHotelFilter(false);
+      });
+
+      hotelFilter.addEventListener("input", () => applyHotelFilter(true));
 
       loadHotels().catch(() => {});
     </script>
