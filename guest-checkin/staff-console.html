@@ -110,10 +110,11 @@
         <div id="statusBanner" class="mt-5 hidden rounded-2xl border px-4 py-3 text-sm"></div>
 
         <form id="staffForm" class="mt-6 space-y-5">
+          <input id="staffId" type="hidden">
           <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
             <div class="mb-4">
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section 1</p>
-              <h3 class="mt-1 text-lg font-semibold text-ocean-900">Staff basics</h3>
+              <h3 id="formHeading" class="mt-1 text-lg font-semibold text-ocean-900">Staff basics</h3>
               <p class="mt-1 text-sm leading-6 text-slate-600">Capture the staff member’s identity, role, and how long they have been working at the property.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -270,7 +271,7 @@
                 </svg>
                 <span class="mt-3 text-sm font-medium text-ocean-900">Capture front side</span>
                 <span class="mt-1 text-xs text-slate-500">Camera or gallery</span>
-                <input id="frontFile" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+                <input id="frontFile" type="file" accept="image/*,application/pdf" capture="environment" class="sr-only">
               </label>
               <p id="frontFileName" class="mt-2 text-sm text-slate-500">No front image selected yet.</p>
             </div>
@@ -282,7 +283,7 @@
                 </svg>
                 <span class="mt-3 text-sm font-medium text-ocean-900">Capture back side</span>
                 <span class="mt-1 text-xs text-slate-500">Camera or gallery</span>
-                <input id="backFile" type="file" accept="image/*,application/pdf" capture="environment" required class="sr-only">
+                <input id="backFile" type="file" accept="image/*,application/pdf" capture="environment" class="sr-only">
               </label>
               <p id="backFileName" class="mt-2 text-sm text-slate-500">No back image selected yet.</p>
             </div>
@@ -339,6 +340,7 @@
       const submitButton = document.getElementById("submitButton");
       const buttonText = document.getElementById("buttonText");
       const buttonSpinner = document.getElementById("buttonSpinner");
+      const formHeading = document.getElementById("formHeading");
       const sexInput = document.getElementById("sex");
       const sexButtons = Array.from(document.querySelectorAll(".sex-option"));
       const phoneInput = document.getElementById("phone");
@@ -354,6 +356,7 @@
       const successModal = document.getElementById("successModal");
       const successMessage = document.getElementById("successMessage");
       const closeModalButton = document.getElementById("closeModalButton");
+      let editingStaffId = "";
 
       function showBanner(message, tone) {
         statusBanner.textContent = message;
@@ -379,7 +382,7 @@
 
       function setSubmitting(isSubmitting) {
         submitButton.disabled = isSubmitting;
-        buttonText.textContent = isSubmitting ? "Saving Staff..." : "Save Staff Record";
+        buttonText.textContent = isSubmitting ? "Saving Staff..." : (editingStaffId ? "Update Staff Record" : "Save Staff Record");
         buttonSpinner.classList.toggle("hidden", !isSubmitting);
       }
 
@@ -387,6 +390,7 @@
         const params = new URLSearchParams(window.location.search);
         return {
           hotelId: params.get("hotel_id") || localStorage.getItem("staff_console_hotel_id") || "",
+          staffId: params.get("staff_id") || "",
         };
       }
 
@@ -403,6 +407,58 @@
           backUrl.searchParams.set("hotel_id", hotelId);
         }
         backToStaffPageLink.href = backUrl.toString();
+      }
+
+      function splitNameParts(fullName) {
+        const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) {
+          return { firstName: "", middleName: "", lastName: "" };
+        }
+        if (parts.length === 1) {
+          return { firstName: parts[0], middleName: "", lastName: "" };
+        }
+        if (parts.length === 2) {
+          return { firstName: parts[0], middleName: "", lastName: parts[1] };
+        }
+        return {
+          firstName: parts[0],
+          middleName: parts.slice(1, -1).join(" "),
+          lastName: parts[parts.length - 1],
+        };
+      }
+
+      function parseStaffAddressCity(addressCity) {
+        const value = String(addressCity || "").trim();
+        const parsed = {
+          village: "",
+          taluka: "Alibaug",
+          district: "Raigad",
+        };
+
+        if (!value) {
+          return parsed;
+        }
+
+        const villageMatch = value.match(/Village:\s*([^\n]+)/i);
+        const talukaMatch = value.match(/Taluka:\s*([^\n]+)/i);
+        const districtMatch = value.match(/District:\s*([^\n]+)/i);
+
+        if (villageMatch || talukaMatch || districtMatch) {
+          parsed.village = villageMatch?.[1]?.trim() || "";
+          parsed.taluka = talukaMatch?.[1]?.trim() || "Alibaug";
+          parsed.district = districtMatch?.[1]?.trim() || "Raigad";
+          return parsed;
+        }
+
+        parsed.village = value;
+        return parsed;
+      }
+
+      function syncProofRequirements() {
+        const isEditMode = Boolean(editingStaffId);
+        frontFileInput.required = !isEditMode;
+        backFileInput.required = !isEditMode;
+        formHeading.textContent = isEditMode ? "Edit staff member" : "Add or register a staff member";
       }
 
       function setSex(value) {
@@ -543,6 +599,7 @@
 
         return {
           hotelId,
+          staffId: editingStaffId,
           fullName: joinNameParts(firstName, middleName, lastName),
           age: document.getElementById("age").value.trim(),
           sex: sexInput.value,
@@ -568,12 +625,15 @@
         const frontFile = frontFileInput.files && frontFileInput.files[0];
         const backFile = backFileInput.files && backFileInput.files[0];
 
-        if (!frontFile || !backFile) {
+        if (!editingStaffId && (!frontFile || !backFile)) {
           throw new Error("Please upload both front and back ID proofs.");
         }
 
         const formData = new FormData();
         formData.set("hotel_id", payload.hotelId);
+        if (payload.staffId) {
+          formData.set("staff_id", payload.staffId);
+        }
         formData.set("full_name", payload.fullName);
         formData.set("age", payload.age);
         formData.set("sex", payload.sex);
@@ -590,8 +650,12 @@
         formData.set("vehicle_type", payload.vehicleType);
         formData.set("vehicle_number", payload.vehicleNumber);
         formData.set("is_active", "1");
-        formData.set("id_front_file", await compressProofFile(frontFile));
-        formData.set("id_back_file", await compressProofFile(backFile));
+        if (frontFile) {
+          formData.set("id_front_file", await compressProofFile(frontFile));
+        }
+        if (backFile) {
+          formData.set("id_back_file", await compressProofFile(backFile));
+        }
 
         return {
           formData,
@@ -600,6 +664,8 @@
 
       function resetForm() {
         staffForm.reset();
+        editingStaffId = "";
+        document.getElementById("staffId").value = "";
         setSex("Male");
         sameWhatsappInput.checked = true;
         syncWhatsapp();
@@ -607,15 +673,66 @@
         syncVehicle();
         frontFileName.textContent = "No front image selected yet.";
         backFileName.textContent = "No back image selected yet.";
+        syncProofRequirements();
+      }
+
+      async function loadExistingStaff(staffId) {
+        const hotelId = hotelIdInput.value.trim();
+        if (!hotelId || !staffId) {
+          return;
+        }
+
+        const response = await fetch(`/api/hotel-admin/staff?hotel_id=${encodeURIComponent(hotelId)}`);
+        const data = await readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load staff member");
+        }
+
+        const staff = (data.staff || []).find((record) => record.id === staffId);
+        if (!staff) {
+          throw new Error("Staff member not found");
+        }
+
+        const nameParts = splitNameParts(staff.full_name);
+        const addressParts = parseStaffAddressCity(staff.address_city);
+        editingStaffId = staff.id;
+        document.getElementById("staffId").value = staff.id;
+        document.getElementById("firstName").value = nameParts.firstName;
+        document.getElementById("middleName").value = nameParts.middleName;
+        document.getElementById("lastName").value = nameParts.lastName;
+        document.getElementById("age").value = staff.age ?? "";
+        setSex(staff.sex || "Male");
+        document.getElementById("role").value = staff.role || "staff";
+        document.getElementById("workingSinceMonth").value = staff.working_since_month || "January";
+        document.getElementById("workingSinceYear").value = staff.working_since_year ?? "";
+        document.getElementById("addressLine1").value = staff.address_line_1 || "";
+        document.getElementById("addressVillage").value = addressParts.village;
+        document.getElementById("addressTaluka").value = addressParts.taluka;
+        document.getElementById("addressDistrict").value = addressParts.district;
+        document.getElementById("addressPinCode").value = staff.address_pin_code || "";
+        phoneInput.value = staff.phone || "";
+        whatsappPhoneInput.value = staff.whatsapp_phone || "";
+        sameWhatsappInput.checked = staff.whatsapp_phone === staff.phone;
+        syncWhatsapp();
+        document.getElementById("email").value = staff.email || "";
+        vehicleTypeInput.value = staff.vehicle_type || "None";
+        syncVehicle();
+        vehicleNumberInput.value = staff.vehicle_number || "";
+        frontFileName.textContent = staff.google_drive_file_id_front ? "Front proof already saved. Choose a new file only if you want to replace it." : "No front image selected yet.";
+        backFileName.textContent = staff.google_drive_file_id_back ? "Back proof already saved. Choose a new file only if you want to replace it." : "No back image selected yet.";
+        syncProofRequirements();
+        showBanner(`Editing ${staff.full_name}. Change the details and save to update this record.`, "success");
       }
 
       function initialize() {
         const config = readStoredConfig();
         hotelIdInput.value = config.hotelId;
         updateHotelLabel();
+        editingStaffId = config.staffId || "";
         setSex("Male");
         syncWhatsapp();
         syncVehicle();
+        syncProofRequirements();
       }
 
       saveSetupButton.addEventListener("click", () => {
@@ -650,6 +767,7 @@
         setSubmitting(true);
 
         try {
+          const isUpdate = Boolean(editingStaffId);
           const { formData } = await buildFormData();
           const response = await fetch("/api/hotel-admin/staff-upload", {
             method: "POST",
@@ -661,8 +779,10 @@
             throw new Error(data.error || "Unable to save staff record");
           }
 
-          showBanner("Staff record saved successfully.", "success");
-          successMessage.textContent = `Staff member ${data.staff?.full_name || "record"} was saved successfully.`;
+          showBanner(isUpdate ? "Staff record updated successfully." : "Staff record saved successfully.", "success");
+          successMessage.textContent = isUpdate
+            ? `Staff member ${data.staff?.full_name || "record"} was updated successfully.`
+            : `Staff member ${data.staff?.full_name || "record"} was saved successfully.`;
           successModal.classList.remove("hidden");
           successModal.classList.add("flex");
           resetForm();
@@ -674,6 +794,11 @@
       });
 
       initialize();
+      if (editingStaffId) {
+        loadExistingStaff(editingStaffId).catch((error) => {
+          showError(error instanceof Error ? error.message : "Unable to load staff record");
+        });
+      }
     </script>
   </body>
 </html>

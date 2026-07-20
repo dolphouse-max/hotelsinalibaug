@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Staff Entry</title>
+    <title>Hotel Staff Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="hotel-admin-common.js?v=20260718-1"></script>
     <script>
@@ -32,44 +32,51 @@
       </script>
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Staff Entry</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Open the staff registration form for onboarding hotel staff and uploading ID proofs.</p>
+          <h1 class="text-2xl font-semibold">Hotel Staff Register</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">See all staff added for this hotel, edit any record, delete old records, or add a new staff member.</p>
         </div>
 
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-            Use this page when you want to add a new staff member or update a staff record for this hotel.
+            This is page 1 for hotel staff work. Use the list below to review records first, then open page 2 only when you want to add or edit one staff member.
           </div>
 
           <div class="mt-5 space-y-4">
             <div>
-              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
-              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
-            </div>
-            <div>
               <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="hotelalibaug0001">
             </div>
-            <a id="openStaffConsoleLink" href="/staff-console.html" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
-              Open Staff Registration Page
-            </a>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <a id="openStaffConsoleLink" href="/staff-console.html" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+                Add New Staff
+              </a>
+              <button id="refreshButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold text-slate-700">
+                Refresh Staff List
+              </button>
+            </div>
             <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+            <div id="staffListState" class="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
+              Loading staff list...
+            </div>
+            <div id="staffList" class="grid gap-3"></div>
           </div>
         </div>
       </section>
     </main>
 
     <script>
-      const tokenInput = document.getElementById("hotelAdminToken");
       const hotelIdInput = document.getElementById("hotelId");
       const pageMessage = document.getElementById("pageMessage");
       const openStaffConsoleLink = document.getElementById("openStaffConsoleLink");
+      const refreshButton = document.getElementById("refreshButton");
+      const staffListState = document.getElementById("staffListState");
+      const staffList = document.getElementById("staffList");
 
-      hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+      hotelAdminCommon.hydrateContext(null, hotelIdInput);
 
       function syncLink() {
         const hotelId = hotelIdInput.value.trim();
-        hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelId);
+        hotelAdminCommon.persistContext("", hotelId);
 
         const url = new URL("/staff-console.html", window.location.origin);
         if (hotelId) {
@@ -78,14 +85,127 @@
         openStaffConsoleLink.href = url.toString();
       }
 
-      tokenInput.addEventListener("input", syncLink);
-      hotelIdInput.addEventListener("input", syncLink);
+      function renderStaffList(staffMembers) {
+        staffList.innerHTML = "";
+
+        if (!staffMembers.length) {
+          staffListState.textContent = "No staff records found for this hotel yet.";
+          return;
+        }
+
+        staffListState.textContent = `${staffMembers.length} staff record${staffMembers.length === 1 ? "" : "s"} found.`;
+
+        for (const staff of staffMembers) {
+          const card = document.createElement("article");
+          const badgeTone = staff.is_active === 1 ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600";
+          const canDelete = String(staff.role || "").toLowerCase() !== "admin";
+
+          card.className = "rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-sm";
+          card.innerHTML = `
+            <div class="flex flex-col gap-4">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-lg font-semibold text-ocean">${staff.full_name || "Staff record"}</h3>
+                  <span class="rounded-full px-3 py-1 text-xs font-semibold ${badgeTone}">${staff.is_active === 1 ? "Active" : "Inactive"}</span>
+                  <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-harbor">${staff.role || "staff"}</span>
+                </div>
+                <p class="mt-2 text-sm text-slate-500">Phone: <span class="font-medium text-slate-700">${staff.phone || "Not set"}</span></p>
+                <p class="mt-1 text-sm text-slate-500">WhatsApp: <span class="font-medium text-slate-700">${staff.whatsapp_phone || "Not set"}</span></p>
+                <p class="mt-1 text-sm text-slate-500">Email: <span class="font-medium text-slate-700">${staff.email || "Not set"}</span></p>
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <a href="#" data-edit-staff="${staff.id}" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
+                  Edit
+                </a>
+                <button type="button" data-delete-staff="${staff.id}" class="inline-flex items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 ${canDelete ? "" : "opacity-50 cursor-not-allowed"}" ${canDelete ? "" : "disabled aria-disabled=\"true\""}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.querySelector("[data-edit-staff]").addEventListener("click", (event) => {
+            event.preventDefault();
+            const url = new URL("/staff-console.html", window.location.origin);
+            url.searchParams.set("hotel_id", hotelIdInput.value.trim());
+            url.searchParams.set("staff_id", staff.id);
+            window.location.href = url.toString();
+          });
+
+          const deleteButton = card.querySelector("[data-delete-staff]");
+          if (canDelete) {
+            deleteButton.addEventListener("click", async () => {
+              const confirmed = window.confirm(`Delete ${staff.full_name} from this hotel staff register?`);
+              if (!confirmed) {
+                return;
+              }
+
+              try {
+                hotelAdminCommon.clearMessage(pageMessage);
+                const hotelId = hotelIdInput.value.trim();
+                const response = await fetch(`/api/hotel-admin/staff?hotel_id=${encodeURIComponent(hotelId)}&staff_id=${encodeURIComponent(staff.id)}`, {
+                  method: "DELETE",
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                  throw new Error(data.error || "Unable to delete staff member");
+                }
+                hotelAdminCommon.setMessage(pageMessage, `${staff.full_name} was deleted successfully.`, "success");
+                await loadStaff();
+              } catch (error) {
+                hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to delete staff member", "error");
+              }
+            });
+          }
+
+          staffList.appendChild(card);
+        }
+      }
+
+      async function loadStaff() {
+        const hotelId = hotelIdInput.value.trim().toLowerCase();
+        staffList.innerHTML = "";
+
+        if (!hotelId) {
+          staffListState.textContent = "Enter or load a Hotel ID first.";
+          return;
+        }
+
+        hotelAdminCommon.persistContext("", hotelId);
+        staffListState.textContent = "Loading staff list...";
+
+        const response = await fetch(`/api/hotel-admin/staff?hotel_id=${encodeURIComponent(hotelId)}`);
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to load staff list");
+        }
+
+        renderStaffList(data.staff || []);
+      }
+
+      hotelIdInput.addEventListener("input", () => {
+        hotelIdInput.value = hotelIdInput.value.toLowerCase();
+        syncLink();
+      });
       openStaffConsoleLink.addEventListener("click", () => {
         syncLink();
-        hotelAdminCommon.setMessage(pageMessage, "Opening staff registration page with this hotel context.", "success");
+        hotelAdminCommon.setMessage(pageMessage, "Opening staff registration page for a new staff member.", "success");
+      });
+      refreshButton.addEventListener("click", async () => {
+        try {
+          await loadStaff();
+          hotelAdminCommon.setMessage(pageMessage, "Staff list refreshed successfully.", "success");
+        } catch (error) {
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load staff list", "error");
+        }
       });
 
       syncLink();
+      loadStaff().catch((error) => {
+        hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load staff list", "error");
+        staffListState.textContent = "Unable to load staff list.";
+      });
     </script>
   </body>
 </html>

@@ -339,10 +339,62 @@ export async function onRequestPut(context) {
   }
 }
 
+export async function onRequestDelete(context) {
+  try {
+    const url = new URL(context.request.url);
+    const hotelId = url.searchParams.get("hotel_id");
+    const staffId = url.searchParams.get("staff_id");
+
+    if (!isSafeId(hotelId)) {
+      return badRequest("Valid hotel_id is required");
+    }
+
+    if (!isSafeId(staffId)) {
+      return badRequest("Valid staff_id is required");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
+    }
+
+    const existing = await context.env.DB.prepare(
+      `SELECT id, hotel_id, full_name, role
+       FROM hotel_staff
+       WHERE id = ?1 AND hotel_id = ?2
+       LIMIT 1`
+    )
+      .bind(staffId.trim(), hotelId.trim())
+      .first();
+
+    if (!existing) {
+      return json({ error: "Staff member not found" }, { status: 404 });
+    }
+
+    if (String(existing.role || "").toLowerCase() === "admin") {
+      return json(
+        { error: "Hotel admin records cannot be deleted from this page. Keep them inactive instead if needed." },
+        { status: 409 }
+      );
+    }
+
+    await context.env.DB.prepare(
+      `DELETE FROM hotel_staff
+       WHERE id = ?1 AND hotel_id = ?2`
+    )
+      .bind(staffId.trim(), hotelId.trim())
+      .run();
+
+    return json({ ok: true, deleted_staff: existing });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to delete staff";
+    return json({ error: message }, { status: 400 });
+  }
+}
+
 export const onRequestOptions = async () =>
   new Response(null, {
     status: 204,
     headers: {
-      allow: "GET, POST, PUT, OPTIONS",
+      allow: "GET, POST, PUT, DELETE, OPTIONS",
     },
   });

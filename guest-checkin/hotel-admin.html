@@ -1216,6 +1216,41 @@
         staffSubmitText.textContent = "Add Staff Member";
       }
 
+      async function deleteStaff(staff) {
+        const hotelId = hotelIdInput.value.trim();
+        const token = tokenInput.value.trim();
+
+        if (!hotelId) {
+          throw new Error("Load a hotel first before deleting staff.");
+        }
+
+        if (!token) {
+          throw new Error("Hotel Admin token is required.");
+        }
+
+        const response = await fetch(
+          `/api/hotel-admin/staff?hotel_id=${encodeURIComponent(hotelId)}&staff_id=${encodeURIComponent(staff.id)}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await readJson(response);
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to delete staff member");
+        }
+
+        if (document.getElementById("staffId").value.trim() === staff.id) {
+          resetStaffForm();
+        }
+
+        showMessage(staffSuccess, `${staff.full_name} was deleted successfully.`);
+        await loadStaff();
+      }
+
       function renderStaff(staffMembers) {
         staffList.innerHTML = "";
 
@@ -1248,9 +1283,14 @@
                 <p class="mt-1 text-sm text-slate-500">Vehicle: <span class="font-medium text-slate-700">${staff.vehicle_type}${staff.vehicle_number ? ` (${staff.vehicle_number})` : ""}</span></p>
                 <p class="mt-1 text-sm text-slate-500">Proofs: <span class="font-medium text-slate-700">${staff.google_drive_file_id_front ? "Front saved" : "Front missing"} • ${staff.google_drive_file_id_back ? "Back saved" : "Back missing"}</span></p>
               </div>
-              <button type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean" data-edit-staff="${staff.id}">
-                Edit
-              </button>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-harbor hover:text-ocean" data-edit-staff="${staff.id}">
+                  Edit
+                </button>
+                <button type="button" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 transition hover:border-rose-300 hover:bg-rose-100" data-delete-staff="${staff.id}" ${staff.role === "admin" ? "disabled aria-disabled=\"true\"" : ""}>
+                  Delete
+                </button>
+              </div>
             </div>
           `;
 
@@ -1286,6 +1326,23 @@
             clearStaffMessages();
             window.scrollTo({ top: document.body.scrollHeight * 0.3, behavior: "smooth" });
           });
+
+          const deleteButton = card.querySelector("[data-delete-staff]");
+          if (deleteButton && staff.role !== "admin") {
+            deleteButton.addEventListener("click", async () => {
+              const confirmed = window.confirm(`Delete ${staff.full_name} from this hotel staff register?`);
+              if (!confirmed) {
+                return;
+              }
+
+              clearStaffMessages();
+              try {
+                await deleteStaff(staff);
+              } catch (error) {
+                showMessage(staffError, error instanceof Error ? error.message : "Unable to delete staff member");
+              }
+            });
+          }
 
           staffList.appendChild(card);
         }
