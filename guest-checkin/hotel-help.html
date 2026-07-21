@@ -24,6 +24,35 @@
         },
       };
     </script>
+    <style>
+      .help-shot-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .help-shot-card {
+        border: 1px solid rgb(226 232 240);
+        border-radius: 1.25rem;
+        background: rgb(248 250 252);
+        padding: 1rem;
+      }
+
+      .help-shot-frame {
+        max-height: 24rem;
+        overflow: auto;
+        border-radius: 1rem;
+        border: 1px solid rgb(203 213 225);
+        background: white;
+        padding: 0.5rem;
+      }
+
+      .help-shot-frame img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 0.75rem;
+      }
+    </style>
   </head>
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-3xl px-4 py-5 pb-10">
@@ -120,7 +149,86 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">3. Reports Explained</h2>
+              <h2 class="text-lg font-semibold text-ocean">3. Visual Help Screens</h2>
+              <p class="mt-3 text-sm leading-6 text-slate-600">Each screen below uses a scrollable full-page screenshot. Scroll inside the image box to view the entire screen, or tap and hold to open the image in a new tab on your phone if needed.</p>
+              <div class="help-shot-grid mt-4">
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Admin Home</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">This is the main menu page for hotel owners and front desk use.</p>
+                  <a href="/screenshots/hotel-admin-home.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-admin-home.jpeg" alt="Hotel Admin Home screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Profile</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Use this page to review hotel details, contact information, subscription status, and room counts.</p>
+                  <a href="/screenshots/hotel-profile.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-profile.jpeg" alt="Hotel profile screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Google Drive Connect</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Connect the hotel Gmail here so guest and staff proof images stay in the hotel-owned Drive folder.</p>
+                  <a href="/screenshots/google-drive-connect.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/google-drive-connect.jpeg" alt="Google Drive connect screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Guest QR & Link</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Generate a fresh guest check-in QR for reception. Guests can scan this on their own phone.</p>
+                  <a href="/screenshots/guest-qr.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/guest-qr.jpeg" alt="Guest QR screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Staff Register</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Add, review, and manage staff records from this page.</p>
+                  <a href="/screenshots/hotel-staff-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-staff-register.jpeg" alt="Hotel staff register screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Bookings & Reservations</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Save walk-ins, future bookings, dates, rooms, and advance payment details.</p>
+                  <a href="/screenshots/hotel-bookings.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-bookings.jpeg" alt="Hotel bookings screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Guest Check-Out</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Use this page to search current guests and complete checkout room by room.</p>
+                  <a href="/screenshots/guest-checkout.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/guest-checkout.jpeg" alt="Guest checkout screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Reports</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Review saved report filters, guest register views, current guests, and other report pages from here.</p>
+                  <a href="/screenshots/hotel-reports.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-reports.jpeg" alt="Hotel reports screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Help Page</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">This is the hotel help page itself, useful for training hotel staff later.</p>
+                  <a href="/screenshots/hotel-help.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-help.jpeg" alt="Hotel help screenshot" loading="lazy">
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">4. Reports Explained</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p><span class="font-semibold text-slate-900">Hotel Snapshot:</span> View summary counts, occupied rooms, report date range, and trial/subscription status.</p>
                 <p><span class="font-semibold text-slate-900">Today's Check-Ins:</span> Guests who checked in today.</p>
@@ -133,7 +241,7 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">4. Guest Register and No Internet</h2>
+              <h2 class="text-lg font-semibold text-ocean">5. Guest Register and No Internet</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p>The guest check-in page can still work if internet drops during submission.</p>
                 <p>If upload cannot reach the server, the guest entry is saved in the browser storage of the same device that submitted the form.</p>
@@ -143,7 +251,7 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">5. How to Pay Subscription and How It Extends</h2>
+              <h2 class="text-lg font-semibold text-ocean">6. How to Pay Subscription and How It Extends</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p>1. Open <span class="font-semibold text-slate-900">Pay Subscription</span> and scan the UPI QR code.</p>
                 <p>2. Complete payment using any UPI app.</p>
@@ -155,7 +263,7 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">6. Simple Daily Order</h2>
+              <h2 class="text-lg font-semibold text-ocean">7. Simple Daily Order</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p>1. Log in on Hotel Admin Home.</p>
                 <p>2. Check notifications or messages if needed.</p>
@@ -232,7 +340,86 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">3. Reports चे स्पष्टीकरण</h2>
+              <h2 class="text-lg font-semibold text-ocean">3. स्क्रीनशॉट मार्गदर्शक</h2>
+              <p class="mt-3 text-sm leading-6 text-slate-600">खालील प्रत्येक image box मध्ये full-page screenshot आहे. त्या box मध्ये scroll करून संपूर्ण page पाहता येईल. गरज असल्यास image वर tap-hold करून नवीन tab मध्येही उघडता येईल.</p>
+              <div class="help-shot-grid mt-4">
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Admin Home</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">हॉटेल मालक आणि front desk साठी हे मुख्य menu page आहे.</p>
+                  <a href="/screenshots/hotel-admin-home.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-admin-home.jpeg" alt="Hotel Admin Home screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Profile</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">हॉटेलची माहिती, contact details, subscription status आणि room counts तपासण्यासाठी हा page वापरा.</p>
+                  <a href="/screenshots/hotel-profile.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-profile.jpeg" alt="Hotel profile screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Google Drive Connect</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Guest आणि staff proof image हॉटेलच्या स्वतःच्या Drive मध्ये ठेवण्यासाठी येथे Gmail connect करा.</p>
+                  <a href="/screenshots/google-drive-connect.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/google-drive-connect.jpeg" alt="Google Drive connect screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Guest QR & Link</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Reception साठी नवीन guest QR तयार करा. Guest स्वतःच्या phone वरून scan करू शकतो.</p>
+                  <a href="/screenshots/guest-qr.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/guest-qr.jpeg" alt="Guest QR screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Staff Register</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">या page वर staff details add, review आणि manage करता येतात.</p>
+                  <a href="/screenshots/hotel-staff-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-staff-register.jpeg" alt="Hotel staff register screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Bookings & Reservations</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Walk-in, future booking, dates, rooms आणि advance payment details साठवण्यासाठी हा page वापरा.</p>
+                  <a href="/screenshots/hotel-bookings.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-bookings.jpeg" alt="Hotel bookings screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Guest Check-Out</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">सध्या राहणारे guest शोधून room-by-room checkout complete करण्यासाठी हा page वापरा.</p>
+                  <a href="/screenshots/guest-checkout.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/guest-checkout.jpeg" alt="Guest checkout screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Reports</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Saved filters, guest register, current guests आणि इतर report pages इथून पाहता येतात.</p>
+                  <a href="/screenshots/hotel-reports.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-reports.jpeg" alt="Hotel reports screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Help Page</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">हा Help page स्वतः staff training साठी नंतर उपयोगी पडेल.</p>
+                  <a href="/screenshots/hotel-help.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-harbor">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/hotel-help.jpeg" alt="Hotel help screenshot" loading="lazy">
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ocean">4. Reports चे स्पष्टीकरण</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p><span class="font-semibold text-slate-900">Hotel Snapshot:</span> Summary count, occupied room, report date range आणि trial/subscription status दाखवतो.</p>
                 <p><span class="font-semibold text-slate-900">Today's Check-Ins:</span> आज check-in झालेले guest दाखवतो.</p>
@@ -245,7 +432,7 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">4. इंटरनेट नसताना Guest Register</h2>
+              <h2 class="text-lg font-semibold text-ocean">5. इंटरनेट नसताना Guest Register</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p>Guest check-in submit करताना इंटरनेट गेले तरी page काम करू शकतो.</p>
                 <p>Server ला upload जाता आला नाही तर entry त्याच device च्या browser storage मध्ये save होते.</p>
@@ -255,7 +442,7 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">5. Subscription कसे भरायचे आणि कसे वाढते</h2>
+              <h2 class="text-lg font-semibold text-ocean">6. Subscription कसे भरायचे आणि कसे वाढते</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p>1. <span class="font-semibold text-slate-900">Pay Subscription</span> page उघडा आणि UPI QR scan करा.</p>
                 <p>2. कोणत्याही UPI app ने payment complete करा.</p>
@@ -267,7 +454,7 @@
             </section>
 
             <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <h2 class="text-lg font-semibold text-ocean">6. रोजचा सोपा वापर क्रम</h2>
+              <h2 class="text-lg font-semibold text-ocean">7. रोजचा सोपा वापर क्रम</h2>
               <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
                 <p>1. Hotel Admin Home वर लॉगिन करा.</p>
                 <p>2. Notifications किंवा Messages तपासा.</p>
