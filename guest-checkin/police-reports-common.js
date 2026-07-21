@@ -404,6 +404,10 @@
   }
 
   function mountBrandChip() {
+    if (document.body?.dataset?.policeChrome === "false") {
+      return;
+    }
+
     if (document.getElementById("appBrandChip")) {
       return;
     }
@@ -430,6 +434,10 @@
   }
 
   function mountLegalFooter() {
+    if (document.body?.dataset?.policeChrome === "false") {
+      return;
+    }
+
     if (document.getElementById("appLegalFooter")) {
       return;
     }
