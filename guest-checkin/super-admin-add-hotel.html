@@ -395,6 +395,21 @@
         });
       }
 
+      async function sendHotelOnboardingEmail(hotel) {
+        const response = await fetch("/api/super-admin/send-hotel-onboarding-email", {
+          method: "POST",
+          headers: superAdminCommon.authHeaders(tokenInput),
+          body: JSON.stringify({ hotel }),
+        });
+        const data = await superAdminCommon.readJson(response);
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to send hotel onboarding email.");
+        }
+
+        return data;
+      }
+
       function buildCreatePayload(skipDuplicateCheck = false) {
         const payload = {
           hotel_id: hotelIdInput.value.trim(),
@@ -508,9 +523,21 @@
             return;
           }
 
+          let emailStatusMessage = "";
+          try {
+            const emailResult = await sendHotelOnboardingEmail(data.hotel);
+            if (emailResult?.skipped) {
+              emailStatusMessage = ` Hotel onboarding email was skipped: ${emailResult.reason}`;
+            } else {
+              emailStatusMessage = " Hotel onboarding email was sent to the hotel admin Gmail.";
+            }
+          } catch (emailError) {
+            emailStatusMessage = ` Hotel created, but onboarding email could not be sent. ${emailError instanceof Error ? emailError.message : ""}`.trim();
+          }
+
           superAdminCommon.setMessage(
             formSuccess,
-            `${data.hotel.name} created. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.`,
+            `${data.hotel.name} created. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.${emailStatusMessage}`,
             "success"
           );
           renderNextActions(data.hotel);
@@ -569,9 +596,21 @@
             return;
           }
 
+          let emailStatusMessage = "";
+          try {
+            const emailResult = await sendHotelOnboardingEmail(data.hotel);
+            if (emailResult?.skipped) {
+              emailStatusMessage = ` Hotel onboarding email was skipped: ${emailResult.reason}`;
+            } else {
+              emailStatusMessage = " Hotel onboarding email was sent to the hotel admin Gmail.";
+            }
+          } catch (emailError) {
+            emailStatusMessage = ` Hotel created, but onboarding email could not be sent. ${emailError instanceof Error ? emailError.message : ""}`.trim();
+          }
+
           superAdminCommon.setMessage(
             formSuccess,
-            `${data.hotel.name} created after duplicate review. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.`,
+            `${data.hotel.name} created after duplicate review. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.${emailStatusMessage}`,
             "success"
           );
           renderNextActions(data.hotel);
