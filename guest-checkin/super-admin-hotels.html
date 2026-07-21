@@ -174,7 +174,9 @@
             <div class="grid gap-3">
               <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-ocean-950 px-5 py-3 text-sm font-semibold text-white">Save Update</button>
               <button type="button" data-action="cancelEditor" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700">Cancel</button>
+              <button type="button" data-action="deleteHotel" class="inline-flex items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700">Delete Hotel And Related Data</button>
             </div>
+            <p class="text-xs leading-5 text-rose-700">Use delete only when you want to remove this hotel and its related server-side records permanently after testing or by mistake correction.</p>
           </form>
         </div>
       </article>
@@ -336,6 +338,30 @@
           occupiedRoomsInput.value = hotel.occupied_rooms ?? 0;
           startDateInput.value = hotel.subscription_start_date || "";
           endDateInput.value = hotel.subscription_end_date || "";
+        });
+
+        fragment.querySelector('[data-action="deleteHotel"]').addEventListener("click", async () => {
+          superAdminCommon.clearMessage(editorMessageBox);
+          const confirmation = window.prompt(`Type the Hotel ID "${hotel.id}" to delete this hotel and its related server-side data permanently.`);
+          if (confirmation !== hotel.id) {
+            editorMessage(editorMessageBox, "Delete cancelled because the Hotel ID confirmation did not match.", "error");
+            return;
+          }
+
+          try {
+            const response = await fetch(`/api/super-admin/manage-hotel?hotel_id=${encodeURIComponent(hotel.id)}`, {
+              method: "DELETE",
+              headers: superAdminCommon.authHeaders(tokenInput),
+            });
+            const data = await superAdminCommon.readJson(response);
+            if (!response.ok) {
+              throw new Error(data.error || "Unable to delete hotel");
+            }
+            editorMessage(editorMessageBox, data.message || `${hotel.name} deleted successfully.`, "success");
+            await loadHotels();
+          } catch (error) {
+            editorMessage(editorMessageBox, error instanceof Error ? error.message : "Unable to delete hotel", "error");
+          }
         });
 
         editor.addEventListener("submit", async (event) => {

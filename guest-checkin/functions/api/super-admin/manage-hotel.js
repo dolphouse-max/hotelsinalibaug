@@ -491,12 +491,68 @@ export async function onRequestPut(context) {
   }
 }
 
+export async function onRequestDelete(context) {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
+    return unauthorized();
+  }
+
+  try {
+    const url = new URL(context.request.url);
+    const hotelId = typeof url.searchParams.get("hotel_id") === "string"
+      ? url.searchParams.get("hotel_id").trim().toLowerCase()
+      : "";
+
+    if (!hotelId || !isSafeHotelId(hotelId)) {
+      return badRequest("Valid hotel_id is required");
+    }
+
+    const existingHotel = await context.env.DB.prepare(
+      `SELECT id, name FROM hotels WHERE lower(id) = lower(?1) LIMIT 1`
+    )
+      .bind(hotelId)
+      .first();
+
+    if (!existingHotel) {
+      return json({ error: "Hotel not found" }, { status: 404 });
+    }
+
+    await context.env.DB.batch([
+      context.env.DB.prepare(`DELETE FROM hotel_message_reads WHERE hotel_id = ?1`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_messages WHERE lower(sender_hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_message_threads WHERE lower(hotel_a_id) = lower(?1) OR lower(hotel_b_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_notification_reads WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM push_subscriptions WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM subscription_reminder_deliveries WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM super_admin_proof_access_logs WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM police_access_logs WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_subscription_payments WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_renewal_requests WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM app_notifications WHERE lower(COALESCE(target_hotel_id, '')) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM guest_family_members WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM guests WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_staff WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM auth_users WHERE lower(COALESCE(hotel_id, '')) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotel_checkin_sessions WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
+      context.env.DB.prepare(`DELETE FROM hotels WHERE lower(id) = lower(?1)`).bind(hotelId),
+    ]);
+
+    return json({
+      ok: true,
+      deleted_hotel_id: hotelId,
+      deleted_hotel_name: existingHotel.name,
+      message: `${existingHotel.name} (${hotelId}) and related server-side data were deleted successfully.`,
+    });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : "Unable to delete hotel");
+  }
+}
+
 export const onRequest = () => methodNotAllowed();
 
 export const onRequestOptions = async () =>
   new Response(null, {
     status: 204,
     headers: {
-      allow: "GET, POST, PUT, OPTIONS",
+      allow: "GET, POST, PUT, DELETE, OPTIONS",
     },
   });
