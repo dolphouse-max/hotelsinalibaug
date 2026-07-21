@@ -41,8 +41,8 @@
           </div>
           <div class="space-y-4">
             <div>
-              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
-              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hotel Admin token">
+              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
+              <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Saved hotel-admin session">
             </div>
             <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
               <div>
@@ -96,6 +96,9 @@
       }
 
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+      hotelIdInput.addEventListener("input", () => {
+        hotelIdInput.value = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
+      });
 
       function renderQrCode(value) {
         const qr = qrcode(0, "M");
@@ -150,6 +153,10 @@
           window.open(checkinUrl, "_blank", "noopener,noreferrer");
         }
       });
+
+      if (hotelIdInput.value.trim()) {
+        hotelAdminCommon.setMessage(pageMessage, "Generate a fresh reception QR whenever you want a new 4-hour guest link.", "success");
+      }
     </script>
   </body>
 </html>

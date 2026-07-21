@@ -3,6 +3,8 @@ import { decodeBase64Url, encodeBase64Url, signValue, verifySignedValue } from "
 interface Env {
   DB: D1Database;
   CHECKIN_LINK_SECRET: string;
+  SESSION_SECRET?: string;
+  ENCRYPTION_KEY?: string;
 }
 
 interface CheckinLinkPayload {
@@ -25,14 +27,16 @@ async function ensureCheckinSessionTable(env: Env): Promise<void> {
   `);
 }
 
-function ensureLinkSecret(env: Env): void {
-  if (!env.CHECKIN_LINK_SECRET) {
-    throw new Error("Missing required environment variable: CHECKIN_LINK_SECRET");
+function getLinkSecret(env: Env): string {
+  const secret = env.CHECKIN_LINK_SECRET || env.SESSION_SECRET || env.ENCRYPTION_KEY;
+  if (!secret) {
+    throw new Error("Missing required check-in link signing secret.");
   }
+  return secret;
 }
 
 export async function createCheckinAccessToken(hotelId: string, env: Env): Promise<string> {
-  ensureLinkSecret(env);
+  const secret = getLinkSecret(env);
   await ensureCheckinSessionTable(env);
   const tokenId = crypto.randomUUID().replace(/-/g, "");
   const expiresAtIso = new Date(Date.now() + CHECKIN_LINK_LIFETIME_SECONDS * 1000).toISOString();
@@ -44,7 +48,7 @@ export async function createCheckinAccessToken(hotelId: string, env: Env): Promi
   };
 
   const encodedPayload = encodeBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
-  const signature = await signValue(encodedPayload, env.CHECKIN_LINK_SECRET);
+  const signature = await signValue(encodedPayload, secret);
   await env.DB.prepare(
     `INSERT INTO hotel_checkin_sessions (
        hotel_id,
@@ -67,7 +71,7 @@ export async function verifyCheckinAccessToken(
   hotelId: string,
   env: Env
 ): Promise<void> {
-  ensureLinkSecret(env);
+  const secret = getLinkSecret(env);
   await ensureCheckinSessionTable(env);
 
   const [encodedPayload, signature] = accessToken.split(".");
@@ -75,7 +79,7 @@ export async function verifyCheckinAccessToken(
     throw new Error("Invalid access token");
   }
 
-  const isValid = await verifySignedValue(encodedPayload, signature, env.CHECKIN_LINK_SECRET);
+  const isValid = await verifySignedValue(encodedPayload, signature, secret);
   if (!isValid) {
     throw new Error("Invalid access token");
   }
