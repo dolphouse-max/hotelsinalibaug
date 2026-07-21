@@ -197,6 +197,16 @@ function withSubscriptionMeta(hotel) {
   };
 }
 
+async function getExistingTableNames(env) {
+  const result = await env.DB.prepare(
+    `SELECT name
+     FROM sqlite_master
+     WHERE type = 'table'`
+  ).all();
+
+  return new Set((result.results || []).map((row) => String(row.name || "")));
+}
+
 async function findPotentialDuplicateHotels(env, hotel) {
   const result = await env.DB.prepare(
     `SELECT
@@ -516,25 +526,34 @@ export async function onRequestDelete(context) {
       return json({ error: "Hotel not found" }, { status: 404 });
     }
 
-    await context.env.DB.batch([
-      context.env.DB.prepare(`DELETE FROM hotel_message_reads WHERE hotel_id = ?1`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_messages WHERE lower(sender_hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_message_threads WHERE lower(hotel_a_id) = lower(?1) OR lower(hotel_b_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_notification_reads WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM push_subscriptions WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM subscription_reminder_deliveries WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM super_admin_proof_access_logs WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM police_access_logs WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_subscription_payments WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_renewal_requests WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM app_notifications WHERE lower(COALESCE(target_hotel_id, '')) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM guest_family_members WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM guests WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_staff WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM auth_users WHERE lower(COALESCE(hotel_id, '')) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotel_checkin_sessions WHERE lower(hotel_id) = lower(?1)`).bind(hotelId),
-      context.env.DB.prepare(`DELETE FROM hotels WHERE lower(id) = lower(?1)`).bind(hotelId),
-    ]);
+    const existingTables = await getExistingTableNames(context.env);
+    const deleteSteps = [
+      { table: "hotel_message_reads", sql: `DELETE FROM hotel_message_reads WHERE hotel_id = ?1` },
+      { table: "hotel_messages", sql: `DELETE FROM hotel_messages WHERE lower(sender_hotel_id) = lower(?1)` },
+      { table: "hotel_message_threads", sql: `DELETE FROM hotel_message_threads WHERE lower(hotel_a_id) = lower(?1) OR lower(hotel_b_id) = lower(?1)` },
+      { table: "hotel_notification_reads", sql: `DELETE FROM hotel_notification_reads WHERE lower(hotel_id) = lower(?1)` },
+      { table: "push_subscriptions", sql: `DELETE FROM push_subscriptions WHERE lower(hotel_id) = lower(?1)` },
+      { table: "subscription_reminder_deliveries", sql: `DELETE FROM subscription_reminder_deliveries WHERE lower(hotel_id) = lower(?1)` },
+      { table: "super_admin_proof_access_logs", sql: `DELETE FROM super_admin_proof_access_logs WHERE lower(hotel_id) = lower(?1)` },
+      { table: "police_access_logs", sql: `DELETE FROM police_access_logs WHERE lower(hotel_id) = lower(?1)` },
+      { table: "hotel_subscription_payments", sql: `DELETE FROM hotel_subscription_payments WHERE lower(hotel_id) = lower(?1)` },
+      { table: "hotel_renewal_requests", sql: `DELETE FROM hotel_renewal_requests WHERE lower(hotel_id) = lower(?1)` },
+      { table: "app_notifications", sql: `DELETE FROM app_notifications WHERE lower(COALESCE(target_hotel_id, '')) = lower(?1)` },
+      { table: "guest_family_members", sql: `DELETE FROM guest_family_members WHERE lower(hotel_id) = lower(?1)` },
+      { table: "guests", sql: `DELETE FROM guests WHERE lower(hotel_id) = lower(?1)` },
+      { table: "hotel_staff", sql: `DELETE FROM hotel_staff WHERE lower(hotel_id) = lower(?1)` },
+      { table: "auth_users", sql: `DELETE FROM auth_users WHERE lower(COALESCE(hotel_id, '')) = lower(?1)` },
+      { table: "hotel_checkin_sessions", sql: `DELETE FROM hotel_checkin_sessions WHERE lower(hotel_id) = lower(?1)` },
+      { table: "hotels", sql: `DELETE FROM hotels WHERE lower(id) = lower(?1)` },
+    ];
+
+    for (const step of deleteSteps) {
+      if (!existingTables.has(step.table)) {
+        continue;
+      }
+
+      await context.env.DB.prepare(step.sql).bind(hotelId).run();
+    }
 
     return json({
       ok: true,
