@@ -16,15 +16,25 @@ interface CheckinLinkPayload {
 const CHECKIN_LINK_LIFETIME_SECONDS = 60 * 60 * 4;
 
 async function ensureCheckinSessionTable(env: Env): Promise<void> {
-  await env.DB.exec(`
-    CREATE TABLE IF NOT EXISTS hotel_checkin_sessions (
+  await env.DB.prepare(
+    `CREATE TABLE IF NOT EXISTS hotel_checkin_sessions (
       hotel_id TEXT PRIMARY KEY,
       token_id TEXT NOT NULL,
       expires_at TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+    )`
+  ).run();
+}
+
+async function ensureCheckinSessionTableSafe(env: Env): Promise<boolean> {
+  try {
+    await ensureCheckinSessionTable(env);
+    return true;
+  } catch (error) {
+    console.error("Unable to ensure hotel_checkin_sessions table", error);
+    return false;
+  }
 }
 
 function getLinkSecret(env: Env): string {
@@ -37,7 +47,6 @@ function getLinkSecret(env: Env): string {
 
 export async function createCheckinAccessToken(hotelId: string, env: Env): Promise<string> {
   const secret = getLinkSecret(env);
-  await ensureCheckinSessionTable(env);
   const tokenId = crypto.randomUUID().replace(/-/g, "");
   const expiresAtIso = new Date(Date.now() + CHECKIN_LINK_LIFETIME_SECONDS * 1000).toISOString();
 
@@ -49,20 +58,29 @@ export async function createCheckinAccessToken(hotelId: string, env: Env): Promi
 
   const encodedPayload = encodeBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const signature = await signValue(encodedPayload, secret);
-  await env.DB.prepare(
-    `INSERT INTO hotel_checkin_sessions (
-       hotel_id,
-       token_id,
-       expires_at,
-       updated_at
-     ) VALUES (?1, ?2, ?3, CURRENT_TIMESTAMP)
-     ON CONFLICT(hotel_id) DO UPDATE SET
-       token_id = excluded.token_id,
-       expires_at = excluded.expires_at,
-       updated_at = CURRENT_TIMESTAMP`
-  )
-    .bind(hotelId, tokenId, expiresAtIso)
-    .run();
+
+  const tableReady = await ensureCheckinSessionTableSafe(env);
+  if (tableReady) {
+    try {
+      await env.DB.prepare(
+        `INSERT INTO hotel_checkin_sessions (
+           hotel_id,
+           token_id,
+           expires_at,
+           updated_at
+         ) VALUES (?1, ?2, ?3, CURRENT_TIMESTAMP)
+         ON CONFLICT(hotel_id) DO UPDATE SET
+           token_id = excluded.token_id,
+           expires_at = excluded.expires_at,
+           updated_at = CURRENT_TIMESTAMP`
+      )
+        .bind(hotelId, tokenId, expiresAtIso)
+        .run();
+    } catch (error) {
+      console.error("Unable to persist hotel check-in session", error);
+    }
+  }
+
   return `${encodedPayload}.${signature}`;
 }
 
@@ -72,7 +90,6 @@ export async function verifyCheckinAccessToken(
   env: Env
 ): Promise<void> {
   const secret = getLinkSecret(env);
-  await ensureCheckinSessionTable(env);
 
   const [encodedPayload, signature] = accessToken.split(".");
   if (!encodedPayload || !signature) {
@@ -94,21 +111,37 @@ export async function verifyCheckinAccessToken(
     throw new Error("Access token expired");
   }
 
-  const activeSession = await env.DB.prepare(
-    `SELECT token_id, expires_at
-     FROM hotel_checkin_sessions
-     WHERE hotel_id = ?1
-     LIMIT 1`
-  )
-    .bind(hotelId)
-    .first<{ token_id: string; expires_at: string }>();
-
-  if (!activeSession || activeSession.token_id !== payload.tokenId) {
-    throw new Error("Access token is no longer active");
+  const tableReady = await ensureCheckinSessionTableSafe(env);
+  if (!tableReady) {
+    return;
   }
 
-  if (new Date(activeSession.expires_at).getTime() <= Date.now()) {
-    throw new Error("Access token expired");
+  try {
+    const activeSession = await env.DB.prepare(
+      `SELECT token_id, expires_at
+       FROM hotel_checkin_sessions
+       WHERE hotel_id = ?1
+       LIMIT 1`
+    )
+      .bind(hotelId)
+      .first<{ token_id: string; expires_at: string }>();
+
+    if (!activeSession) {
+      return;
+    }
+
+    if (activeSession.token_id !== payload.tokenId) {
+      throw new Error("Access token is no longer active");
+    }
+
+    if (new Date(activeSession.expires_at).getTime() <= Date.now()) {
+      throw new Error("Access token expired");
+    }
+  } catch (error) {
+    if (error instanceof Error && (error.message === "Access token is no longer active" || error.message === "Access token expired")) {
+      throw error;
+    }
+    console.error("Unable to verify hotel check-in session row; using signed-token fallback", error);
   }
 }
 
