@@ -46,7 +46,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     });
   } catch (error) {
     console.error("Failed to create hotel-admin check-in link", error);
-    return json({ error: "Unable to create check-in link" }, { status: 500 });
+    return json(
+      {
+        error:
+          error instanceof Error && error.message
+            ? error.message
+            : "Unable to create check-in link",
+      },
+      { status: 500 }
+    );
   }
 };
 
