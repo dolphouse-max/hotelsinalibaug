@@ -1,5 +1,8 @@
 const MSG91_EMAIL_URL = "https://control.msg91.com/api/v5/email/send";
 const DEFAULT_TEMPLATE_ID = "checkin_hotel_procedure";
+const DEFAULT_FROM_EMAIL = "support@hotelsinalibaug.in";
+const DEFAULT_FROM_NAME = "Hotels In Alibaug";
+const DEFAULT_DOMAIN = "hotelsinalibaug.in";
 
 function getMsg91AuthKey(env) {
   return String(env.MSG91_EMAIL_AUTH_KEY || env.MSG91_AUTH_KEY || "").trim();
@@ -7,6 +10,18 @@ function getMsg91AuthKey(env) {
 
 function getMsg91TemplateId(env) {
   return String(env.MSG91_EMAIL_TEMPLATE_ID || DEFAULT_TEMPLATE_ID).trim();
+}
+
+function getMsg91FromEmail(env) {
+  return String(env.MSG91_EMAIL_FROM_EMAIL || DEFAULT_FROM_EMAIL).trim();
+}
+
+function getMsg91FromName(env) {
+  return String(env.MSG91_EMAIL_FROM_NAME || DEFAULT_FROM_NAME).trim();
+}
+
+function getMsg91Domain(env) {
+  return String(env.MSG91_EMAIL_DOMAIN || DEFAULT_DOMAIN).trim();
 }
 
 function normalizeEmail(value) {
@@ -42,6 +57,9 @@ export function validateHotelOnboardingEmailInput(hotel, origin) {
 export async function sendHotelOnboardingEmail(env, hotel, origin) {
   const authKey = getMsg91AuthKey(env);
   const templateId = getMsg91TemplateId(env);
+  const fromEmail = getMsg91FromEmail(env);
+  const fromName = getMsg91FromName(env);
+  const domain = getMsg91Domain(env);
 
   if (!authKey) {
     return {
@@ -51,10 +69,23 @@ export async function sendHotelOnboardingEmail(env, hotel, origin) {
     };
   }
 
+  if (!fromEmail || !domain) {
+    return {
+      ok: false,
+      skipped: true,
+      reason: "MSG91 sender email or domain is not configured.",
+    };
+  }
+
   const details = validateHotelOnboardingEmailInput(hotel, origin);
   const adminUrl = buildHotelAdminUrl(details.origin, details.id);
 
   const payload = {
+    from: {
+      email: fromEmail,
+      name: fromName,
+    },
+    domain,
     recipients: [
       {
         to: [
