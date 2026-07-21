@@ -179,6 +179,22 @@ padding:0.85rem;
 box-shadow:var(--shadow);
 }
 
+.brochure-shot-frame{
+max-height:20rem;
+overflow:auto;
+border-radius:16px;
+border:1px solid var(--line);
+background:#fff;
+padding:0.45rem;
+}
+
+.brochure-shot-frame img{
+width:100%;
+height:auto;
+display:block;
+border-radius:12px;
+}
+
 .brochure-shot p{
 font-size:.92rem;
 margin:.7rem 0 0;
@@ -324,30 +340,67 @@ padding:0;
 
 <section>
 <h2 style="margin-bottom:1rem;">अॅप स्क्रीन</h2>
+<p class="lead" style="font-size:1rem;margin:0 0 1rem;">ही full-page mobile screenshots आहेत. Web brochure मध्ये प्रत्येक image त्याच्या frame मध्ये scroll करता येईल आणि गरज असल्यास वेगळी उघडता येईल.</p>
 <div class="brochure-shot-grid">
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/hotel-admin.jpeg" alt="Hotel admin dashboard screenshot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-admin-home.jpeg" alt="Hotel admin home screenshot">
+</div>
 <p><strong>हॉटेल मुख्य पेज</strong><br>संपूर्ण हॉटेल ऑपरेशनसाठी एक प्रायव्हेट पेज.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/guest-check-in.jpeg" alt="Guest check-in screenshot">
-<p><strong>गेस्ट चेक-इन</strong><br>फॅमिली सपोर्टसह स्ट्रक्चर्ड डिजिटल गेस्ट एंट्री.</p>
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-profile.jpeg" alt="Hotel profile screenshot">
+</div>
+<p><strong>प्रोफाइल आणि सबस्क्रिप्शन</strong><br>हॉटेलची माहिती, रूम्स संख्या आणि खाते स्थिती तपासा.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/staff.jpeg" alt="Staff register screenshot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/google-drive-connect.jpeg" alt="Google Drive connect screenshot">
+</div>
+<p><strong>Google Drive</strong><br>प्रूफ हॉटेलच्या स्वतःच्या folder मध्ये ठेवण्यासाठी Gmail connect करा.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/guest-qr.jpeg" alt="Guest QR screenshot">
+</div>
+<p><strong>Guest QR आणि Link</strong><br>Reception साठी नवीन QR तयार करा, जे guest स्वतः scan करू शकेल.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-staff-register.jpeg" alt="Staff register screenshot">
+</div>
 <p><strong>स्टाफ रजिस्टर</strong><br>स्टाफ तपशील, भूमिका आणि संपर्क माहिती.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/reservation-calender.jpeg" alt="Reservation calendar screenshot">
-<p><strong>रिझर्वेशन कॅलेंडर</strong><br>आगामी बुकिंग्स आणि ऑक्युपन्सी स्पष्ट दिसते.</p>
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-bookings.jpeg" alt="Bookings screenshot">
+</div>
+<p><strong>Bookings आणि Reservations</strong><br>Walk-in, future booking आणि advance payment तपशील साठवा.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/reservation.jpeg" alt="Reservation entry screenshot">
-<p><strong>रिझर्वेशन एंट्री</strong><br>मोबाईलवरून बुकिंग नोंदी सहज करता येतात.</p>
+<div class="brochure-shot-frame">
+<img src="/screenshots/guest-checkout.jpeg" alt="Guest checkout screenshot">
+</div>
+<p><strong>Guest Check-Out</strong><br>सध्याचे guest शोधून checkout पटकन complete करा.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/reports.jpeg" alt="Reports screenshot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-reports.jpeg" alt="Reports screenshot">
+</div>
 <p><strong>रिपोर्ट्स</strong><br>करंट गेस्ट, रजिस्टर आणि सारांश रिपोर्ट्स.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/guest-register.jpeg" alt="Guest register screenshot">
+</div>
+<p><strong>Guest Register</strong><br>Guest history शोधा, date filters लावा आणि register export करा.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-help.jpeg" alt="Help screenshot">
+</div>
+<p><strong>Hotel Help</strong><br>सेटअप, pages, reports आणि subscription steps साठी English आणि Marathi मार्गदर्शन.</p>
 </article>
 </div>
 </section>

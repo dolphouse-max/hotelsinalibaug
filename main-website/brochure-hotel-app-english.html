@@ -91,6 +91,22 @@ padding:0.85rem;
 box-shadow:var(--shadow);
 }
 
+.brochure-shot-frame{
+max-height:20rem;
+overflow:auto;
+border-radius:16px;
+border:1px solid var(--line);
+background:#fff;
+padding:0.45rem;
+}
+
+.brochure-shot-frame img{
+width:100%;
+height:auto;
+display:block;
+border-radius:12px;
+}
+
 .brochure-shot p{
 font-size:.92rem;
 margin:.7rem 0 0;
@@ -236,30 +252,67 @@ A mobile-friendly digital system for hotels, resorts, lodges, and homestays to m
 
 <section>
 <h2 style="margin-bottom:1rem;">App Screens</h2>
+<p class="lead" style="font-size:1rem;margin:0 0 1rem;">These are full-page mobile screenshots. In the web brochure, each image can be scrolled inside its frame and opened separately if needed.</p>
 <div class="brochure-shot-grid">
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/hotel-admin.jpeg" alt="Hotel admin dashboard screenshot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-admin-home.jpeg" alt="Hotel admin home screenshot">
+</div>
 <p><strong>Hotel Main Page</strong><br>One private page for all hotel operations.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/guest-check-in.jpeg" alt="Guest check-in screenshot">
-<p><strong>Guest Check-In</strong><br>Structured digital guest entry with family support.</p>
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-profile.jpeg" alt="Hotel profile screenshot">
+</div>
+<p><strong>Profile & Subscription</strong><br>Review hotel details, room counts, and current account status.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/staff.jpeg" alt="Staff register screenshot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/google-drive-connect.jpeg" alt="Google Drive connect screenshot">
+</div>
+<p><strong>Google Drive</strong><br>Connect the hotel Gmail so proofs stay in the hotel-owned folder.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/guest-qr.jpeg" alt="Guest QR screenshot">
+</div>
+<p><strong>Guest QR & Link</strong><br>Generate a fresh reception QR that guests can scan on their own phone.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-staff-register.jpeg" alt="Staff register screenshot">
+</div>
 <p><strong>Staff Register</strong><br>Store staff details, role, and contact information.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/reservation-calender.jpeg" alt="Reservation calendar screenshot">
-<p><strong>Reservation Calendar</strong><br>Track future bookings and occupancy more clearly.</p>
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-bookings.jpeg" alt="Bookings screenshot">
+</div>
+<p><strong>Bookings & Reservations</strong><br>Track walk-ins, future bookings, room plans, and advance payments.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/reservation.jpeg" alt="Reservation entry screenshot">
-<p><strong>Reservation Entry</strong><br>Add and manage bookings from mobile.</p>
+<div class="brochure-shot-frame">
+<img src="/screenshots/guest-checkout.jpeg" alt="Guest checkout screenshot">
+</div>
+<p><strong>Guest Check-Out</strong><br>Search in-house guests and complete checkout quickly.</p>
 </article>
 <article class="brochure-shot">
-<img src="../guest-checkin/screenshots/reports.jpeg" alt="Reports screenshot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-reports.jpeg" alt="Reports screenshot">
+</div>
 <p><strong>Reports</strong><br>Current guests, guest register, and summary reports.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/guest-register.jpeg" alt="Guest register screenshot">
+</div>
+<p><strong>Guest Register</strong><br>Search guest history, apply date filters, and export the register when needed.</p>
+</article>
+<article class="brochure-shot">
+<div class="brochure-shot-frame">
+<img src="/screenshots/hotel-help.jpeg" alt="Help screenshot">
+</div>
+<p><strong>Hotel Help</strong><br>English and Marathi guidance for setup, pages, reports, and subscription steps.</p>
 </article>
 </div>
 </section>
