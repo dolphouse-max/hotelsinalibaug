@@ -383,6 +383,7 @@
       { id: "register", label: "Guest Register", href: "/police-report-guest-register.html" },
       { id: "staff", label: "Staff", href: "/police-report-staff-register.html" },
       { id: "logs", label: "Logs", href: "/police-report-access-logs.html" },
+      { id: "help", label: "Help", href: "/police-help.html" },
     ];
 
     return `

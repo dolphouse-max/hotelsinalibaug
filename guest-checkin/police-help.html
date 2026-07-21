@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/home-screen.webp">
+    <link rel="manifest" href="/manifest.json">
+    <title>Police Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="police-reports-common.js?v=20260721-1"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#111827",
+              slateblue: "#1f3b57",
+              mist: "#eef4f8",
+              brass: "#caa96a",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .help-shot-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .help-shot-card {
+        border: 1px solid rgb(226 232 240);
+        border-radius: 1.25rem;
+        background: rgb(248 250 252);
+        padding: 1rem;
+      }
+
+      .help-shot-frame {
+        max-height: 24rem;
+        overflow: auto;
+        border-radius: 1rem;
+        border: 1px solid rgb(203 213 225);
+        background: white;
+        padding: 0.5rem;
+      }
+
+      .help-shot-frame img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 0.75rem;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
+    <main class="mx-auto max-w-4xl px-4 py-5 pb-10">
+      <div class="flex items-center justify-between text-sm">
+        <a href="/police-reports-home.html" class="font-medium text-slate-600">Back to Police Main Page</a>
+        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Help</span>
+      </div>
+      <script>
+        document.write(policeReportsCommon.quickNav("help"));
+      </script>
+
+      <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(17,24,39,0.08)]">
+        <div class="bg-[linear-gradient(135deg,#111827_0%,#1f3b57_68%,#355879_100%)] px-5 py-6 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
+          <h1 class="mt-2 text-2xl font-semibold">Police Help</h1>
+          <p class="mt-2 text-sm leading-6 text-white/80">Use this page during live police demonstration, training, and day-to-day record lookup. Switch between English and Marathi at the top.</p>
+        </div>
+
+        <div class="p-5">
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+            This section is for police officers who need quick access to guest data, proof review, hotel-wise filtering, and audit-backed search across one or many hotels.
+          </div>
+
+          <div class="mt-5 grid gap-4 md:grid-cols-[1fr_auto]">
+            <div>
+              <label for="languageSelect" class="mb-2 block text-sm font-medium text-slate-700">Language</label>
+              <select id="languageSelect" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-slateblue focus:ring-4 focus:ring-slateblue/10">
+                <option value="en">English</option>
+                <option value="mr">Marathi</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-2 md:items-end md:justify-end">
+              <a href="/guides/brochure-police-demo-english.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">English Brochure</a>
+              <a href="/guides/brochure-police-demo-marathi.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">Marathi Brochure</a>
+            </div>
+          </div>
+
+          <div id="contentEn" class="mt-6 space-y-5">
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">1. Initial Police Setup</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Open Police Dashboard and log in with the police email and password given by superadmin.</p>
+                <p>2. Enter the officer name once on the dashboard so it is reused in police pages and audit logs.</p>
+                <p>3. Open Police Main Page and save the hotel filter and date range if you are checking one hotel repeatedly.</p>
+                <p>4. Use All Hotels Guest Search when you need to search across every registered hotel by name, mobile number, or car number.</p>
+                <p>5. Use Police Console only when proof review or guest-level audited access is required.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">2. What Each Police Page Does</h2>
+              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+                <div>
+                  <p class="font-semibold text-slate-900">Police Dashboard</p>
+                  <p>Use this login page to sign in, save officer name, change password, and send password reset mail if needed.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Police Main Page</p>
+                  <p>This is the central page to save one hotel, officer name, and date range. All other police reports reuse those saved filters on the same device.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">All Hotels Guest Search</p>
+                  <p>Search all hotel guest records in one place by guest name, mobile number, or car number. This is the fastest page for general enquiry.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Police Console</p>
+                  <p>Use this when police need controlled access to one guest or hotel set. It logs the officer name and guest access for audit purposes and can open proof documents.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Hotel Details</p>
+                  <p>Shows hotel identity, contact details, room count, and hotel profile information.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Current Guests</p>
+                  <p>Shows who is currently staying in the selected hotel.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Guest Register</p>
+                  <p>Shows guest history for the selected hotel and date range, with search filters and proof access.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Staff Register</p>
+                  <p>Shows hotel staff names, role, phone number, address, and current status.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Police Access History</p>
+                  <p>Shows audit rows of which officer opened which guest records and when.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">3. Visual Help Screens</h2>
+              <p class="mt-3 text-sm leading-6 text-slate-600">Each frame below contains a full-page screenshot. You can scroll inside the image box to inspect the page, or open the image in a new tab if you want a larger view during a live demo.</p>
+              <div class="help-shot-grid mt-4">
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Dashboard</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Police login page with password reset and officer name context save.</p>
+                  <a href="/screenshots/polics-dashboard.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/polics-dashboard.jpeg" alt="Police dashboard screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Main Page</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Save one hotel and one date range here to reuse it across police pages.</p>
+                  <a href="/screenshots/police-main-page.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-main-page.jpeg" alt="Police main page screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">All Hotels Guest Search</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Search all hotels together by guest name, mobile number, or car number.</p>
+                  <a href="/screenshots/police-guest-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-guest-register.jpeg" alt="Police all hotels guest search screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Access Console</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Controlled audited guest access with proof open buttons.</p>
+                  <a href="/screenshots/police-access-console.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-access-console.jpeg" alt="Police access console screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Details</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Open hotel profile and room information quickly during inspection.</p>
+                  <a href="/screenshots/police-hotel-details.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-hotel-details.jpeg" alt="Police hotel details screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Current Guests</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">See all guests presently staying in the selected hotel.</p>
+                  <a href="/screenshots/police-current-guests.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-current-guests.jpeg" alt="Police current guests screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Guest Register</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Review guest history and past entries in the selected date range.</p>
+                  <a href="/screenshots/police-guest-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-guest-register.jpeg" alt="Police guest register screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Staff Register</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Review hotel staff details during enquiry or verification.</p>
+                  <a href="/screenshots/police-staff-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-staff-register.jpeg" alt="Police staff register screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Access History</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Review audit history of police lookups and proof access.</p>
+                  <a href="/screenshots/police-access-history.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">Open full image</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-access-history.jpeg" alt="Police access history screenshot" loading="lazy">
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">4. Search and Filter Tips</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>Use hotel filter when the enquiry is about one specific hotel.</p>
+                <p>Use All Hotels Guest Search for broader checking across all hotels.</p>
+                <p>Use mobile number for fastest exact guest lookup.</p>
+                <p>Use car number when guest name spelling is uncertain.</p>
+                <p>Use date filters on Guest Register and Access History pages to reduce clutter and speed up results.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">5. Security and Audit Control</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>Police access is controlled by police login created by superadmin.</p>
+                <p>Guest proof review happens inside the app, not by open browsing of hotel Google Drive.</p>
+                <p>Proof access and guest lookup through Police Console can be logged against officer name and time.</p>
+                <p>The system is designed to give structured hotel-owned data with controlled police access.</p>
+              </div>
+            </section>
+          </div>
+
+          <div id="contentMr" class="mt-6 hidden space-y-5">
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">1. पोलिसांसाठी सुरुवातीची सेटअप</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>1. Police Dashboard उघडा आणि superadmin ने दिलेल्या police email व password ने लॉगिन करा.</p>
+                <p>2. Officer name एकदाच भरा. तो पुढे police pages आणि audit logs मध्ये वापरला जाईल.</p>
+                <p>3. Police Main Page वर hotel आणि date range save करा, जर एखाद्या एका हॉटेलची वारंवार चौकशी करायची असेल.</p>
+                <p>4. अनेक हॉटेलमध्ये एकाच वेळी शोध घ्यायचा असल्यास All Hotels Guest Search वापरा.</p>
+                <p>5. Guest proof किंवा audited guest-level access आवश्यक असल्यास Police Console वापरा.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">2. प्रत्येक police page कशासाठी आहे</h2>
+              <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+                <div>
+                  <p class="font-semibold text-slate-900">Police Dashboard</p>
+                  <p>लॉगिन, officer name save, password change आणि password reset mail साठी हा page वापरा.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Police Main Page</p>
+                  <p>एक hotel, officer name आणि date range save करून पुढील सर्व police report pages मध्ये तेच filters वापरता येतात.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">All Hotels Guest Search</p>
+                  <p>Guest name, mobile number किंवा car number वापरून सर्व हॉटेलमधील records एकाच ठिकाणी शोधण्यासाठी हा सर्वात जलद page आहे.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Police Console</p>
+                  <p>एखाद्या guest किंवा hotel साठी controlled access आणि proof review हवे असल्यास हा page वापरा. Officer name सह audit log तयार होतो.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Hotel Details</p>
+                  <p>हॉटेलची basic माहिती, contact details, room count आणि profile माहिती पाहण्यासाठी.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Current Guests</p>
+                  <p>निवडलेल्या हॉटेलमध्ये सध्या कोणते guest राहतात ते दाखवतो.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Guest Register</p>
+                  <p>निवडलेल्या date range मध्ये guest history, search filters आणि proof access दाखवतो.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Staff Register</p>
+                  <p>हॉटेल staff चे नाव, role, mobile, address आणि status दाखवतो.</p>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-900">Police Access History</p>
+                  <p>कोणत्या officer ने कोणता guest record कधी उघडला याचा audit history दाखवतो.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">3. स्क्रीनशॉट मार्गदर्शक</h2>
+              <p class="mt-3 text-sm leading-6 text-slate-600">खालील प्रत्येक image box मध्ये full-page screenshot आहे. त्या box मध्ये scroll करून संपूर्ण page पाहू शकता. Live demonstration दरम्यान image वेगळ्या tab मध्येही उघडता येईल.</p>
+              <div class="help-shot-grid mt-4">
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Dashboard</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Police login, password reset आणि officer name save करण्यासाठी हा page आहे.</p>
+                  <a href="/screenshots/polics-dashboard.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/polics-dashboard.jpeg" alt="Police dashboard screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Main Page</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">एक hotel आणि date range save करून पुढे सर्व pages वर तेच filters वापरता येतात.</p>
+                  <a href="/screenshots/police-main-page.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-main-page.jpeg" alt="Police main page screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">All Hotels Guest Search</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">सर्व हॉटेलमधील guest records नाव, mobile किंवा car number ने शोधण्यासाठी.</p>
+                  <a href="/screenshots/police-guest-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-guest-register.jpeg" alt="Police all hotels search screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Access Console</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Audited guest access आणि proof open button असलेला page.</p>
+                  <a href="/screenshots/police-access-console.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-access-console.jpeg" alt="Police access console screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Hotel Details</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">हॉटेल profile, room count आणि contact माहिती पटकन पाहण्यासाठी.</p>
+                  <a href="/screenshots/police-hotel-details.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-hotel-details.jpeg" alt="Police hotel details screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Current Guests</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">निवडलेल्या हॉटेलमध्ये सध्या राहणारे guest पाहण्यासाठी.</p>
+                  <a href="/screenshots/police-current-guests.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-current-guests.jpeg" alt="Police current guests screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Guest Register</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">Guest history आणि जुने entries पाहण्यासाठी हा page वापरा.</p>
+                  <a href="/screenshots/police-guest-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-guest-register.jpeg" alt="Police guest register screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Staff Register</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">हॉटेल staff details पडताळण्यासाठी.</p>
+                  <a href="/screenshots/police-staff-register.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-staff-register.jpeg" alt="Police staff register screenshot" loading="lazy">
+                  </div>
+                </article>
+                <article class="help-shot-card">
+                  <p class="font-semibold text-slate-900">Police Access History</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-600">कोणत्या officer ने कोणती guest माहिती कधी उघडली याचा audit history पाहण्यासाठी.</p>
+                  <a href="/screenshots/police-access-history.jpeg" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-sm font-medium text-slateblue">पूर्ण image उघडा</a>
+                  <div class="help-shot-frame mt-3">
+                    <img src="/screenshots/police-access-history.jpeg" alt="Police access history screenshot" loading="lazy">
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">4. Search आणि Filter वापरण्याच्या टिप्स</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>एखाद्या विशिष्ट hotel बद्दल चौकशी असेल तर hotel filter वापरा.</p>
+                <p>अनेक hotel मध्ये शोध घ्यायचा असेल तर All Hotels Guest Search वापरा.</p>
+                <p>Exact guest शोधण्यासाठी mobile number सर्वात जलद असतो.</p>
+                <p>Guest name spelling नक्की नसेल तर car number वापरा.</p>
+                <p>Guest Register आणि Access History वर date filters वापरल्यास results कमी होतात आणि page जलद चालतो.</p>
+              </div>
+            </section>
+
+            <section class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-ink">5. सुरक्षा आणि Audit नियंत्रण</h2>
+              <div class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                <p>Police access हा superadmin ने तयार केलेल्या police login वर आधारित असतो.</p>
+                <p>Guest proof review हे app च्या आत होते. Hotel च्या Google Drive ची open browsing दिली जात नाही.</p>
+                <p>Police Console मधून guest lookup आणि proof access officer name व वेळेसह log होऊ शकतो.</p>
+                <p>ही system हॉटेलचे data त्यांच्या मालकीत ठेवून police साठी controlled access देण्यासाठी बनवली आहे.</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const languageSelect = document.getElementById("languageSelect");
+      const contentEn = document.getElementById("contentEn");
+      const contentMr = document.getElementById("contentMr");
+
+      function applyLanguage(value) {
+        const language = value === "mr" ? "mr" : "en";
+        contentEn.classList.toggle("hidden", language !== "en");
+        contentMr.classList.toggle("hidden", language !== "mr");
+        localStorage.setItem("police_help_language", language);
+      }
+
+      languageSelect.addEventListener("change", () => applyLanguage(languageSelect.value));
+
+      const savedLanguage = localStorage.getItem("police_help_language") || "en";
+      languageSelect.value = savedLanguage;
+      applyLanguage(savedLanguage);
+    </script>
+  </body>
+</html>
