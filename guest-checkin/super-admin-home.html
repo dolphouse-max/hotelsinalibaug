@@ -335,12 +335,43 @@
             : user.hotel_name
               ? `Hotel: ${user.hotel_name} (${user.hotel_id})`
               : "No hotel linked";
+          const removeHint = user.role === "police"
+            ? "Remove police access mapping"
+            : user.role === "hotel_admin"
+              ? "Remove hotel-admin app access mapping"
+              : "Remove app access mapping";
           card.innerHTML = `
             <p class="font-semibold text-ocean">${user.display_name || user.email}</p>
             <p class="mt-1 text-sm text-slate-600">${user.email}</p>
             <p class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">${roleLabel}</p>
             <p class="mt-1 text-sm text-slate-600">${detailLine}</p>
+            <div class="mt-4 grid gap-2">
+              <button type="button" data-action="removeUser" class="inline-flex items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                Remove Access
+              </button>
+              <p class="text-xs leading-5 text-slate-500">${removeHint}. This removes app authorization only. Firebase email/password still remains in Firebase.</p>
+            </div>
           `;
+          card.querySelector('[data-action="removeUser"]').addEventListener("click", async () => {
+            const label = user.display_name || user.email || "this user";
+            const confirmation = window.prompt(`Type the email "${user.email}" to remove app access for ${label}.`);
+            if (confirmation !== user.email) {
+              superAdminCommon.setMessage(userMessage, "Remove access cancelled because the email confirmation did not match.", "error");
+              return;
+            }
+
+            try {
+              await superAdminCommon.deleteUser({ id: user.id, email: user.email });
+              superAdminCommon.setMessage(
+                userMessage,
+                `${label} removed from app access. Firebase login still exists until you delete it separately in Firebase Console.`,
+                "success"
+              );
+              await hydrateUsers();
+            } catch (error) {
+              superAdminCommon.setMessage(userMessage, error.message || "Unable to remove app access.", "error");
+            }
+          });
           userList.appendChild(card);
         }
 

@@ -139,6 +139,10 @@
             throw new Error("Enter police email before login.");
           }
           const data = await window.firebaseAuthBridge.signIn(email, policePasswordInput.value);
+          if (data?.session?.role !== "police") {
+            await window.firebaseAuthBridge.signOutEverywhere().catch(() => {});
+            throw new Error("This login is not authorized for police access.");
+          }
           policeEmailInput.value = data.session.email || email;
           persistContext();
           showMessage("Police login successful.", "success");
@@ -202,6 +206,9 @@
           if (data?.session?.role === "police") {
             policeEmailInput.value = data.session.email || policeEmailInput.value;
             showMessage("Police session restored.", "success");
+          } else if (data?.session) {
+            window.firebaseAuthBridge.signOutEverywhere().catch(() => {});
+            showMessage("This device session is not authorized for police access.", "error");
           }
         })
         .catch(() => {});

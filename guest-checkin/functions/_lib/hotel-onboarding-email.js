@@ -62,19 +62,11 @@ export async function sendHotelOnboardingEmail(env, hotel, origin) {
   const domain = getMsg91Domain(env);
 
   if (!authKey) {
-    return {
-      ok: false,
-      skipped: true,
-      reason: "MSG91 auth key is not configured.",
-    };
+    throw new Error("MSG91 auth key is not configured in Cloudflare Pages secrets.");
   }
 
   if (!fromEmail || !domain) {
-    return {
-      ok: false,
-      skipped: true,
-      reason: "MSG91 sender email or domain is not configured.",
-    };
+    throw new Error("MSG91 sender email or domain is not configured in Cloudflare Pages secrets.");
   }
 
   const details = validateHotelOnboardingEmailInput(hotel, origin);
@@ -107,6 +99,14 @@ export async function sendHotelOnboardingEmail(env, hotel, origin) {
     validate_before_send: true,
   };
 
+  console.log("Sending hotel onboarding email via MSG91", {
+    template_id: templateId,
+    domain,
+    from_email: fromEmail,
+    to_email: details.admin_email,
+    hotel_id: details.id,
+  });
+
   const response = await fetch(MSG91_EMAIL_URL, {
     method: "POST",
     headers: {
@@ -124,6 +124,14 @@ export async function sendHotelOnboardingEmail(env, hotel, origin) {
   } catch {
     data = { raw: text };
   }
+
+  console.log("MSG91 hotel onboarding email response", {
+    status: response.status,
+    ok: response.ok,
+    body: data,
+    hotel_id: details.id,
+    to_email: details.admin_email,
+  });
 
   if (!response.ok) {
     const errorMessage =

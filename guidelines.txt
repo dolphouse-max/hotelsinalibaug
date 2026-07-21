@@ -13,7 +13,7 @@ https://checkin.hotelsinalibaug.in/police-dashboard.html
 Git commands ...
 
 git add .
-git commit -m "guest register screenshot added to help"
+git commit -m "msg91 email secrets added"
 git push origin main
 
 =======================================================
@@ -21,3 +21,7 @@ git push origin main
 msg91 auth key
 
 473324ARxQLJ59B768ecb81bP1
+
+====================================================
+
+alibaug-police-402201@gmail.com ... alibaug-police-402201

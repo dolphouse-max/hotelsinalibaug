@@ -1,5 +1,5 @@
 import { badRequest, json, unauthorized } from "../../_lib/api";
-import { listAuthUsers, requireSuperAdminSession, saveAuthUser } from "../../_lib/auth";
+import { deleteAuthUser, listAuthUsers, requireSuperAdminSession, saveAuthUser } from "../../_lib/auth";
 
 interface Env {
   DB: D1Database;
@@ -39,10 +39,26 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 };
 
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  if (!(await requireSuperAdminSession(context.request, context.env))) {
+    return unauthorized();
+  }
+
+  try {
+    const url = new URL(context.request.url);
+    const userId = url.searchParams.get("id")?.trim() || "";
+    const email = url.searchParams.get("email")?.trim() || "";
+    const deleted = await deleteAuthUser(context.env, userId || email);
+    return json({ ok: true, deleted_user: deleted });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : "Unable to delete user mapping.");
+  }
+};
+
 export const onRequestOptions: PagesFunction<Env> = async () =>
   new Response(null, {
     status: 204,
     headers: {
-      allow: "GET, POST, OPTIONS",
+      allow: "GET, POST, DELETE, OPTIONS",
     },
   });

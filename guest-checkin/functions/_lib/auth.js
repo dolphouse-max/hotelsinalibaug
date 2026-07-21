@@ -280,6 +280,43 @@ export async function saveAuthUser(env, user) {
   return upsertAuthUser(env, user);
 }
 
+export async function deleteAuthUser(env, userIdOrEmail) {
+  await ensureAuthTables(env.DB);
+
+  const value = typeof userIdOrEmail === "string" ? userIdOrEmail.trim() : "";
+  if (!value) {
+    throw new Error("User ID or email is required.");
+  }
+
+  const existing = await env.DB.prepare(
+    `SELECT
+       id,
+       email,
+       role,
+       hotel_id,
+       display_name
+     FROM auth_users
+     WHERE id = ?1
+        OR lower(email) = lower(?1)
+     LIMIT 1`
+  )
+    .bind(value)
+    .first();
+
+  if (!existing) {
+    throw new Error("User mapping not found.");
+  }
+
+  await env.DB.prepare(
+    `DELETE FROM auth_users
+     WHERE id = ?1`
+  )
+    .bind(existing.id)
+    .run();
+
+  return existing;
+}
+
 async function verifyFirebaseIdToken(idToken, env) {
   const projectId = firebaseProjectId(env);
   const parts = String(idToken || "").split(".");
@@ -352,15 +389,15 @@ export async function resolveFirebaseSession(env, idToken) {
     throw new Error("This Firebase account does not have an email address.");
   }
 
-  if (claims.email_verified !== true) {
-    throw new Error("Please verify your email address before using this app.");
-  }
-
   await ensureAuthTables(env.DB);
 
   const user = await findAuthUserByFirebaseIdentity(env.DB, firebaseUid, email);
   if (!user || Number(user.is_active) !== 1) {
     throw new Error("This Firebase account is not authorized for this app.");
+  }
+
+  if (user.role === "hotel_admin" && claims.email_verified !== true) {
+    throw new Error("Please verify your email address before using this app.");
   }
 
   if (user.role === "hotel_admin" && !normalizeHotelId(user.hotel_id)) {

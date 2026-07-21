@@ -88,6 +88,26 @@
     return data.user;
   }
 
+  async function deleteUser({ id = "", email = "" } = {}) {
+    const url = new URL("/api/super-admin/users", window.location.origin);
+    if (id) {
+      url.searchParams.set("id", id);
+    } else if (email) {
+      url.searchParams.set("email", email);
+    } else {
+      throw new Error("User ID or email is required.");
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "DELETE",
+    });
+    const data = await readJson(response);
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to delete user mapping.");
+    }
+    return data.deleted_user;
+  }
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     localStorage.removeItem("super_admin_token");
@@ -312,6 +332,7 @@
     getSession,
     listUsers,
     saveUser,
+    deleteUser,
     logout,
     readJson,
     setMessage,
