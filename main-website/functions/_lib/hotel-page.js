@@ -240,6 +240,46 @@ function displayBeachDistance(page) {
   return Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
 }
 
+function addressSummary(page) {
+  return [
+    page.address_line_1,
+    page.address_village,
+    page.address_taluka,
+    page.address_district,
+    page.address_pincode,
+  ].filter(Boolean).join(", ");
+}
+
+function buildAutoMapQuery(page) {
+  return [page.public_title, addressSummary(page)].filter(Boolean).join(", ");
+}
+
+function resolvedMapPlaceUrl(page) {
+  if (page.google_maps_place_url) {
+    return String(page.google_maps_place_url);
+  }
+
+  const query = buildAutoMapQuery(page);
+  if (!query) {
+    return "";
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+function resolvedMapEmbedUrl(page) {
+  if (page.google_maps_embed_url) {
+    return String(page.google_maps_embed_url);
+  }
+
+  const query = buildAutoMapQuery(page);
+  if (!query) {
+    return "";
+  }
+
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+}
+
 function hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems) {
   const data = {
     "@context": "https://schema.org",
@@ -310,6 +350,9 @@ function renderHtml(page) {
   const whatsappText = encodeURIComponent(page.inquiry_whatsapp_prefill || `Hello, I want to enquire about ${page.public_title}.`);
   const roomCountLabel = displayRoomCount(page);
   const beachDistanceLabel = displayBeachDistance(page);
+  const mapPlaceUrl = resolvedMapPlaceUrl(page);
+  const mapEmbedUrl = resolvedMapEmbedUrl(page);
+  const fullAddress = addressSummary(page);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -364,7 +407,7 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
       <div class="button-row">
         ${page.primary_phone ? `<a class="button primary" href="tel:${escapeHtml(page.primary_phone)}">Call Now</a>` : ""}
         ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}?text=${whatsappText}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
-        ${page.google_maps_place_url ? `<a class="button secondary" href="${escapeHtml(page.google_maps_place_url)}" target="_blank" rel="noopener noreferrer">Open Map</a>` : ""}
+        ${mapPlaceUrl ? `<a class="button secondary" href="${escapeHtml(mapPlaceUrl)}" target="_blank" rel="noopener noreferrer">Open Map</a>` : ""}
       </div>
     </div>
   </section>
@@ -419,13 +462,13 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
     <div class="container grid-2">
       <article class="panel">
         <h2 style="margin-top:0;">Location</h2>
-        ${page.address_line_1 || page.address_village || page.address_pincode ? `
-          <p>${escapeHtml([page.address_line_1, page.address_village, page.address_taluka, page.address_district, page.address_pincode].filter(Boolean).join(", "))}</p>
+        ${fullAddress ? `
+          <p>${escapeHtml(fullAddress)}</p>
         ` : "<p>Address will be updated soon.</p>"}
-        ${page.google_maps_embed_url ? `
+        ${mapEmbedUrl ? `
           <div class="map-card" style="margin-top:1rem;">
             <iframe
-              src="${escapeHtml(page.google_maps_embed_url)}"
+              src="${escapeHtml(mapEmbedUrl)}"
               width="100%"
               height="320"
               style="border:0;border-radius:14px;"

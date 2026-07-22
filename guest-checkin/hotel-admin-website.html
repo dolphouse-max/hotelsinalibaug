@@ -126,26 +126,9 @@
               </div>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label for="websiteUrl" class="mb-2 block text-sm font-medium text-slate-700">Website URL</label>
-                <input id="websiteUrl" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-              </div>
-              <div>
-                <label for="inquiryWhatsappPrefill" class="mb-2 block text-sm font-medium text-slate-700">WhatsApp Prefill Message</label>
-                <input id="inquiryWhatsappPrefill" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Hello, I want to enquire about rooms.">
-              </div>
-            </div>
-
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label for="googleMapsEmbedUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Embed URL</label>
-                <textarea id="googleMapsEmbedUrl" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-              </div>
-              <div>
-                <label for="googleMapsPlaceUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Place URL</label>
-                <textarea id="googleMapsPlaceUrl" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-              </div>
+            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <h2 class="text-lg font-semibold text-ocean">Map And Contact Handling</h2>
+              <p class="mt-1 text-sm text-slate-600">Website link, WhatsApp message text, and Google Maps links are handled automatically by the app. Hotels only need to keep the hotel profile address and contact numbers correct.</p>
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
@@ -261,10 +244,6 @@
       const secondaryPhoneInput = document.getElementById("secondaryPhone");
       const whatsappNumberInput = document.getElementById("whatsappNumber");
       const inquiryEmailInput = document.getElementById("inquiryEmail");
-      const websiteUrlInput = document.getElementById("websiteUrl");
-      const inquiryWhatsappPrefillInput = document.getElementById("inquiryWhatsappPrefill");
-      const googleMapsEmbedUrlInput = document.getElementById("googleMapsEmbedUrl");
-      const googleMapsPlaceUrlInput = document.getElementById("googleMapsPlaceUrl");
       const checkInTimeInput = document.getElementById("checkInTime");
       const checkOutTimeInput = document.getElementById("checkOutTime");
       const roomCountDisplayInput = document.getElementById("roomCountDisplay");
@@ -429,10 +408,6 @@
         secondaryPhoneInput.value = page?.secondary_phone || "";
         whatsappNumberInput.value = page?.whatsapp_number || "";
         inquiryEmailInput.value = page?.inquiry_email || "";
-        websiteUrlInput.value = page?.website_url || "";
-        inquiryWhatsappPrefillInput.value = page?.inquiry_whatsapp_prefill || "";
-        googleMapsEmbedUrlInput.value = page?.google_maps_embed_url || "";
-        googleMapsPlaceUrlInput.value = page?.google_maps_place_url || "";
         checkInTimeInput.value = page?.check_in_time || "";
         checkOutTimeInput.value = page?.check_out_time || "";
         roomCountDisplayInput.value = page?.room_count_display || page?.total_rooms || "";
@@ -493,10 +468,6 @@
         formData.set("secondary_phone", secondaryPhoneInput.value);
         formData.set("whatsapp_number", whatsappNumberInput.value);
         formData.set("inquiry_email", inquiryEmailInput.value);
-        formData.set("website_url", websiteUrlInput.value);
-        formData.set("inquiry_whatsapp_prefill", inquiryWhatsappPrefillInput.value);
-        formData.set("google_maps_embed_url", googleMapsEmbedUrlInput.value);
-        formData.set("google_maps_place_url", googleMapsPlaceUrlInput.value);
         formData.set("check_in_time", checkInTimeInput.value);
         formData.set("check_out_time", checkOutTimeInput.value);
         formData.set("room_count_display", roomCountDisplayInput.value);
