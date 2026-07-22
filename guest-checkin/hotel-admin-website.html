@@ -128,7 +128,19 @@
 
             <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <h2 class="text-lg font-semibold text-ocean">Map And Contact Handling</h2>
-              <p class="mt-1 text-sm text-slate-600">Website link, WhatsApp message text, and Google Maps links are handled automatically by the app. Hotels only need to keep the hotel profile address and contact numbers correct.</p>
+              <p class="mt-1 text-sm text-slate-600">Contact numbers are used directly by the public hotel page. For location, you can keep the saved hotel address correct and also paste the exact Google Maps link of your property below.</p>
+              <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div>
+                  <label for="googleMapsPlaceUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Location Link</label>
+                  <input id="googleMapsPlaceUrl" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Paste Google Maps share link of the hotel">
+                  <p class="mt-2 text-xs text-slate-500">If the hotel appears on Google Maps, the app will prefill a suggested location link from the hotel name and address. If the pin is wrong or the hotel is not listed, open Google Maps, find the exact place, use Share, copy the link, and paste it here.</p>
+                </div>
+                <div class="sm:self-end">
+                  <a id="mapSearchLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700">
+                    Open Suggested Map
+                  </a>
+                </div>
+              </div>
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
@@ -242,6 +254,8 @@
       const secondaryPhoneInput = document.getElementById("secondaryPhone");
       const whatsappNumberInput = document.getElementById("whatsappNumber");
       const inquiryEmailInput = document.getElementById("inquiryEmail");
+      const googleMapsPlaceUrlInput = document.getElementById("googleMapsPlaceUrl");
+      const mapSearchLink = document.getElementById("mapSearchLink");
       const checkInTimeInput = document.getElementById("checkInTime");
       const checkOutTimeInput = document.getElementById("checkOutTime");
       const roomCountDisplayInput = document.getElementById("roomCountDisplay");
@@ -364,6 +378,32 @@
         heroSubheadingInput.value = `${hotelName} is a ${categoryValue} in ${locationLabel} for guests seeking a comfortable Alibaug stay, direct booking contact, and a well-placed location${beachLabel ? ` near the beach at around ${beachLabel}` : ""}.`;
         shortDescriptionInput.value = `${hotelName} is a welcoming ${categoryValue} in ${locationLabel}${roomCount > 0 ? ` with ${roomCount} rooms` : ""}, created for guests who prefer a smooth direct stay inquiry experience.`;
         fullDescriptionInput.value = `${hotelName} is a ${categoryValue} located in ${locationLabel}, ${currentPage?.address_taluka || "Alibaug"}, ${currentPage?.address_district || "Raigad"}. This draft page highlights the property's identity, location, and direct contact details so guests can quickly understand the stay option before booking. Additional room types, amenities, photos, nearby attractions, and detailed property features can be added later by the hotel team for a richer final webpage.`;
+        updateMapSearchLink();
+      }
+
+      function buildMapQuery() {
+        return [
+          publicTitleInput.value.trim() || currentPage?.public_title || currentPage?.hotel_name || "",
+          currentPage?.address_line_1 || "",
+          currentPage?.address_village || "",
+          currentPage?.address_taluka || "",
+          currentPage?.address_district || "",
+          currentPage?.address_pincode || "",
+        ].filter(Boolean).join(", ");
+      }
+
+      function applySuggestedMapLink() {
+        if (!googleMapsPlaceUrlInput.value.trim()) {
+          googleMapsPlaceUrlInput.value = mapSearchLink.href;
+        }
+      }
+
+      function updateMapSearchLink() {
+        const query = buildMapQuery();
+        mapSearchLink.href = query
+          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+          : "https://www.google.com/maps";
+        applySuggestedMapLink();
       }
 
       function escapeAttribute(value) {
@@ -438,6 +478,7 @@
         secondaryPhoneInput.value = page?.secondary_phone || "";
         whatsappNumberInput.value = page?.whatsapp_number || "";
         inquiryEmailInput.value = page?.inquiry_email || "";
+        googleMapsPlaceUrlInput.value = page?.google_maps_place_url || "";
         checkInTimeInput.value = page?.check_in_time || "";
         checkOutTimeInput.value = page?.check_out_time || "";
         roomCountDisplayInput.value = page?.room_count_display || page?.total_rooms || "";
@@ -455,6 +496,7 @@
         nearbyPlacesLinesInput.value = joinLines(safeParseList(page?.nearby_places_json), (item) => [item.name || "", item.distance || "", item.note || ""].join(" | ").replace(/\s+\|\s+\|\s*$/, "").trim());
         policiesLinesInput.value = joinLines(safeParseList(page?.policies_json), (item) => String(item || "").trim());
         renderPhotoSlots(page?.photos || []);
+        updateMapSearchLink();
       }
 
       async function loadPage() {
@@ -500,6 +542,7 @@
         formData.set("secondary_phone", secondaryPhoneInput.value);
         formData.set("whatsapp_number", whatsappNumberInput.value);
         formData.set("inquiry_email", inquiryEmailInput.value);
+        formData.set("google_maps_place_url", googleMapsPlaceUrlInput.value);
         formData.set("check_in_time", checkInTimeInput.value);
         formData.set("check_out_time", checkOutTimeInput.value);
         formData.set("room_count_display", roomCountDisplayInput.value);
@@ -576,6 +619,7 @@
       savePhotosButton.addEventListener("click", () => save(true, savePhotosButton, "Uploading..."));
       buildHourOptions(checkInTimeInput, "Select check-in time");
       buildHourOptions(checkOutTimeInput, "Select check-out time");
+      publicTitleInput.addEventListener("input", updateMapSearchLink);
       renderCheckboxOptions(amenityOptions, "amenity_selected", amenityPresets);
       renderCheckboxOptions(roomTypeOptions, "room_type_selected", roomTypePresets);
     </script>
