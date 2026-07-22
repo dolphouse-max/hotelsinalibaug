@@ -31,6 +31,40 @@
     return new Error(combined || fallbackMessage);
   }
 
+  function waitForInitialAuthState(timeoutMs = 4000) {
+    if (auth.currentUser) {
+      return Promise.resolve(auth.currentUser);
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const finish = (user) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        resolve(user || null);
+      };
+
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        finish(user);
+      }, () => {
+        unsubscribe();
+        finish(null);
+      });
+
+      window.setTimeout(() => {
+        try {
+          unsubscribe();
+        } catch {}
+        finish(auth.currentUser || null);
+      }, timeoutMs);
+    });
+  }
+
   async function createBackendSession(user, forceRefresh = false) {
     if (!user) {
       throw new Error("No Firebase user is signed in.");
@@ -75,10 +109,11 @@
   }
 
   async function ensureAppSession() {
-    if (!auth.currentUser) {
+    const user = auth.currentUser || await waitForInitialAuthState();
+    if (!user) {
       return null;
     }
-    return createBackendSession(auth.currentUser, false);
+    return createBackendSession(user, false);
   }
 
   async function changePassword(currentPassword, newPassword) {
@@ -155,6 +190,7 @@
     signIn,
     signUpPrimary,
     ensureAppSession,
+    waitForInitialAuthState,
     changePassword,
     sendPasswordReset,
     signOutEverywhere,
