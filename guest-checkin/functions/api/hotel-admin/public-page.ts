@@ -50,6 +50,12 @@ function sanitizeFileName(value: string): string {
   return safe.slice(0, 120) || "website-photo";
 }
 
+function buildPhotoAltText(hotelId: string, hotelName: string, slotNumber: number, caption: string, fileName: string | null) {
+  const baseName = normalizeText(hotelName) || hotelId;
+  const photoLabel = normalizeText(caption) || normalizeText(fileName || "") || `website photo ${slotNumber}`;
+  return `${baseName} - ${photoLabel}`;
+}
+
 function validateFile(file: File, key: string) {
   if (!file.size || file.size > MAX_FILE_SIZE_BYTES) {
     throw new Error(`${key} is missing or exceeds 10 MB.`);
@@ -162,18 +168,17 @@ async function upsertPhotoSlot(
   env: Env,
   pageId: string,
   hotelId: string,
+  hotelName: string,
   slotNumber: number,
   formData: FormData,
   accessToken: string,
   folderId: string
 ) {
   const fileKey = `photo_${slotNumber}_file`;
-  const altKey = `photo_${slotNumber}_alt`;
   const captionKey = `photo_${slotNumber}_caption`;
   const coverKey = `photo_${slotNumber}_is_cover`;
   const activeKey = `photo_${slotNumber}_is_active`;
   const file = formData.get(fileKey);
-  const altText = normalizeText(formData.get(altKey));
   const caption = normalizeText(formData.get(captionKey));
   const isCover = parseBoolean(normalizeText(formData.get(coverKey))) ? 1 : 0;
   const isActive = normalizeText(formData.get(activeKey))
@@ -207,7 +212,7 @@ async function upsertPhotoSlot(
     fileName = uploaded.name;
   }
 
-  if (!existing && !driveFileId && !altText && !caption) {
+  if (!existing && !driveFileId && !caption) {
     return;
   }
 
@@ -215,7 +220,7 @@ async function upsertPhotoSlot(
     throw new Error(`Photo slot ${slotNumber} needs an image before it can be saved.`);
   }
 
-  const finalAlt = altText || fileName || `${hotelId} website photo ${slotNumber}`;
+  const finalAlt = buildPhotoAltText(hotelId, hotelName, slotNumber, caption, fileName);
 
   if (existing) {
     await env.DB.prepare(
@@ -406,7 +411,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (shouldUploadPhotos) {
       const { accessToken, folderId } = await getHotelDriveAccessToken(hotelId, context.env);
       for (let slot = 1; slot <= MAX_PHOTO_COUNT; slot += 1) {
-        await upsertPhotoSlot(context.env, String(page.id), hotelId, slot, formData, accessToken, folderId);
+        await upsertPhotoSlot(context.env, String(page.id), hotelId, String(page.hotel_name || ""), slot, formData, accessToken, folderId);
       }
       await normalizeCoverFlags(context.env, String(page.id));
     }
