@@ -46,6 +46,19 @@ function normalizeInteger(value) {
   return Math.floor(numeric);
 }
 
+function normalizeCoordinate(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+
+  return numeric;
+}
+
 export const PUBLIC_PAGE_AMENITY_OPTIONS = [
   "AC Rooms",
   "Non AC Rooms",
@@ -172,6 +185,8 @@ export function normalizePublicPagePayload(payload, fallbackHotelName = "") {
     websiteUrl: normalizeNullableText(payload.website_url),
     googleMapsEmbedUrl: normalizeNullableText(payload.google_maps_embed_url),
     googleMapsPlaceUrl: normalizeNullableText(payload.google_maps_place_url),
+    latitude: normalizeCoordinate(payload.latitude),
+    longitude: normalizeCoordinate(payload.longitude),
     checkInTime: normalizeNullableText(payload.check_in_time),
     checkOutTime: normalizeNullableText(payload.check_out_time),
     roomCountDisplay: normalizeInteger(payload.room_count_display),
@@ -228,6 +243,8 @@ export async function ensurePublicPageTables(db) {
         website_url TEXT,
         google_maps_embed_url TEXT,
         google_maps_place_url TEXT,
+        latitude REAL,
+        longitude REAL,
         check_in_time TEXT,
         check_out_time TEXT,
         room_count_display INTEGER,
@@ -286,6 +303,8 @@ export async function ensurePublicPageTables(db) {
   await ensureColumn(db, "hotel_public_pages", "distance_from_mandwa_jetty", "TEXT");
   await ensureColumn(db, "hotel_public_pages", "beach_distance_meters", "INTEGER");
   await ensureColumn(db, "hotel_public_pages", "beach_distance_label", "TEXT");
+  await ensureColumn(db, "hotel_public_pages", "latitude", "REAL");
+  await ensureColumn(db, "hotel_public_pages", "longitude", "REAL");
 }
 
 export function multilineToSimpleList(value) {

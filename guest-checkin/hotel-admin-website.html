@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Website Page</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="hotel-admin-common.js?v=20260718-1"></script>
     <script>
       tailwind.config = {
@@ -136,6 +138,9 @@
                   <p class="mt-2 text-xs text-slate-500">The app creates a suggested location from your hotel name and address. If the hotel is already on Google Maps, you can open the suggestion, verify the place, copy the exact share link, and paste it here.</p>
                 </div>
                 <div class="grid gap-3 sm:self-end">
+                  <button id="findSuggestedMapButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700">
+                    Find On Map
+                  </button>
                   <button id="useSuggestedMapButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 text-sm font-semibold text-white">
                     Use Suggested Location
                   </button>
@@ -148,17 +153,23 @@
                 <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
                   <div>
                     <h3 class="text-sm font-semibold text-ocean">Map Preview</h3>
-                    <p id="mapPreviewNote" class="mt-1 text-xs text-slate-500">The preview uses your saved location link or the suggested hotel address.</p>
+                    <p id="mapPreviewNote" class="mt-1 text-xs text-slate-500">Drag the pin to the exact hotel location, then save the page.</p>
                   </div>
                 </div>
-                <iframe
-                  id="mapPreviewFrame"
-                  title="Hotel location preview"
-                  class="h-72 w-full border-0"
-                  loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps?q=Alibaug&output=embed"></iframe>
+                <div id="locationPickerMap" class="h-72 w-full"></div>
+                <div class="grid gap-3 border-t border-slate-200 px-4 py-3 sm:grid-cols-2">
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <span class="block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Latitude</span>
+                    <span id="latitudeDisplay" class="mt-1 block font-medium text-slate-900">Not selected</span>
+                  </div>
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <span class="block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Longitude</span>
+                    <span id="longitudeDisplay" class="mt-1 block font-medium text-slate-900">Not selected</span>
+                  </div>
+                </div>
               </div>
+              <input id="latitude" type="hidden">
+              <input id="longitude" type="hidden">
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
@@ -273,10 +284,14 @@
       const whatsappNumberInput = document.getElementById("whatsappNumber");
       const inquiryEmailInput = document.getElementById("inquiryEmail");
       const googleMapsPlaceUrlInput = document.getElementById("googleMapsPlaceUrl");
+      const findSuggestedMapButton = document.getElementById("findSuggestedMapButton");
       const useSuggestedMapButton = document.getElementById("useSuggestedMapButton");
       const mapSearchLink = document.getElementById("mapSearchLink");
-      const mapPreviewFrame = document.getElementById("mapPreviewFrame");
       const mapPreviewNote = document.getElementById("mapPreviewNote");
+      const latitudeInput = document.getElementById("latitude");
+      const longitudeInput = document.getElementById("longitude");
+      const latitudeDisplay = document.getElementById("latitudeDisplay");
+      const longitudeDisplay = document.getElementById("longitudeDisplay");
       const checkInTimeInput = document.getElementById("checkInTime");
       const checkOutTimeInput = document.getElementById("checkOutTime");
       const roomCountDisplayInput = document.getElementById("roomCountDisplay");
@@ -328,6 +343,9 @@
       });
 
       let currentPage = null;
+      let pickerMap = null;
+      let pickerMarker = null;
+      const defaultMapCenter = { lat: 18.6414, lng: 72.8722 };
 
       function buildHourOptions(selectElement, placeholder) {
         selectElement.innerHTML = `<option value="">${placeholder}</option>`;
@@ -413,13 +431,92 @@
         ].filter(Boolean).join(", ");
       }
 
-      function buildMapPreviewUrl() {
-        const savedLink = googleMapsPlaceUrlInput.value.trim();
-        if (savedLink) {
-          return `https://www.google.com/maps?q=${encodeURIComponent(savedLink)}&output=embed`;
+      function formatCoordinate(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+          return "";
         }
+        return numeric.toFixed(6);
+      }
+
+      function updateCoordinateDisplay() {
+        latitudeDisplay.textContent = latitudeInput.value ? formatCoordinate(latitudeInput.value) : "Not selected";
+        longitudeDisplay.textContent = longitudeInput.value ? formatCoordinate(longitudeInput.value) : "Not selected";
+      }
+
+      function updateGoogleMapUrlFromCoordinates() {
+        if (!latitudeInput.value || !longitudeInput.value) {
+          return;
+        }
+        googleMapsPlaceUrlInput.value = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${formatCoordinate(latitudeInput.value)},${formatCoordinate(longitudeInput.value)}`)}`;
+      }
+
+      function setCoordinates(lat, lng, options = {}) {
+        const latitude = Number(lat);
+        const longitude = Number(lng);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          return;
+        }
+
+        latitudeInput.value = String(latitude);
+        longitudeInput.value = String(longitude);
+        updateCoordinateDisplay();
+        if (!options.skipUrlSync) {
+          updateGoogleMapUrlFromCoordinates();
+        }
+      }
+
+      function ensureLocationPicker() {
+        if (pickerMap) {
+          return;
+        }
+
+        pickerMap = L.map("locationPickerMap");
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(pickerMap);
+
+        pickerMarker = L.marker([defaultMapCenter.lat, defaultMapCenter.lng], {
+          draggable: true,
+        }).addTo(pickerMap);
+
+        pickerMarker.on("dragend", () => {
+          const { lat, lng } = pickerMarker.getLatLng();
+          setCoordinates(lat, lng);
+          mapPreviewNote.textContent = "Pin moved manually. Save the page to keep this exact location.";
+        });
+      }
+
+      function setMapPosition(lat, lng, zoom = 17, options = {}) {
+        ensureLocationPicker();
+        pickerMarker.setLatLng([lat, lng]);
+        pickerMap.setView([lat, lng], zoom);
+        setCoordinates(lat, lng, options);
+        window.setTimeout(() => pickerMap.invalidateSize(), 50);
+      }
+
+      async function searchSuggestedLocation() {
         const query = buildMapQuery();
-        return `https://www.google.com/maps?q=${encodeURIComponent(query || "Alibaug")}&output=embed`;
+        if (!query) {
+          mapPreviewNote.textContent = "Add hotel name or address first so the app can search the location.";
+          return;
+        }
+
+        mapPreviewNote.textContent = "Searching suggested hotel location...";
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`);
+          const results = await response.json();
+          const match = Array.isArray(results) ? results[0] : null;
+          if (!match?.lat || !match?.lon) {
+            mapPreviewNote.textContent = "No exact match found. Drag the pin manually near your hotel location.";
+            return;
+          }
+          setMapPosition(Number(match.lat), Number(match.lon), 17);
+          mapPreviewNote.textContent = "Suggested location loaded. Drag the pin if you want to fine-tune it.";
+        } catch {
+          mapPreviewNote.textContent = "Unable to search the location right now. You can still drag the pin manually.";
+        }
       }
 
       function applySuggestedMapLink() {
@@ -431,14 +528,17 @@
       function updateMapPreview() {
         const query = buildMapQuery();
         const savedLink = googleMapsPlaceUrlInput.value.trim();
-        mapPreviewFrame.src = buildMapPreviewUrl();
+        if (!latitudeInput.value || !longitudeInput.value) {
+          ensureLocationPicker();
+          setMapPosition(defaultMapCenter.lat, defaultMapCenter.lng, 13, { skipUrlSync: true });
+        }
         if (savedLink) {
-          mapPreviewNote.textContent = "Preview is using the Google Maps link saved for this hotel page.";
+          mapPreviewNote.textContent = "Saved Google Maps link is present. You can still drag the pin to make the location exact.";
           return;
         }
         mapPreviewNote.textContent = query
-          ? "Preview is using the suggested hotel name and address. If the place is wrong, paste the exact Google Maps share link above."
-          : "Preview will appear after hotel name and address details are available.";
+          ? "Use Find On Map to search the hotel automatically, then drag the pin if needed."
+          : "Map is ready. Add hotel name and address to search the location automatically.";
       }
 
       function updateMapSearchLink() {
@@ -523,6 +623,8 @@
         whatsappNumberInput.value = page?.whatsapp_number || "";
         inquiryEmailInput.value = page?.inquiry_email || "";
         googleMapsPlaceUrlInput.value = page?.google_maps_place_url || "";
+        latitudeInput.value = page?.latitude ? String(page.latitude) : "";
+        longitudeInput.value = page?.longitude ? String(page.longitude) : "";
         checkInTimeInput.value = page?.check_in_time || "";
         checkOutTimeInput.value = page?.check_out_time || "";
         roomCountDisplayInput.value = page?.room_count_display || page?.total_rooms || "";
@@ -541,6 +643,12 @@
         policiesLinesInput.value = joinLines(safeParseList(page?.policies_json), (item) => String(item || "").trim());
         renderPhotoSlots(page?.photos || []);
         updateMapSearchLink();
+        updateCoordinateDisplay();
+        if (latitudeInput.value && longitudeInput.value) {
+          setMapPosition(Number(latitudeInput.value), Number(longitudeInput.value), 17, { skipUrlSync: true });
+        } else {
+          searchSuggestedLocation();
+        }
       }
 
       async function loadPage() {
@@ -587,6 +695,8 @@
         formData.set("whatsapp_number", whatsappNumberInput.value);
         formData.set("inquiry_email", inquiryEmailInput.value);
         formData.set("google_maps_place_url", googleMapsPlaceUrlInput.value);
+        formData.set("latitude", latitudeInput.value);
+        formData.set("longitude", longitudeInput.value);
         formData.set("check_in_time", checkInTimeInput.value);
         formData.set("check_out_time", checkOutTimeInput.value);
         formData.set("room_count_display", roomCountDisplayInput.value);
@@ -665,12 +775,15 @@
       buildHourOptions(checkOutTimeInput, "Select check-out time");
       publicTitleInput.addEventListener("input", updateMapSearchLink);
       googleMapsPlaceUrlInput.addEventListener("input", updateMapPreview);
+      findSuggestedMapButton.addEventListener("click", searchSuggestedLocation);
       useSuggestedMapButton.addEventListener("click", () => {
         googleMapsPlaceUrlInput.value = mapSearchLink.href;
         updateMapPreview();
+        searchSuggestedLocation();
       });
       renderCheckboxOptions(amenityOptions, "amenity_selected", amenityPresets);
       renderCheckboxOptions(roomTypeOptions, "room_type_selected", roomTypePresets);
+      ensureLocationPicker();
       updateMapPreview();
     </script>
   </body>

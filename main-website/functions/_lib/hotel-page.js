@@ -266,7 +266,17 @@ function buildAutoMapQuery(page) {
   return [page.public_title, addressSummary(page)].filter(Boolean).join(", ");
 }
 
+function hasSavedCoordinates(page) {
+  const latitude = Number(page.latitude);
+  const longitude = Number(page.longitude);
+  return Number.isFinite(latitude) && Number.isFinite(longitude);
+}
+
 function resolvedMapPlaceUrl(page) {
+  if (hasSavedCoordinates(page)) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${page.latitude},${page.longitude}`)}`;
+  }
+
   if (page.google_maps_place_url) {
     return String(page.google_maps_place_url);
   }
@@ -280,6 +290,10 @@ function resolvedMapPlaceUrl(page) {
 }
 
 function resolvedMapEmbedUrl(page) {
+  if (hasSavedCoordinates(page)) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(`${page.latitude},${page.longitude}`)}&output=embed`;
+  }
+
   if (page.google_maps_embed_url) {
     return String(page.google_maps_embed_url);
   }

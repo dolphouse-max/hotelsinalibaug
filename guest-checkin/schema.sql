@@ -241,6 +241,8 @@ CREATE TABLE IF NOT EXISTS hotel_public_pages (
   website_url TEXT,
   google_maps_embed_url TEXT,
   google_maps_place_url TEXT,
+  latitude REAL,
+  longitude REAL,
   check_in_time TEXT,
   check_out_time TEXT,
   room_count_display INTEGER,
