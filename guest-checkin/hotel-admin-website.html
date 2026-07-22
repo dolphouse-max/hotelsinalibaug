@@ -358,18 +358,17 @@
       function generateWebsiteCopy() {
         const hotelName = currentPage?.hotel_name || publicTitleInput.value || "Hotel";
         const categoryLabel = currentPage?.category === "resort" ? "Resort" : currentPage?.category === "cottage" ? "Cottage" : currentPage?.category === "homestay" ? "Homestay" : "Hotel";
+        const categoryValue = currentPage?.category || "hotel";
         const roomCount = Number(roomCountDisplayInput.value || currentPage?.total_rooms || 0);
-        const roomLabel = roomCount > 0 ? `${roomCount} room${roomCount === 1 ? "" : "s"}` : "comfortable rooms";
         const beachLabel = formatDistanceLabel();
-        const amenities = uniqueCombined(getCheckedValues("amenity_selected"), amenitiesLinesInput.value).slice(0, 4);
-        const roomTypes = uniqueCombined(getCheckedValues("room_type_selected"), roomTypesLinesInput.value).slice(0, 3);
+        const locationLabel = currentPage?.address_village || currentPage?.address_taluka || "Alibaug";
         publicTitleInput.value = `${hotelName} ${categoryLabel}`.trim();
-        metaTitleInput.value = `${hotelName} ${categoryLabel} | Alibaug | Hotels In Alibaug`;
-        metaDescriptionInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug with ${roomLabel}${beachLabel ? `, ${beachLabel} from the beach,` : ","} and amenities like ${amenities.join(", ") || "practical guest facilities"}.`;
-        heroHeadingInput.value = `${hotelName} - ${categoryLabel} in Alibaug`;
-        heroSubheadingInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug${beachLabel ? `, about ${beachLabel} from the beach,` : ""} suitable for guests looking for ${roomLabel}.`;
-        shortDescriptionInput.value = `${hotelName} is a practical ${categoryLabel.toLowerCase()} in Alibaug with ${roomLabel}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`;
-        fullDescriptionInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug offering ${roomLabel}${roomTypes.length ? ` with options such as ${roomTypes.join(", ")}` : ""}. Guests choosing ${hotelName} can expect ${amenities.join(", ") || "useful stay amenities"}${beachLabel ? ` and a location around ${beachLabel} from the beach` : " in a practical Alibaug location"}.`;
+        metaTitleInput.value = `${hotelName} ${categoryLabel} | ${locationLabel} | Hotels In Alibaug`;
+        metaDescriptionInput.value = `${hotelName} is a ${categoryValue} in ${locationLabel} offering ${roomCount > 0 ? `${roomCount} rooms` : "comfortable stay options"}${beachLabel ? `, a location around ${beachLabel} from the beach,` : ","} and direct guest inquiry convenience.`;
+        heroHeadingInput.value = `${hotelName} - ${categoryLabel} in ${locationLabel}`;
+        heroSubheadingInput.value = `${hotelName} is a ${categoryValue} in ${locationLabel} for guests seeking a comfortable Alibaug stay, direct booking contact, and a well-placed location${beachLabel ? ` near the beach at around ${beachLabel}` : ""}.`;
+        shortDescriptionInput.value = `${hotelName} is a welcoming ${categoryValue} in ${locationLabel}${roomCount > 0 ? ` with ${roomCount} rooms` : ""}, created for guests who prefer a smooth direct stay inquiry experience.`;
+        fullDescriptionInput.value = `${hotelName} is a ${categoryValue} located in ${locationLabel}, ${currentPage?.address_taluka || "Alibaug"}, ${currentPage?.address_district || "Raigad"}. This draft page highlights the property's identity, location, and direct contact details so guests can quickly understand the stay option before booking. Additional room types, amenities, photos, nearby attractions, and detailed property features can be added later by the hotel team for a richer final webpage.`;
       }
 
       function renderPhotoSlots(photos = []) {

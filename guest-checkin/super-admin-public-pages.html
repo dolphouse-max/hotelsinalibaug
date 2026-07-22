@@ -545,15 +545,16 @@
         const roomCount = Number(roomCountDisplayInput.value || hotel.total_rooms || 0);
         const beachLabel = formatDistanceLabel();
         const locationLabel = currentHotelAddressFields.address_village || currentHotelAddressFields.address_taluka || "Alibaug";
-        const categoryLabel = categoryInput.value;
+        const categoryValue = categoryInput.value;
+        const categoryText = categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel";
         const generated = {
-          publicTitle: `${hotel.name} ${categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel"}`.trim(),
-          metaTitle: `${hotel.name} ${categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel"} | ${locationLabel} | Hotels In Alibaug`,
-          metaDescription: `${hotel.name} is a ${categoryLabel} in ${locationLabel}, ${currentHotelAddressFields.address_district || "Raigad"} with ${roomCount > 0 ? `${roomCount} rooms` : "comfortable stay options"}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`,
-          heroHeading: `${hotel.name} - ${categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel"} in ${locationLabel}`,
-          heroSubheading: `${hotel.name} is a ${categoryLabel} in ${locationLabel}, ${currentHotelAddressFields.address_district || "Raigad"} for guests looking for a direct stay inquiry and a practical Alibaug area location.`,
-          shortDescription: `${hotel.name} is a ${categoryLabel} in ${locationLabel}${roomCount > 0 ? ` with ${roomCount} rooms` : ""} and direct contact details for guest inquiries.`,
-          fullDescription: `${hotel.name} is a ${categoryLabel} located in ${locationLabel}, ${currentHotelAddressFields.address_taluka || "Alibaug"}, ${currentHotelAddressFields.address_district || "Raigad"}. The page draft has been prepared from the hotel's saved record so guests can quickly see the location, contact number, and basic stay information. Additional amenities, room types, photos, and nearby-place details can be completed later by the hotel.`,
+          publicTitle: `${hotel.name} ${categoryText}`.trim(),
+          metaTitle: `${hotel.name} ${categoryText} | ${locationLabel} | Hotels In Alibaug`,
+          metaDescription: `${hotel.name} is a ${categoryValue} in ${locationLabel}, ${currentHotelAddressFields.address_district || "Raigad"} offering ${roomCount > 0 ? `${roomCount} rooms` : "comfortable stay options"}${beachLabel ? `, a location around ${beachLabel} from the beach,` : ","} and direct guest inquiry convenience.`,
+          heroHeading: `${hotel.name} - ${categoryText} in ${locationLabel}`,
+          heroSubheading: `${hotel.name} is a ${categoryValue} in ${locationLabel}, ${currentHotelAddressFields.address_district || "Raigad"} for guests seeking a comfortable Alibaug stay, direct booking contact, and a well-placed location${beachLabel ? ` near the beach at around ${beachLabel}` : ""}.`,
+          shortDescription: `${hotel.name} is a welcoming ${categoryValue} in ${locationLabel}${roomCount > 0 ? ` with ${roomCount} rooms` : ""}, created for guests who prefer a smooth direct stay inquiry experience.`,
+          fullDescription: `${hotel.name} is a ${categoryValue} located in ${locationLabel}, ${currentHotelAddressFields.address_taluka || "Alibaug"}, ${currentHotelAddressFields.address_district || "Raigad"}. This draft page highlights the property's identity, location, and direct contact details so guests can quickly understand the stay option before booking. Additional room types, amenities, photos, nearby attractions, and detailed property features can be added later by the hotel team for a richer final webpage.`,
         };
 
         publicTitleInput.value = generated.publicTitle;

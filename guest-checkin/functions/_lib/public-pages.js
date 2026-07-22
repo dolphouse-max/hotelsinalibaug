@@ -365,7 +365,7 @@ export function buildStandardPublicPageContent({
   const topRoomTypes = roomTypes.slice(0, 3).join(", ");
   const topAmenities = amenities.slice(0, 4).join(", ");
   const beachLabel = normalizeText(beachDistanceLabel);
-  const beachSentence = beachLabel ? `located about ${beachLabel} from the beach` : "located in Alibaug";
+  const beachSentence = beachLabel ? `set around ${beachLabel} from the beach` : "well placed in the Alibaug stay belt";
   const typePlural =
     category === "resort"
       ? "resorts"
@@ -378,10 +378,10 @@ export function buildStandardPublicPageContent({
   return {
     publicTitle: `${safeHotelName} ${categoryLabel}`.trim(),
     metaTitle: `${safeHotelName} ${categoryLabel} | ${locationLabel} | Hotels In Alibaug`,
-    metaDescription: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel} with ${roomLabel}${beachLabel ? `, ${beachLabel} from the beach,` : ","} and amenities like ${topAmenities || "practical guest facilities"}.`,
+    metaDescription: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel} offering ${roomLabel}${beachLabel ? `, a location about ${beachLabel} from the beach,` : ","} and guest-focused comforts like ${topAmenities || "essential stay amenities"}.`,
     heroHeading: `${safeHotelName} - ${categoryLabel} in ${locationLabel}`,
-    heroSubheading: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel}, ${beachSentence}, suitable for guests looking for ${roomLabel} and direct stay inquiries.`,
-    shortDescription: `${safeHotelName} is one of the practical ${typePlural} in ${locationLabel} with ${roomLabel}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`,
-    fullDescription: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel} offering ${roomLabel}${topRoomTypes ? ` with options such as ${topRoomTypes}` : ""}. Guests choosing ${safeHotelName} can expect ${topAmenities || "useful stay amenities"}${beachLabel ? ` and a location around ${beachLabel} from the beach` : " in a practical Alibaug location"}.`,
+    heroSubheading: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel}, ${beachSentence}, ideal for guests looking for ${roomLabel}, direct booking convenience, and a relaxed Alibaug stay.`,
+    shortDescription: `${safeHotelName} stands among the welcoming ${typePlural} in ${locationLabel} with ${roomLabel}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`,
+    fullDescription: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel} designed for guests who want a comfortable Alibaug stay with direct contact convenience. The property offers ${roomLabel}${topRoomTypes ? `, including options such as ${topRoomTypes},` : ""} along with ${topAmenities || "essential stay comforts"}${beachLabel ? ` and a setting around ${beachLabel} from the beach` : " in a well-connected Alibaug location"}. This page can be further enriched with photos, amenities, and local highlights by the hotel team.`,
   };
 }
