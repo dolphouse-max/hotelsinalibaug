@@ -261,16 +261,17 @@
                   <input id="sortOrder" type="number" value="0" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                 </div>
                 <div class="sm:col-span-2">
-                  <label for="publishedFlag" class="mb-2 block text-sm font-medium text-slate-700">Publish Status</label>
+                  <label for="publishedFlag" class="mb-2 block text-sm font-medium text-slate-700">Website Visibility</label>
                   <select id="publishedFlag" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                    <option value="0">Draft</option>
-                    <option value="1">Published</option>
+                    <option value="1">Published - show on website now</option>
+                    <option value="0">Draft - keep hidden for now</option>
                   </select>
+                  <p class="mt-2 text-xs text-slate-500">For superadmin, new pages are set to Published by default so they go live as soon as you save.</p>
                 </div>
               </div>
 
               <div class="grid gap-3 sm:grid-cols-2">
-                <button id="saveButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-4 font-semibold text-white">Save Public Page</button>
+                <button id="saveButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean-950 px-5 py-4 font-semibold text-white">Save And Publish Page</button>
                 <button id="deleteButton" type="button" class="hidden inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 font-semibold text-rose-700">Delete Public Page</button>
               </div>
             </form>
@@ -592,7 +593,7 @@
         hotelAddressPreview.textContent = "Select a hotel to load the saved address.";
         generatedCopyPanel.open = false;
         sortOrderInput.value = "0";
-        publishedFlagInput.value = "0";
+        publishedFlagInput.value = "1";
         canonicalPathInput.value = "";
       }
 
@@ -790,7 +791,8 @@
       createDraftButton.addEventListener("click", () => {
         try {
           generateWebsiteCopy();
-          setMessage("Draft content created from the hotel's basic saved details.");
+          publishedFlagInput.value = "1";
+          setMessage("Page content created from the hotel's saved details. It is set to publish on the website when you save.");
         } catch (error) {
           setMessage(error instanceof Error ? error.message : "Unable to create the draft automatically.", "error");
         }
@@ -820,7 +822,7 @@
           if (!response.ok) {
             throw new Error(data.error || "Unable to save public hotel page.");
           }
-          setMessage("Public hotel page saved successfully.");
+          setMessage(Number(publishedFlagInput.value || 0) === 1 ? "Public hotel page saved and published successfully." : "Public hotel page saved as draft successfully.");
           if (data.page?.id) {
             selectedPageId = data.page.id;
             modeBadge.textContent = "Edit";
