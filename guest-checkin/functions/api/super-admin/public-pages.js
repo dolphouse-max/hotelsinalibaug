@@ -36,6 +36,7 @@ async function listPages(env) {
        hpp.id,
        hpp.hotel_id,
        h.name AS hotel_name,
+       h.total_rooms,
        hpp.category,
        hpp.slug,
        hpp.public_title,
@@ -118,26 +119,31 @@ async function getPageDetails(env, pageId, hotelId) {
 }
 
 export async function onRequestGet(context) {
-  if (!(await requireSuperAdminSession(context.request, context.env))) {
-    return unauthorized();
-  }
-
-  await ensurePublicPageTables(context.env.DB);
-
-  const url = new URL(context.request.url);
-  const pageId = url.searchParams.get("id")?.trim() || "";
-  const hotelId = url.searchParams.get("hotel_id")?.trim() || "";
-
-  if (pageId || hotelId) {
-    const page = await getPageDetails(context.env, pageId, hotelId);
-    if (!page) {
-      return json({ error: "Public page not found." }, { status: 404 });
+  try {
+    if (!(await requireSuperAdminSession(context.request, context.env))) {
+      return unauthorized();
     }
-    return json({ ok: true, page });
-  }
 
-  const pages = await listPages(context.env);
-  return json({ ok: true, pages });
+    const url = new URL(context.request.url);
+    const pageId = url.searchParams.get("id")?.trim() || "";
+    const hotelId = url.searchParams.get("hotel_id")?.trim() || "";
+
+    if (pageId || hotelId) {
+      const page = await getPageDetails(context.env, pageId, hotelId);
+      if (!page) {
+        return json({ error: "Public page not found." }, { status: 404 });
+      }
+      return json({ ok: true, page });
+    }
+
+    const pages = await listPages(context.env);
+    return json({ ok: true, pages });
+  } catch (error) {
+    return json(
+      { error: error instanceof Error ? error.message : "Unable to load public pages." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function onRequestPost(context) {

@@ -277,24 +277,30 @@ async function normalizeCoverFlags(env: Env, pageId: string) {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  await ensurePublicPageTables(context.env.DB);
-  const url = new URL(context.request.url);
-  const hotelId = url.searchParams.get("hotel_id");
+  try {
+    const url = new URL(context.request.url);
+    const hotelId = url.searchParams.get("hotel_id");
 
-  if (!isSafeHotelId(hotelId)) {
-    return badRequest("Valid hotel_id is required.");
+    if (!isSafeHotelId(hotelId)) {
+      return badRequest("Valid hotel_id is required.");
+    }
+
+    if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
+      return unauthorized();
+    }
+
+    const page = await getPageForHotel(context.env, hotelId);
+    if (!page) {
+      return json({ ok: true, page: null });
+    }
+
+    return json({ ok: true, page });
+  } catch (error) {
+    return json(
+      { error: error instanceof Error ? error.message : "Unable to load hotel website page." },
+      { status: 500 }
+    );
   }
-
-  if (!(await requireHotelAdminSession(context.request, context.env, hotelId))) {
-    return unauthorized();
-  }
-
-  const page = await getPageForHotel(context.env, hotelId);
-  if (!page) {
-    return json({ ok: true, page: null });
-  }
-
-  return json({ ok: true, page });
 };
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
