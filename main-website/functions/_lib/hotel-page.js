@@ -330,7 +330,6 @@ function renderHtml(page) {
 <meta name="twitter:title" content="${escapeHtml(page.meta_title)}">
 <meta name="twitter:description" content="${escapeHtml(page.meta_description)}">
 <meta name="twitter:image" content="${heroImageUrl}">
-<link rel="stylesheet" href="/assets/styles.css">
 ${DIRECTORY_PAGE_STYLES}
 ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
 </head>
@@ -656,7 +655,6 @@ function renderCategoryHtml(category, pages) {
 <meta name="twitter:title" content="${escapeHtml(title)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${SITE_URL}/assets/images/alibaug-coastline.webp">
-<link rel="stylesheet" href="/assets/styles.css">
 ${DIRECTORY_PAGE_STYLES}
 <script type="application/ld+json">${JSON.stringify({
   "@context": "https://schema.org",
