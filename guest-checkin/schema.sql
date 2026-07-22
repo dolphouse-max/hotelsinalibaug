@@ -229,6 +229,7 @@ CREATE TABLE IF NOT EXISTS hotel_public_pages (
   hero_subheading TEXT,
   short_description TEXT NOT NULL,
   full_description TEXT NOT NULL,
+  contact_person_name TEXT,
   address_line_1 TEXT,
   address_village TEXT,
   address_taluka TEXT,

@@ -252,6 +252,17 @@ function travelDistanceItems(page) {
   ].filter((item) => item.value);
 }
 
+function contactDetailItems(page) {
+  return [
+    { label: "Contact Person", value: page.contact_person_name || "" },
+    { label: "Hotel Address", value: addressSummary(page) },
+    { label: "Primary Phone", value: page.primary_phone || "" },
+    { label: "Secondary Phone", value: page.secondary_phone || "" },
+    { label: "WhatsApp", value: page.whatsapp_number || "" },
+    { label: "Email", value: page.inquiry_email || "" },
+  ].filter((item) => item.value);
+}
+
 function addressSummary(page) {
   return [
     page.address_line_1,
@@ -419,6 +430,7 @@ function renderHtml(page) {
   const policies = safeParseJsonArray(page.policies_json);
   const roomCountLabel = displayRoomCount(page);
   const travelDistances = travelDistanceItems(page);
+  const contactDetails = contactDetailItems(page);
   const mapPlaceUrl = resolvedMapPlaceUrl(page);
   const mapEmbedUrl = resolvedMapEmbedUrl(page);
   const fullAddress = addressSummary(page);
@@ -534,10 +546,21 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
   <section class="section">
     <div class="container grid-2">
       <article class="panel">
-        <h2 style="margin-top:0;">Location</h2>
-        ${fullAddress ? `
-          <p>${escapeHtml(fullAddress)}</p>
-        ` : "<p>Address will be updated soon.</p>"}
+        <h2 style="margin-top:0;">Contact Details</h2>
+        ${contactDetails.length ? `
+          <ul>
+            ${contactDetails.map((item) => `<li><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.value)}</li>`).join("")}
+          </ul>
+        ` : "<p>Contact details will be updated soon.</p>"}
+        <div class="button-row" style="padding-left:0;padding-right:0;">
+          ${page.primary_phone ? `<a class="button primary" href="tel:${escapeHtml(page.primary_phone)}">Call Hotel</a>` : ""}
+          ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
+          ${page.inquiry_email ? `<a class="button secondary" href="mailto:${escapeHtml(page.inquiry_email)}">Email</a>` : ""}
+        </div>
+      </article>
+      <article class="panel">
+        <h2 style="margin-top:0;">Location Map</h2>
+        ${fullAddress ? `<p>${escapeHtml(fullAddress)}</p>` : "<p>Address will be updated soon.</p>"}
         ${mapEmbedUrl ? `
           <div class="map-card" style="margin-top:1rem;">
             <iframe
@@ -551,7 +574,13 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
             ></iframe>
           </div>
         ` : ""}
+        ${mapPlaceUrl ? `<div class="button-row" style="padding-left:0;padding-right:0;"><a class="button secondary" href="${escapeHtml(mapPlaceUrl)}" target="_blank" rel="noopener noreferrer">Open In Google Maps</a></div>` : ""}
       </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
       <article class="panel">
         <h2 style="margin-top:0;">Send Inquiry</h2>
         <p>Send your inquiry directly to the hotel. The request is saved in the hotel dashboard for follow-up.</p>

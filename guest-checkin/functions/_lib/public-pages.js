@@ -173,6 +173,7 @@ export function normalizePublicPagePayload(payload, fallbackHotelName = "") {
     heroSubheading: normalizeNullableText(payload.hero_subheading),
     shortDescription,
     fullDescription,
+    contactPersonName: normalizeNullableText(payload.contact_person_name),
     addressLine1: normalizeNullableText(payload.address_line_1),
     addressVillage: normalizeNullableText(payload.address_village),
     addressTaluka: normalizeNullableText(payload.address_taluka),
@@ -231,6 +232,7 @@ export async function ensurePublicPageTables(db) {
         hero_subheading TEXT,
         short_description TEXT NOT NULL,
         full_description TEXT NOT NULL,
+        contact_person_name TEXT,
         address_line_1 TEXT,
         address_village TEXT,
         address_taluka TEXT,
@@ -305,6 +307,7 @@ export async function ensurePublicPageTables(db) {
   await ensureColumn(db, "hotel_public_pages", "beach_distance_label", "TEXT");
   await ensureColumn(db, "hotel_public_pages", "latitude", "REAL");
   await ensureColumn(db, "hotel_public_pages", "longitude", "REAL");
+  await ensureColumn(db, "hotel_public_pages", "contact_person_name", "TEXT");
 }
 
 export function multilineToSimpleList(value) {

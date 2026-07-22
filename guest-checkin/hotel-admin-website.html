@@ -106,6 +106,37 @@
               <textarea id="fullDescription" rows="6" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
             </div>
 
+            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <h2 class="text-lg font-semibold text-ocean">Contact And Address</h2>
+              <p class="mt-1 text-sm text-slate-600">These details will be shown clearly on your public hotel webpage beside the map.</p>
+              <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <label for="contactPersonName" class="mb-2 block text-sm font-medium text-slate-700">Contact Person Name</label>
+                  <input id="contactPersonName" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Mr. Girish Patil">
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="addressLine1" class="mb-2 block text-sm font-medium text-slate-700">Address: House No. / Street</label>
+                  <input id="addressLine1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="House number, street, area">
+                </div>
+                <div>
+                  <label for="addressVillage" class="mb-2 block text-sm font-medium text-slate-700">Village</label>
+                  <input id="addressVillage" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Nagaon">
+                </div>
+                <div>
+                  <label for="addressTaluka" class="mb-2 block text-sm font-medium text-slate-700">Taluka</label>
+                  <input id="addressTaluka" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Alibaug">
+                </div>
+                <div>
+                  <label for="addressDistrict" class="mb-2 block text-sm font-medium text-slate-700">District</label>
+                  <input id="addressDistrict" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Raigad">
+                </div>
+                <div>
+                  <label for="addressPincode" class="mb-2 block text-sm font-medium text-slate-700">Pincode</label>
+                  <input id="addressPincode" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="402201">
+                </div>
+              </div>
+            </div>
+
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <label for="primaryPhone" class="mb-2 block text-sm font-medium text-slate-700">Primary Phone</label>
@@ -279,6 +310,12 @@
       const heroSubheadingInput = document.getElementById("heroSubheading");
       const shortDescriptionInput = document.getElementById("shortDescription");
       const fullDescriptionInput = document.getElementById("fullDescription");
+      const contactPersonNameInput = document.getElementById("contactPersonName");
+      const addressLine1Input = document.getElementById("addressLine1");
+      const addressVillageInput = document.getElementById("addressVillage");
+      const addressTalukaInput = document.getElementById("addressTaluka");
+      const addressDistrictInput = document.getElementById("addressDistrict");
+      const addressPincodeInput = document.getElementById("addressPincode");
       const primaryPhoneInput = document.getElementById("primaryPhone");
       const secondaryPhoneInput = document.getElementById("secondaryPhone");
       const whatsappNumberInput = document.getElementById("whatsappNumber");
@@ -409,25 +446,25 @@
         const categoryValue = currentPage?.category || "hotel";
         const roomCount = Number(roomCountDisplayInput.value || currentPage?.total_rooms || 0);
         const beachLabel = distanceFromBeachInput.value.trim();
-        const locationLabel = currentPage?.address_village || currentPage?.address_taluka || "Alibaug";
+        const locationLabel = addressVillageInput.value.trim() || addressTalukaInput.value.trim() || currentPage?.address_village || currentPage?.address_taluka || "Alibaug";
         publicTitleInput.value = `${hotelName} ${categoryLabel}`.trim();
         metaTitleInput.value = `${hotelName} ${categoryLabel} | ${locationLabel} | Hotels In Alibaug`;
         metaDescriptionInput.value = `${hotelName} is a ${categoryValue} in ${locationLabel} offering ${roomCount > 0 ? `${roomCount} rooms` : "comfortable stay options"}${beachLabel ? `, a location around ${beachLabel} from the beach,` : ","} and direct guest inquiry convenience.`;
         heroHeadingInput.value = `${hotelName} - ${categoryLabel} in ${locationLabel}`;
         heroSubheadingInput.value = `${hotelName} is a ${categoryValue} in ${locationLabel} for guests seeking a comfortable Alibaug stay, direct booking contact, and a well-placed location${beachLabel ? ` near the beach at around ${beachLabel}` : ""}.`;
         shortDescriptionInput.value = `${hotelName} is a welcoming ${categoryValue} in ${locationLabel}${roomCount > 0 ? ` with ${roomCount} rooms` : ""}, created for guests who prefer a smooth direct stay inquiry experience.`;
-        fullDescriptionInput.value = `${hotelName} is a ${categoryValue} located in ${locationLabel}, ${currentPage?.address_taluka || "Alibaug"}, ${currentPage?.address_district || "Raigad"}. This draft page highlights the property's identity, location, and direct contact details so guests can quickly understand the stay option before booking. Additional room types, amenities, photos, nearby attractions, and detailed property features can be added later by the hotel team for a richer final webpage.`;
+        fullDescriptionInput.value = `${hotelName} is a ${categoryValue} located in ${locationLabel}, ${addressTalukaInput.value.trim() || currentPage?.address_taluka || "Alibaug"}, ${addressDistrictInput.value.trim() || currentPage?.address_district || "Raigad"}. This draft page highlights the property's identity, location, and direct contact details so guests can quickly understand the stay option before booking. Additional room types, amenities, photos, nearby attractions, and detailed property features can be added later by the hotel team for a richer final webpage.`;
         updateMapSearchLink();
       }
 
       function buildMapQuery() {
         return [
           publicTitleInput.value.trim() || currentPage?.public_title || currentPage?.hotel_name || "",
-          currentPage?.address_line_1 || "",
-          currentPage?.address_village || "",
-          currentPage?.address_taluka || "",
-          currentPage?.address_district || "",
-          currentPage?.address_pincode || "",
+          addressLine1Input.value.trim() || currentPage?.address_line_1 || "",
+          addressVillageInput.value.trim() || currentPage?.address_village || "",
+          addressTalukaInput.value.trim() || currentPage?.address_taluka || "",
+          addressDistrictInput.value.trim() || currentPage?.address_district || "",
+          addressPincodeInput.value.trim() || currentPage?.address_pincode || "",
         ].filter(Boolean).join(", ");
       }
 
@@ -661,6 +698,12 @@
         heroSubheadingInput.value = page?.hero_subheading || "";
         shortDescriptionInput.value = page?.short_description || "";
         fullDescriptionInput.value = page?.full_description || "";
+        contactPersonNameInput.value = page?.contact_person_name || "";
+        addressLine1Input.value = page?.address_line_1 || "";
+        addressVillageInput.value = page?.address_village || "";
+        addressTalukaInput.value = page?.address_taluka || "";
+        addressDistrictInput.value = page?.address_district || "";
+        addressPincodeInput.value = page?.address_pincode || "";
         primaryPhoneInput.value = page?.primary_phone || "";
         secondaryPhoneInput.value = page?.secondary_phone || "";
         whatsappNumberInput.value = page?.whatsapp_number || "";
@@ -741,6 +784,12 @@
         formData.set("hero_subheading", heroSubheadingInput.value);
         formData.set("short_description", shortDescriptionInput.value);
         formData.set("full_description", fullDescriptionInput.value);
+        formData.set("contact_person_name", contactPersonNameInput.value);
+        formData.set("address_line_1", addressLine1Input.value);
+        formData.set("address_village", addressVillageInput.value);
+        formData.set("address_taluka", addressTalukaInput.value);
+        formData.set("address_district", addressDistrictInput.value);
+        formData.set("address_pincode", addressPincodeInput.value);
         formData.set("primary_phone", primaryPhoneInput.value);
         formData.set("secondary_phone", secondaryPhoneInput.value);
         formData.set("whatsapp_number", whatsappNumberInput.value);
@@ -825,6 +874,11 @@
       buildHourOptions(checkInTimeInput, "Select check-in time");
       buildHourOptions(checkOutTimeInput, "Select check-out time");
       publicTitleInput.addEventListener("input", updateMapSearchLink);
+      addressLine1Input.addEventListener("input", updateMapSearchLink);
+      addressVillageInput.addEventListener("input", updateMapSearchLink);
+      addressTalukaInput.addEventListener("input", updateMapSearchLink);
+      addressDistrictInput.addEventListener("input", updateMapSearchLink);
+      addressPincodeInput.addEventListener("input", updateMapSearchLink);
       googleMapsPlaceUrlInput.addEventListener("input", updateMapPreview);
       findSuggestedMapButton.addEventListener("click", searchSuggestedLocation);
       useSuggestedMapButton.addEventListener("click", () => {
