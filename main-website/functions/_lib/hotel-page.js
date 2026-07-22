@@ -1,5 +1,62 @@
 const SITE_URL = "https://hotelsinalibaug.in";
 const PHOTO_PROXY_BASE = "https://checkin.hotelsinalibaug.in/api/public/hotel-photo";
+const DIRECTORY_PAGE_STYLES = `
+<style>
+body.directory-page{
+  margin:0;
+  font-family:Segoe UI,Arial,sans-serif;
+  background:#f5f7fa;
+  color:#173042;
+  line-height:1.55;
+}
+.directory-page *{box-sizing:border-box;}
+.directory-page .container{width:min(1120px,calc(100% - 2rem));margin:0 auto;}
+.directory-page .site-header,.directory-page .site-footer{background:#0f2436;color:#fff;}
+.directory-page .header-inner,.directory-page .footer-grid{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0;}
+.directory-page .footer-grid{align-items:flex-start;flex-wrap:wrap;}
+.directory-page .brand,.directory-page .nav a,.directory-page .site-footer a{color:#fff;text-decoration:none;}
+.directory-page .brand{font-size:1.25rem;font-weight:700;}
+.directory-page .brand span{color:#8fd3e8;}
+.directory-page .nav{display:flex;flex-wrap:wrap;gap:1rem;font-size:.95rem;}
+.directory-page .page-hero{padding:2.25rem 0 1.5rem;background:linear-gradient(180deg,#eef4f8 0%,#f7f9fb 100%);border-bottom:1px solid #d9e3e8;}
+.directory-page .breadcrumbs{font-size:.9rem;color:#5f7280;margin-bottom:.75rem;}
+.directory-page .breadcrumbs a{color:#0b6e8a;text-decoration:none;}
+.directory-page h1{margin:0 0 .75rem;font-size:clamp(1.9rem,3.8vw,2.8rem);line-height:1.15;}
+.directory-page h2{margin:0 0 .75rem;font-size:1.35rem;line-height:1.2;}
+.directory-page h3{margin:0 0 .75rem;font-size:1.05rem;line-height:1.25;}
+.directory-page p{margin:.35rem 0 0;max-width:none;}
+.directory-page .lead{font-size:1rem;color:#5f7280;max-width:72ch;}
+.directory-page .section{padding:1.5rem 0;}
+.directory-page .pages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;}
+.directory-page .stay-card,.directory-page .panel,.directory-page .content-card{
+  background:#fff;border:1px solid #d9e3e8;border-radius:18px;box-shadow:0 14px 36px rgba(23,48,66,.08);
+}
+.directory-page .stay-card{overflow:hidden;padding:0 0 1rem;}
+.directory-page .stay-card img{width:100%;height:210px;object-fit:cover;display:block;}
+.directory-page .stay-card h3,.directory-page .stay-card p,.directory-page .stay-card .meta,.directory-page .stay-card .button-row{padding-left:1rem;padding-right:1rem;}
+.directory-page .meta{font-size:.92rem;color:#4f6472;}
+.directory-page .button-row{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem;}
+.directory-page .button{display:inline-flex;align-items:center;justify-content:center;padding:.85rem 1rem;border-radius:12px;font-size:.92rem;font-weight:600;text-decoration:none;border:1px solid transparent;}
+.directory-page .button.primary{background:#0f2436;color:#fff;}
+.directory-page .button.secondary{background:#fff;color:#173042;border-color:#d9e3e8;}
+.directory-page .panel,.directory-page .content-card{padding:1.1rem;}
+.directory-page .page-layout,.directory-page .grid-2,.directory-page .content-grid{display:grid;gap:1.25rem;}
+.directory-page .page-layout{grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);}
+.directory-page .grid-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.directory-page .content-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+.directory-page .sidebar{display:grid;gap:1.25rem;}
+.directory-page .hero-media{margin:1rem 0 0;}
+.directory-page .hero-media img{width:100%;max-height:420px;object-fit:cover;border-radius:18px;}
+.directory-page ul{margin:.5rem 0 0;padding-left:1.1rem;}
+.directory-page li{margin:.35rem 0;}
+.directory-page .faq-item{background:#fff;border:1px solid #d9e3e8;border-radius:16px;padding:1rem;}
+.directory-page .map-card iframe{width:100%;}
+@media (max-width: 860px){
+  .directory-page .header-inner,.directory-page .footer-grid{display:block;}
+  .directory-page .nav{margin-top:.75rem;}
+  .directory-page .page-layout,.directory-page .grid-2,.directory-page .content-grid{grid-template-columns:1fr;}
+}
+</style>`;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -271,9 +328,10 @@ function renderHtml(page) {
 <meta name="twitter:description" content="${escapeHtml(page.meta_description)}">
 <meta name="twitter:image" content="${heroImageUrl}">
 <link rel="stylesheet" href="/assets/styles.css">
+${DIRECTORY_PAGE_STYLES}
 ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
 </head>
-<body>
+<body class="directory-page">
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="/">Hotels<span>In</span>Alibaug</a>
@@ -596,6 +654,7 @@ function renderCategoryHtml(category, pages) {
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${SITE_URL}/assets/images/alibaug-coastline.webp">
 <link rel="stylesheet" href="/assets/styles.css">
+${DIRECTORY_PAGE_STYLES}
 <script type="application/ld+json">${JSON.stringify({
   "@context": "https://schema.org",
   "@type": "CollectionPage",
@@ -604,7 +663,7 @@ function renderCategoryHtml(category, pages) {
   url: canonicalUrl,
 })}</script>
 </head>
-<body>
+<body class="directory-page">
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="/">Hotels<span>In</span>Alibaug</a>
