@@ -28,6 +28,14 @@ body.directory-page{
 .directory-page p{margin:.35rem 0 0;max-width:none;}
 .directory-page .lead{font-size:.95rem !important;color:#5f7280;max-width:72ch;}
 .directory-page .section{padding:1.5rem 0;}
+.directory-page .search-panel{display:grid;gap:1rem;padding:1.1rem;margin-top:1rem;}
+.directory-page .search-form{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.85rem;align-items:end;}
+.directory-page .field-group{display:grid;gap:.35rem;}
+.directory-page .field-group label{font-size:.78rem !important;font-weight:700;color:#385265;text-transform:uppercase;letter-spacing:.06em;}
+.directory-page .field-group input,.directory-page .field-group select{width:100%;padding:.78rem .85rem;border:1px solid #d9e3e8;border-radius:12px;background:#fff;color:#173042;}
+.directory-page .search-actions{display:flex;gap:.7rem;flex-wrap:wrap;}
+.directory-page .results-note{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center;margin-top:1rem;}
+.directory-page .results-pill{display:inline-flex;align-items:center;border-radius:999px;background:#eef5fb;color:#29506b;padding:.42rem .78rem;font-size:.8rem !important;font-weight:700;}
 .directory-page .pages-grid{display:grid;grid-template-columns:1fr;gap:1rem;}
 .directory-page .stay-card,.directory-page .panel,.directory-page .content-card{
   background:#fff;border:1px solid #d9e3e8;border-radius:18px;box-shadow:0 14px 36px rgba(23,48,66,.08);
@@ -77,6 +85,7 @@ body.directory-page{
   .directory-page .stay-card{grid-template-columns:1fr;}
   .directory-page .stay-card-actions{border-left:0;border-top:1px solid #d9e3e8;}
   .directory-page .stay-card .action-top{justify-items:start;text-align:left;}
+  .directory-page .search-form{grid-template-columns:1fr 1fr;}
 }
 </style>`;
 
@@ -161,6 +170,102 @@ function renderList(items, emptyText) {
   }
 
   return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+}
+
+function normalizeDateInput(value) {
+  const text = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
+}
+
+function normalizePositiveInteger(value, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+  return Math.floor(parsed);
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addDaysIso(isoDate, days) {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+export function parseAvailabilityFilters(searchParams) {
+  const checkIn = normalizeDateInput(searchParams?.get("check_in"));
+  const checkOut = normalizeDateInput(searchParams?.get("check_out"));
+  const rooms = normalizePositiveInteger(searchParams?.get("rooms"), 1);
+  const adults = normalizePositiveInteger(searchParams?.get("adults"), 2);
+  const children = Math.max(0, Math.floor(Number(searchParams?.get("children") || "0") || 0));
+  const hasDateRange = Boolean(checkIn && checkOut && checkOut > checkIn);
+
+  return {
+    checkIn,
+    checkOut,
+    rooms,
+    adults,
+    children,
+    hasDateRange,
+  };
+}
+
+function availabilitySummary(filters, resultCount, label) {
+  if (!filters.hasDateRange) {
+    return `${resultCount} ${label.toLowerCase()}${resultCount === 1 ? "" : "s"} listed`;
+  }
+
+  return `${resultCount} ${label.toLowerCase()}${resultCount === 1 ? "" : "s"} available for ${filters.rooms} room${filters.rooms === 1 ? "" : "s"} from ${filters.checkIn} to ${filters.checkOut}`;
+}
+
+function renderAvailabilitySearch(category, filters) {
+  const actionPath = categoryPath(category);
+  const defaultCheckIn = filters.checkIn || todayIso();
+  const defaultCheckOut = filters.checkOut || addDaysIso(defaultCheckIn, 1);
+
+  return `
+    <article class="panel search-panel">
+      <div>
+        <h2 style="margin-top:0;">Check Availability</h2>
+        <p>Choose dates and rooms to show only properties with vacancy for that stay.</p>
+      </div>
+      <form class="search-form" method="get" action="${actionPath}">
+        <div class="field-group">
+          <label for="checkIn">Check-in</label>
+          <input id="checkIn" name="check_in" type="date" value="${escapeHtml(defaultCheckIn)}" min="${escapeHtml(todayIso())}">
+        </div>
+        <div class="field-group">
+          <label for="checkOut">Check-out</label>
+          <input id="checkOut" name="check_out" type="date" value="${escapeHtml(defaultCheckOut)}" min="${escapeHtml(addDaysIso(todayIso(), 1))}">
+        </div>
+        <div class="field-group">
+          <label for="adults">Adults</label>
+          <select id="adults" name="adults">
+            ${[1, 2, 3, 4, 5, 6].map((count) => `<option value="${count}" ${filters.adults === count ? "selected" : ""}>${count}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="children">Children</label>
+          <select id="children" name="children">
+            ${[0, 1, 2, 3, 4].map((count) => `<option value="${count}" ${filters.children === count ? "selected" : ""}>${count}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="rooms">Rooms</label>
+          <select id="rooms" name="rooms">
+            ${[1, 2, 3, 4, 5].map((count) => `<option value="${count}" ${filters.rooms === count ? "selected" : ""}>${count}</option>`).join("")}
+          </select>
+        </div>
+        <div class="search-actions" style="grid-column:1 / -1;">
+          <button class="button primary" type="submit">Search</button>
+          <a class="button secondary" href="${actionPath}">Reset</a>
+        </div>
+      </form>
+    </article>
+  `;
 }
 
 function renderFaq(faqItems) {
@@ -786,7 +891,62 @@ export function hotelPageResponse(page) {
   });
 }
 
-export async function fetchPublishedCategoryPages(env, category) {
+async function reservationTableExists(db) {
+  const table = await db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hotel_future_reservations' LIMIT 1")
+    .first()
+    .catch(() => null);
+  return Boolean(table?.name);
+}
+
+async function fetchAvailabilityMap(db, filters) {
+  if (!filters.hasDateRange) {
+    return new Map();
+  }
+
+  const activeStayResults = await db.prepare(
+    `SELECT
+       lower(hotel_id) AS hotel_id,
+       COUNT(DISTINCT lower(trim(room_number))) AS occupied_rooms
+     FROM guests
+     WHERE room_number IS NOT NULL
+       AND trim(room_number) <> ''
+       AND substr(check_in_time, 1, 10) < ?1
+       AND COALESCE(substr(check_out_time, 1, 10), expected_check_out_date, '9999-12-31') > ?2
+     GROUP BY lower(hotel_id)`
+  ).bind(filters.checkOut, filters.checkIn).all();
+
+  const map = new Map();
+  for (const row of activeStayResults.results || []) {
+    map.set(String(row.hotel_id || "").toLowerCase(), {
+      occupiedRooms: Number(row.occupied_rooms || 0),
+      reservedRooms: 0,
+    });
+  }
+
+  if (await reservationTableExists(db)) {
+    const reservationResults = await db.prepare(
+      `SELECT
+         lower(hotel_id) AS hotel_id,
+         SUM(COALESCE(room_count, 1)) AS reserved_rooms
+       FROM hotel_future_reservations
+       WHERE check_in_date < ?1
+         AND check_out_date > ?2
+       GROUP BY lower(hotel_id)`
+    ).bind(filters.checkOut, filters.checkIn).all();
+
+    for (const row of reservationResults.results || []) {
+      const hotelId = String(row.hotel_id || "").toLowerCase();
+      const entry = map.get(hotelId) || { occupiedRooms: 0, reservedRooms: 0 };
+      entry.reservedRooms = Number(row.reserved_rooms || 0);
+      map.set(hotelId, entry);
+    }
+  }
+
+  return map;
+}
+
+export async function fetchPublishedCategoryPages(env, category, filters = { hasDateRange: false, rooms: 1, adults: 2, children: 0 }) {
   const result = await env.DB.prepare(
     `SELECT
        hpp.id,
@@ -797,6 +957,7 @@ export async function fetchPublishedCategoryPages(env, category) {
        hpp.meta_title,
        hpp.meta_description,
        hpp.short_description,
+       hpp.amenities_json,
        hpp.room_count_display,
        hpp.distance_from_beach,
        hpp.distance_from_local_bus_stop,
@@ -832,16 +993,35 @@ export async function fetchPublishedCategoryPages(env, category) {
     .bind(category)
     .all();
 
-  return result.results || [];
+  const pages = result.results || [];
+  if (!filters.hasDateRange) {
+    return pages;
+  }
+
+  const availabilityMap = await fetchAvailabilityMap(env.DB, filters);
+  return pages
+    .map((page) => {
+      const hotelId = String(page.hotel_id || "").toLowerCase();
+      const availability = availabilityMap.get(hotelId) || { occupiedRooms: 0, reservedRooms: 0 };
+      const totalRooms = Number(page.total_rooms || page.room_count_display || 0);
+      const blockedRooms = availability.occupiedRooms + availability.reservedRooms;
+      const availableRooms = Math.max(0, totalRooms - blockedRooms);
+      return {
+        ...page,
+        available_rooms: availableRooms,
+        blocked_rooms: blockedRooms,
+      };
+    })
+    .filter((page) => Number(page.available_rooms || 0) >= filters.rooms);
 }
 
-function renderCategoryHtml(category, pages) {
+function renderCategoryHtml(category, pages, filters) {
   const label = categoryLabel(category);
   const canonicalPath = categoryPath(category);
   const canonicalUrl = `${SITE_URL}${canonicalPath}`;
   const title = `${label}s In Alibaug | Hotels In Alibaug`;
   const description = categoryDescription(category);
-  const countLabel = `${pages.length} ${label.toLowerCase()}${pages.length === 1 ? "" : "s"} listed`;
+  const countLabel = availabilitySummary(filters, pages.length, label);
   const cards = pages.map((page) => {
     const imageUrl = page.cover_photo_id
       ? buildPhotoUrl(page.hotel_id, page.cover_photo_id)
@@ -859,6 +1039,9 @@ function renderCategoryHtml(category, pages) {
       location ? location : "",
     ].filter(Boolean);
     const href = page.canonical_path || `${canonicalPath}/${page.slug}`;
+    const availabilityText = filters.hasDateRange
+      ? `${Number(page.available_rooms || 0)} room${Number(page.available_rooms || 0) === 1 ? "" : "s"} available for selected dates`
+      : "Open the full page for photos, location map, contact details, and inquiry form.";
     return `
       <article class="stay-card">
         <div class="stay-card-image">
@@ -878,7 +1061,7 @@ function renderCategoryHtml(category, pages) {
           </div>
           <div class="action-bottom">
             <div class="cta-title">Check availability at ${escapeHtml(page.public_title)}</div>
-            <div class="action-note">Open the full page for photos, location map, contact details, and inquiry form.</div>
+            <div class="action-note">${escapeHtml(availabilityText)}</div>
             <a class="button primary" href="${href}">See Availability</a>
             ${page.primary_phone ? `<a class="button secondary" href="tel:${escapeHtml(page.primary_phone)}">Call Hotel</a>` : ""}
             ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
@@ -937,7 +1120,11 @@ ${DIRECTORY_PAGE_STYLES}
       </div>
       <h1>${escapeHtml(label)}s In Alibaug</h1>
       <p class="lead">${escapeHtml(description)}</p>
-      <p class="lead"><strong>${escapeHtml(countLabel)}</strong></p>
+      <div class="results-note">
+        <span class="results-pill">${escapeHtml(countLabel)}</span>
+        ${filters.hasDateRange ? `<span class="results-pill">${escapeHtml(`${filters.adults} adults • ${filters.children} children • ${filters.rooms} room${filters.rooms === 1 ? "" : "s"}`)}</span>` : ""}
+      </div>
+      ${renderAvailabilitySearch(category, filters)}
     </div>
   </section>
 
@@ -950,7 +1137,7 @@ ${DIRECTORY_PAGE_STYLES}
       ` : `
         <article class="panel">
           <h2>No published ${escapeHtml(label.toLowerCase())} pages yet</h2>
-          <p>Superadmin can publish hotel website pages from the CHECKIN admin panel. Once published, they will appear here automatically.</p>
+          <p>${filters.hasDateRange ? `No ${label.toLowerCase()} matched the selected dates and room count right now.` : `Superadmin can publish hotel website pages from the CHECKIN admin panel. Once published, they will appear here automatically.`}</p>
         </article>
       `}
     </div>
@@ -987,8 +1174,8 @@ ${DIRECTORY_PAGE_STYLES}
 </html>`;
 }
 
-export function categoryPageResponse(category, pages) {
-  return new Response(renderCategoryHtml(category, pages), {
+export function categoryPageResponse(category, pages, filters = { hasDateRange: false, rooms: 1, adults: 2, children: 0 }) {
+  return new Response(renderCategoryHtml(category, pages, filters), {
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "public, max-age=300",

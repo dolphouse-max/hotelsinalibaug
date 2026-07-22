@@ -129,6 +129,28 @@ CREATE TABLE IF NOT EXISTS hotel_subscription_payments (
   FOREIGN KEY (renewal_request_id) REFERENCES hotel_renewal_requests(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS hotel_future_reservations (
+  id TEXT PRIMARY KEY,
+  hotel_id TEXT NOT NULL,
+  booking_type TEXT NOT NULL DEFAULT 'future',
+  booking_source TEXT NOT NULL DEFAULT 'direct',
+  guest_name TEXT NOT NULL,
+  guest_phone TEXT,
+  total_guests INTEGER NOT NULL DEFAULT 1 CHECK (total_guests >= 1),
+  room_count INTEGER NOT NULL DEFAULT 1 CHECK (room_count >= 1),
+  check_in_date TEXT NOT NULL,
+  check_out_date TEXT NOT NULL,
+  room_plan TEXT,
+  advance_payment REAL NOT NULL DEFAULT 0 CHECK (advance_payment >= 0),
+  booking_note TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hotel_future_reservations_hotel_id ON hotel_future_reservations(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_future_reservations_dates ON hotel_future_reservations(check_in_date, check_out_date);
+
 CREATE TABLE IF NOT EXISTS super_admin_proof_access_logs (
   id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   viewer_name TEXT NOT NULL,
