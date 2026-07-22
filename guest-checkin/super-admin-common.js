@@ -1,5 +1,58 @@
 (function () {
   const SESSION_PLACEHOLDER = "__app_session__";
+  const SUPER_ADMIN_LOGIN_PATH = "/super-admin-home.html";
+  const HIDDEN_ATTRIBUTE = "data-super-admin-auth-hidden";
+
+  function isProtectedSuperAdminPath(pathname = window.location.pathname) {
+    const path = String(pathname || "").toLowerCase();
+    return path.startsWith("/super-admin")
+      && path !== "/super-admin-home.html"
+      && path !== "/super-admin.html"
+      && path !== "/super-admin";
+  }
+
+  function hideProtectedPageUntilAuth() {
+    if (typeof document === "undefined" || !isProtectedSuperAdminPath()) {
+      return;
+    }
+
+    document.documentElement.setAttribute(HIDDEN_ATTRIBUTE, "true");
+    if (!document.getElementById("superAdminAuthHideStyle")) {
+      const style = document.createElement("style");
+      style.id = "superAdminAuthHideStyle";
+      style.textContent = `html[${HIDDEN_ATTRIBUTE}="true"] body{display:none !important;}`;
+      document.head.appendChild(style);
+    }
+  }
+
+  function showProtectedPageAfterAuth() {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.documentElement.removeAttribute(HIDDEN_ATTRIBUTE);
+  }
+
+  function redirectToSuperAdminLogin() {
+    const loginUrl = new URL(SUPER_ADMIN_LOGIN_PATH, window.location.origin);
+    loginUrl.searchParams.set("next", `${window.location.pathname}${window.location.search}`);
+    window.location.replace(loginUrl.toString());
+  }
+
+  async function requireSuperAdminAccess() {
+    if (!isProtectedSuperAdminPath()) {
+      return null;
+    }
+
+    const session = await getSession("super_admin");
+    if (!session) {
+      redirectToSuperAdminLogin();
+      return null;
+    }
+
+    showProtectedPageAfterAuth();
+    return session;
+  }
 
   function todayDate() {
     return new Date().toISOString().slice(0, 10);
@@ -317,7 +370,11 @@
   }
 
   if (typeof document !== "undefined") {
+    hideProtectedPageUntilAuth();
     document.addEventListener("DOMContentLoaded", () => {
+      requireSuperAdminAccess().catch(() => {
+        redirectToSuperAdminLogin();
+      });
       mountBrandChip();
       mountLegalFooter();
     });
@@ -345,5 +402,7 @@
     quickNav,
     mountBrandChip,
     mountLegalFooter,
+    requireSuperAdminAccess,
+    showProtectedPageAfterAuth,
   };
 })();

@@ -53,7 +53,7 @@
         </div>
       </section>
 
-      <section class="mt-5">
+      <section id="protectedPagesSection" class="mt-5 hidden">
         <div class="mb-3 flex items-center justify-between">
           <h2 class="text-lg font-semibold text-ocean">Super Admin Pages</h2>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Mobile Split</p>
@@ -97,7 +97,7 @@
         </div>
       </section>
 
-      <section class="mt-5">
+      <section id="protectedQrSection" class="mt-5 hidden">
         <div class="mb-3 flex items-center justify-between">
           <h2 class="text-lg font-semibold text-ocean">QR Launch Pages</h2>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Visit Ready</p>
@@ -123,7 +123,7 @@
         </div>
       </section>
 
-      <section class="mt-5">
+      <section id="protectedSalesSection" class="mt-5 hidden">
         <div class="mb-3 flex items-center justify-between">
           <h2 class="text-lg font-semibold text-ocean">Sales Material</h2>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Ready To Share</p>
@@ -240,7 +240,7 @@
         </div>
       </section>
 
-      <section class="mt-5">
+      <section id="protectedUsersSection" class="mt-5 hidden">
         <div class="mb-3 flex items-center justify-between">
           <h2 class="text-lg font-semibold text-ocean">Firebase Users</h2>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Provision</p>
@@ -281,7 +281,7 @@
         </div>
       </section>
 
-      <section class="mt-5 grid grid-cols-2 gap-3">
+      <section id="protectedSummarySection" class="mt-5 hidden grid grid-cols-2 gap-3">
         <div class="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/40">
           <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Best Order</p>
           <p class="mt-2 text-sm font-semibold text-ocean">Setup -> Add Hotel -> Hotels -> Renewals</p>
@@ -314,10 +314,27 @@
       const policePasswordInput = document.getElementById("policePassword");
       const createPoliceUserButton = document.getElementById("createPoliceUserButton");
       const policeUserMessage = document.getElementById("policeUserMessage");
+      const protectedSections = [
+        document.getElementById("protectedPagesSection"),
+        document.getElementById("protectedQrSection"),
+        document.getElementById("protectedSalesSection"),
+        document.getElementById("protectedUsersSection"),
+        document.getElementById("protectedSummarySection"),
+      ];
       let cachedUsers = [];
+
+      function setProtectedAccess(isAllowed) {
+        for (const section of protectedSections) {
+          if (!section) {
+            continue;
+          }
+          section.classList.toggle("hidden", !isAllowed);
+        }
+      }
 
       function setLoggedInState(session) {
         logoutButton.classList.remove("hidden");
+        setProtectedAccess(true);
         superAdminCommon.setMessage(sessionStatus, `Logged in as ${session.login_id}`, "success");
       }
 
@@ -417,6 +434,7 @@
 
       async function initializeFirebaseLogin() {
         try {
+          setProtectedAccess(false);
           let session = await superAdminCommon.getSession("super_admin");
           if (!session) {
             const restored = await window.firebaseAuthBridge.ensureAppSession().catch(() => null);

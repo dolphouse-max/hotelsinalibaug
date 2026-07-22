@@ -1,4 +1,68 @@
 (function () {
+  const SUPER_ADMIN_LOGIN_PATH = "/super-admin-home.html";
+  const HIDDEN_ATTRIBUTE = "data-super-admin-auth-hidden";
+
+  function isProtectedSuperAdminPath(pathname = window.location.pathname) {
+    const path = String(pathname || "").toLowerCase();
+    return path.startsWith("/super-admin")
+      && path !== "/super-admin-home.html"
+      && path !== "/super-admin.html"
+      && path !== "/super-admin";
+  }
+
+  function hideProtectedPageUntilAuth() {
+    if (typeof document === "undefined" || !isProtectedSuperAdminPath()) {
+      return;
+    }
+
+    document.documentElement.setAttribute(HIDDEN_ATTRIBUTE, "true");
+    if (!document.getElementById("superAdminAuthHideStyle")) {
+      const style = document.createElement("style");
+      style.id = "superAdminAuthHideStyle";
+      style.textContent = `html[${HIDDEN_ATTRIBUTE}="true"] body{display:none !important;}`;
+      document.head.appendChild(style);
+    }
+  }
+
+  function showProtectedPageAfterAuth() {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.documentElement.removeAttribute(HIDDEN_ATTRIBUTE);
+  }
+
+  function redirectToSuperAdminLogin() {
+    const loginUrl = new URL(SUPER_ADMIN_LOGIN_PATH, window.location.origin);
+    loginUrl.searchParams.set("next", `${window.location.pathname}${window.location.search}`);
+    window.location.replace(loginUrl.toString());
+  }
+
+  async function getSuperAdminSession() {
+    const response = await fetch("/api/auth/session?role=super_admin");
+    const data = await readJson(response);
+    if (!response.ok) {
+      return null;
+    }
+    localStorage.setItem("super_admin_token", "__app_session__");
+    return data.session || null;
+  }
+
+  async function requireSuperAdminAccess() {
+    if (!isProtectedSuperAdminPath()) {
+      return null;
+    }
+
+    const session = await getSuperAdminSession();
+    if (!session) {
+      redirectToSuperAdminLogin();
+      return null;
+    }
+
+    showProtectedPageAfterAuth();
+    return session;
+  }
+
   function formatDateOffset(daysAgo) {
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
@@ -516,5 +580,16 @@
     familyMemberSummary,
     proofButtons,
     attachProofButtons,
+    requireSuperAdminAccess,
+    showProtectedPageAfterAuth,
   };
+
+  if (typeof document !== "undefined") {
+    hideProtectedPageUntilAuth();
+    document.addEventListener("DOMContentLoaded", () => {
+      requireSuperAdminAccess().catch(() => {
+        redirectToSuperAdminLogin();
+      });
+    });
+  }
 })();
