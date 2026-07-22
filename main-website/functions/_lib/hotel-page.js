@@ -546,6 +546,7 @@ function renderCategoryHtml(category, pages) {
   const canonicalUrl = `${SITE_URL}${canonicalPath}`;
   const title = `${label}s In Alibaug | Hotels In Alibaug`;
   const description = categoryDescription(category);
+  const countLabel = `${pages.length} ${label.toLowerCase()}${pages.length === 1 ? "" : "s"} listed`;
   const cards = pages.map((page) => {
     const imageUrl = page.cover_photo_id
       ? buildPhotoUrl(page.hotel_id, page.cover_photo_id)
@@ -567,7 +568,7 @@ function renderCategoryHtml(category, pages) {
         ${beachDistance ? `<p class="meta"><strong>Beach:</strong> ${escapeHtml(beachDistance)}</p>` : ""}
         ${amenities.length ? `<p class="meta"><strong>Amenities:</strong> ${escapeHtml(amenities.join(", "))}</p>` : ""}
         <div class="button-row">
-          <a class="button primary" href="${href}">View Details</a>
+          <a class="button primary" href="${href}">Check Availability at ${escapeHtml(page.public_title)}</a>
           ${page.primary_phone ? `<a class="button secondary" href="tel:${escapeHtml(page.primary_phone)}">Call</a>` : ""}
           ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
         </div>
@@ -612,9 +613,6 @@ function renderCategoryHtml(category, pages) {
       <a href="/resorts">Resorts</a>
       <a href="/cottages">Cottages</a>
       <a href="/homestays">Homestays</a>
-      <a href="/alibaug-travel-guide.html">Travel Guide</a>
-      <a href="/hotel-guest-checkin-app-alibaug.html">Hotel App</a>
-      <a href="/contact.html">Contact</a>
     </nav>
   </div>
 </header>
@@ -627,6 +625,7 @@ function renderCategoryHtml(category, pages) {
       </div>
       <h1>${escapeHtml(label)}s In Alibaug</h1>
       <p class="lead">${escapeHtml(description)}</p>
+      <p class="lead"><strong>${escapeHtml(countLabel)}</strong></p>
     </div>
   </section>
 
@@ -644,16 +643,25 @@ function renderCategoryHtml(category, pages) {
       `}
     </div>
   </section>
+
+  <section class="section">
+    <div class="container">
+      <article class="panel">
+        <h2 style="margin-top:0;">Direct Hotel Enquiries</h2>
+        <p>Open any listing above to check availability, call the property, or send a direct WhatsApp enquiry to the hotel.</p>
+      </article>
+    </div>
+  </section>
 </main>
 
 <footer class="site-footer">
   <div class="container footer-grid">
     <div>
       <h3>Hotels In Alibaug</h3>
-      <p>Public hotel pages, travel content, and direct contact options for stays in Alibaug.</p>
+      <p>Simple hotel directory pages with direct hotel contact options.</p>
     </div>
     <div>
-      <h3>Explore</h3>
+      <h3>Directory</h3>
       <ul>
         <li><a href="/hotels">Hotels</a></li>
         <li><a href="/resorts">Resorts</a></li>
