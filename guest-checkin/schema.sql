@@ -217,6 +217,65 @@ CREATE TABLE IF NOT EXISTS hotel_message_reads (
   FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS hotel_public_pages (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  hotel_id TEXT NOT NULL UNIQUE,
+  category TEXT NOT NULL DEFAULT 'hotel' CHECK (category IN ('resort', 'hotel', 'cottage', 'homestay')),
+  slug TEXT NOT NULL UNIQUE,
+  public_title TEXT NOT NULL,
+  meta_title TEXT NOT NULL,
+  meta_description TEXT NOT NULL,
+  hero_heading TEXT NOT NULL,
+  hero_subheading TEXT,
+  short_description TEXT NOT NULL,
+  full_description TEXT NOT NULL,
+  address_line_1 TEXT,
+  address_village TEXT,
+  address_taluka TEXT,
+  address_district TEXT,
+  address_pincode TEXT,
+  primary_phone TEXT,
+  secondary_phone TEXT,
+  whatsapp_number TEXT,
+  inquiry_email TEXT,
+  website_url TEXT,
+  google_maps_embed_url TEXT,
+  google_maps_place_url TEXT,
+  check_in_time TEXT,
+  check_out_time TEXT,
+  room_types_json TEXT NOT NULL DEFAULT '[]',
+  amenities_json TEXT NOT NULL DEFAULT '[]',
+  faq_json TEXT NOT NULL DEFAULT '[]',
+  nearby_places_json TEXT NOT NULL DEFAULT '[]',
+  policies_json TEXT NOT NULL DEFAULT '[]',
+  inquiry_whatsapp_prefill TEXT,
+  canonical_path TEXT,
+  is_published INTEGER NOT NULL DEFAULT 0 CHECK (is_published IN (0, 1)),
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_by TEXT,
+  last_reviewed_by TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS hotel_public_page_photos (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  public_page_id TEXT NOT NULL,
+  hotel_id TEXT NOT NULL,
+  google_drive_file_id TEXT NOT NULL,
+  file_name TEXT,
+  alt_text TEXT NOT NULL,
+  caption TEXT,
+  photo_order INTEGER NOT NULL DEFAULT 0,
+  is_cover INTEGER NOT NULL DEFAULT 0 CHECK (is_cover IN (0, 1)),
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (public_page_id) REFERENCES hotel_public_pages(id) ON DELETE CASCADE,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_hotels_is_active ON hotels(is_active);
 CREATE INDEX IF NOT EXISTS idx_hotels_subscription_end_date ON hotels(subscription_end_date);
 CREATE INDEX IF NOT EXISTS idx_hotel_staff_hotel_id ON hotel_staff(hotel_id);
@@ -245,3 +304,9 @@ CREATE INDEX IF NOT EXISTS idx_hotel_message_threads_last_message_at ON hotel_me
 CREATE INDEX IF NOT EXISTS idx_hotel_messages_thread_id ON hotel_messages(thread_id);
 CREATE INDEX IF NOT EXISTS idx_hotel_messages_created_at ON hotel_messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_hotel_message_reads_hotel_id ON hotel_message_reads(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_pages_category ON hotel_public_pages(category);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_pages_published ON hotel_public_pages(is_published);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_pages_sort_order ON hotel_public_pages(sort_order);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_public_page_id ON hotel_public_page_photos(public_page_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_hotel_id ON hotel_public_page_photos(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_photo_order ON hotel_public_page_photos(photo_order);
