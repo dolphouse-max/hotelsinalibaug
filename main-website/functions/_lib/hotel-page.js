@@ -226,6 +226,9 @@ function displayRoomCount(page) {
 }
 
 function displayBeachDistance(page) {
+  if (page.distance_from_beach) {
+    return String(page.distance_from_beach);
+  }
   if (page.beach_distance_label) {
     return String(page.beach_distance_label);
   }
@@ -238,6 +241,15 @@ function displayBeachDistance(page) {
   }
   const km = meters / 1000;
   return Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
+}
+
+function travelDistanceItems(page) {
+  return [
+    { label: "Beach Distance", value: displayBeachDistance(page) },
+    { label: "Local Bus Stop", value: page.distance_from_local_bus_stop || "" },
+    { label: "Alibaug Bus Stand", value: page.distance_from_alibaug_bus_stand || "" },
+    { label: "Mandwa Jetty", value: page.distance_from_mandwa_jetty || "" },
+  ].filter((item) => item.value);
 }
 
 function addressSummary(page) {
@@ -349,7 +361,7 @@ function renderHtml(page) {
   const policies = safeParseJsonArray(page.policies_json);
   const whatsappText = encodeURIComponent(page.inquiry_whatsapp_prefill || `Hello, I want to enquire about ${page.public_title}.`);
   const roomCountLabel = displayRoomCount(page);
-  const beachDistanceLabel = displayBeachDistance(page);
+  const travelDistances = travelDistanceItems(page);
   const mapPlaceUrl = resolvedMapPlaceUrl(page);
   const mapEmbedUrl = resolvedMapEmbedUrl(page);
   const fullAddress = addressSummary(page);
@@ -425,7 +437,7 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
           <ul>
             <li><strong>Category:</strong> ${escapeHtml(categoryLabel(page.category))}</li>
             ${roomCountLabel ? `<li><strong>Rooms:</strong> ${escapeHtml(roomCountLabel)}</li>` : ""}
-            ${beachDistanceLabel ? `<li><strong>Beach Distance:</strong> ${escapeHtml(beachDistanceLabel)}</li>` : ""}
+            ${travelDistances.map((item) => `<li><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.value)}</li>`).join("")}
             ${page.check_in_time ? `<li><strong>Check-in:</strong> ${escapeHtml(page.check_in_time)}</li>` : ""}
             ${page.check_out_time ? `<li><strong>Check-out:</strong> ${escapeHtml(page.check_out_time)}</li>` : ""}
             ${page.address_village ? `<li><strong>Village:</strong> ${escapeHtml(page.address_village)}</li>` : ""}
@@ -610,6 +622,10 @@ export async function fetchPublishedCategoryPages(env, category) {
        hpp.meta_description,
        hpp.short_description,
        hpp.room_count_display,
+       hpp.distance_from_beach,
+       hpp.distance_from_local_bus_stop,
+       hpp.distance_from_alibaug_bus_stand,
+       hpp.distance_from_mandwa_jetty,
        hpp.beach_distance_meters,
        hpp.beach_distance_label,
        hpp.address_village,

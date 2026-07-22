@@ -175,8 +175,12 @@ export function normalizePublicPagePayload(payload, fallbackHotelName = "") {
     checkInTime: normalizeNullableText(payload.check_in_time),
     checkOutTime: normalizeNullableText(payload.check_out_time),
     roomCountDisplay: normalizeInteger(payload.room_count_display),
+    distanceFromBeach: normalizeNullableText(payload.distance_from_beach) || normalizeNullableText(payload.beach_distance_label),
+    distanceFromLocalBusStop: normalizeNullableText(payload.distance_from_local_bus_stop),
+    distanceFromAlibaugBusStand: normalizeNullableText(payload.distance_from_alibaug_bus_stand),
+    distanceFromMandwaJetty: normalizeNullableText(payload.distance_from_mandwa_jetty),
     beachDistanceMeters: normalizeInteger(payload.beach_distance_meters),
-    beachDistanceLabel: normalizeNullableText(payload.beach_distance_label),
+    beachDistanceLabel: normalizeNullableText(payload.distance_from_beach) || normalizeNullableText(payload.beach_distance_label),
     roomTypesJson: normalizeJsonArray(payload.room_types_json),
     amenitiesJson: normalizeJsonArray(payload.amenities_json),
     faqJson: normalizeJsonArray(payload.faq_json),
@@ -227,6 +231,10 @@ export async function ensurePublicPageTables(db) {
         check_in_time TEXT,
         check_out_time TEXT,
         room_count_display INTEGER,
+        distance_from_beach TEXT,
+        distance_from_local_bus_stop TEXT,
+        distance_from_alibaug_bus_stand TEXT,
+        distance_from_mandwa_jetty TEXT,
         beach_distance_meters INTEGER,
         beach_distance_label TEXT,
         room_types_json TEXT NOT NULL DEFAULT '[]',
@@ -272,6 +280,10 @@ export async function ensurePublicPageTables(db) {
   ]);
 
   await ensureColumn(db, "hotel_public_pages", "room_count_display", "INTEGER");
+  await ensureColumn(db, "hotel_public_pages", "distance_from_beach", "TEXT");
+  await ensureColumn(db, "hotel_public_pages", "distance_from_local_bus_stop", "TEXT");
+  await ensureColumn(db, "hotel_public_pages", "distance_from_alibaug_bus_stand", "TEXT");
+  await ensureColumn(db, "hotel_public_pages", "distance_from_mandwa_jetty", "TEXT");
   await ensureColumn(db, "hotel_public_pages", "beach_distance_meters", "INTEGER");
   await ensureColumn(db, "hotel_public_pages", "beach_distance_label", "TEXT");
 }

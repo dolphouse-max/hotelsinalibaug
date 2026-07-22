@@ -183,29 +183,26 @@
                   </div>
                 </div>
 
-                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
                   <div>
                     <label for="roomCountDisplay" class="mb-2 block text-sm font-medium text-slate-700">Room Count for Website</label>
                     <input id="roomCountDisplay" type="number" min="1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="20">
                   </div>
                   <div>
-                    <label for="beachDistanceMeters" class="mb-2 block text-sm font-medium text-slate-700">Distance from Beach</label>
-                    <select id="beachDistanceMeters" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                      <option value="">Select distance</option>
-                      <option value="100">100 m</option>
-                      <option value="250">250 m</option>
-                      <option value="500">500 m</option>
-                      <option value="750">750 m</option>
-                      <option value="1000">1 km</option>
-                      <option value="1500">1.5 km</option>
-                      <option value="2000">2 km</option>
-                      <option value="3000">3 km</option>
-                      <option value="5000">5 km</option>
-                    </select>
+                    <label for="distanceFromBeach" class="mb-2 block text-sm font-medium text-slate-700">Distance from Beach</label>
+                    <input id="distanceFromBeach" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="100 m">
                   </div>
                   <div>
-                    <label for="beachDistanceLabel" class="mb-2 block text-sm font-medium text-slate-700">Custom Distance Label</label>
-                    <input id="beachDistanceLabel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="5 min walk from beach">
+                    <label for="distanceFromLocalBusStop" class="mb-2 block text-sm font-medium text-slate-700">Distance from Local Bus Stop</label>
+                    <input id="distanceFromLocalBusStop" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="300 m">
+                  </div>
+                  <div>
+                    <label for="distanceFromAlibaugBusStand" class="mb-2 block text-sm font-medium text-slate-700">Distance from Alibaug Bus Stand</label>
+                    <input id="distanceFromAlibaugBusStand" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="12 km">
+                  </div>
+                  <div>
+                    <label for="distanceFromMandwaJetty" class="mb-2 block text-sm font-medium text-slate-700">Distance from Mandwa Jetty</label>
+                    <input id="distanceFromMandwaJetty" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="20 km">
                   </div>
                 </div>
 
@@ -310,8 +307,10 @@
       const googleMapsEmbedUrlInput = document.getElementById("googleMapsEmbedUrl");
       const googleMapsPlaceUrlInput = document.getElementById("googleMapsPlaceUrl");
       const roomCountDisplayInput = document.getElementById("roomCountDisplay");
-      const beachDistanceMetersInput = document.getElementById("beachDistanceMeters");
-      const beachDistanceLabelInput = document.getElementById("beachDistanceLabel");
+      const distanceFromBeachInput = document.getElementById("distanceFromBeach");
+      const distanceFromLocalBusStopInput = document.getElementById("distanceFromLocalBusStop");
+      const distanceFromAlibaugBusStandInput = document.getElementById("distanceFromAlibaugBusStand");
+      const distanceFromMandwaJettyInput = document.getElementById("distanceFromMandwaJetty");
       const amenityOptions = document.getElementById("amenityOptions");
       const roomTypeOptions = document.getElementById("roomTypeOptions");
       const amenitiesLinesInput = document.getElementById("amenitiesLines");
@@ -439,17 +438,6 @@
         return [...new Set([...selected, ...multilineToList(customText)])];
       }
 
-      function formatDistanceLabel() {
-        if (beachDistanceLabelInput.value.trim()) {
-          return beachDistanceLabelInput.value.trim();
-        }
-        const value = Number(beachDistanceMetersInput.value || "0");
-        if (!value) {
-          return "";
-        }
-        return value < 1000 ? `${value} m` : `${Number.isInteger(value / 1000) ? value / 1000 : (value / 1000).toFixed(1)} km`;
-      }
-
       function getSelectedHotel() {
         return allHotels.find((hotel) => hotel.id === hotelIdInput.value) || null;
       }
@@ -544,7 +532,7 @@
 
         syncHotelBasics();
         const roomCount = Number(roomCountDisplayInput.value || hotel.total_rooms || 0);
-        const beachLabel = formatDistanceLabel();
+        const beachLabel = distanceFromBeachInput.value.trim();
         const locationLabel = currentHotelAddressFields.address_village || currentHotelAddressFields.address_taluka || "Alibaug";
         const categoryValue = categoryInput.value;
         const categoryText = categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel";
@@ -588,8 +576,10 @@
         nearbyPlacesLinesInput.value = "";
         policiesLinesInput.value = "";
         roomCountDisplayInput.value = "";
-        beachDistanceMetersInput.value = "";
-        beachDistanceLabelInput.value = "";
+        distanceFromBeachInput.value = "";
+        distanceFromLocalBusStopInput.value = "";
+        distanceFromAlibaugBusStandInput.value = "";
+        distanceFromMandwaJettyInput.value = "";
         hotelAddressPreview.textContent = "Select a hotel to load the saved address.";
         generatedCopyPanel.open = false;
         sortOrderInput.value = "0";
@@ -640,7 +630,7 @@
               </span>
             </div>
             <p class="mt-3 text-sm text-slate-600">${page.meta_description || ""}</p>
-            <p class="mt-3 text-xs text-slate-500">Rooms: ${page.room_count_display || page.total_rooms || "-"} • Beach: ${page.beach_distance_label || "-"} • Photos: ${page.photo_count || 0}</p>
+            <p class="mt-3 text-xs text-slate-500">Rooms: ${page.room_count_display || page.total_rooms || "-"} • Beach: ${page.distance_from_beach || page.beach_distance_label || "-"} • Photos: ${page.photo_count || 0}</p>
           `;
           card.addEventListener("click", () => loadPage(page.id));
           pagesList.appendChild(card);
@@ -698,8 +688,10 @@
         googleMapsEmbedUrlInput.value = page.google_maps_embed_url || "";
         googleMapsPlaceUrlInput.value = page.google_maps_place_url || "";
         roomCountDisplayInput.value = page.room_count_display || page.total_rooms || "";
-        beachDistanceMetersInput.value = page.beach_distance_meters || "";
-        beachDistanceLabelInput.value = page.beach_distance_label || "";
+        distanceFromBeachInput.value = page.distance_from_beach || page.beach_distance_label || "";
+        distanceFromLocalBusStopInput.value = page.distance_from_local_bus_stop || "";
+        distanceFromAlibaugBusStandInput.value = page.distance_from_alibaug_bus_stand || "";
+        distanceFromMandwaJettyInput.value = page.distance_from_mandwa_jetty || "";
         currentHotelAddressFields = {
           address_line_1: page.address_line_1 || "",
           address_village: page.address_village || "",
@@ -765,8 +757,12 @@
           google_maps_embed_url: googleMapsEmbedUrlInput.value,
           google_maps_place_url: googleMapsPlaceUrlInput.value,
           room_count_display: Number(roomCountDisplayInput.value || 0),
-          beach_distance_meters: Number(beachDistanceMetersInput.value || 0) || null,
-          beach_distance_label: formatDistanceLabel(),
+          distance_from_beach: distanceFromBeachInput.value,
+          distance_from_local_bus_stop: distanceFromLocalBusStopInput.value,
+          distance_from_alibaug_bus_stand: distanceFromAlibaugBusStandInput.value,
+          distance_from_mandwa_jetty: distanceFromMandwaJettyInput.value,
+          beach_distance_meters: null,
+          beach_distance_label: distanceFromBeachInput.value,
           amenities_json: uniqueCombined(getCheckedValues("amenity_selected"), amenitiesLinesInput.value),
           room_types_json: uniqueCombined(getCheckedValues("room_type_selected"), roomTypesLinesInput.value),
           faq_json: parseFaqLines(faqLinesInput.value),

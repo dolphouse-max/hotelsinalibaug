@@ -134,46 +134,44 @@
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <label for="checkInTime" class="mb-2 block text-sm font-medium text-slate-700">Check-in Time</label>
-                <input id="checkInTime" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="12:00 PM">
+                <select id="checkInTime" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  <option value="">Select check-in time</option>
+                </select>
               </div>
               <div>
                 <label for="checkOutTime" class="mb-2 block text-sm font-medium text-slate-700">Check-out Time</label>
-                <input id="checkOutTime" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="10:00 AM">
+                <select id="checkOutTime" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  <option value="">Select check-out time</option>
+                </select>
               </div>
             </div>
 
             <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-              <div class="flex items-center justify-between gap-3">
-                <div>
-                  <h2 class="text-lg font-semibold text-ocean">Structured Website Data</h2>
-                  <p class="mt-1 text-sm text-slate-600">Keep room count, room types, amenities, and beach distance updated. Then auto-generate standard SEO text for your hotel page.</p>
-                </div>
-                <button id="autoGenerateButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">Auto Generate SEO</button>
+              <div>
+                <h2 class="text-lg font-semibold text-ocean">Structured Website Data</h2>
+                <p class="mt-1 text-sm text-slate-600">Keep room count, room types, amenities, and travel distances updated. Standard SEO text is handled automatically by the app whenever blank fields need to be prepared.</p>
               </div>
 
-              <div class="mt-4 grid gap-3 sm:grid-cols-3">
+              <div class="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
                   <label for="roomCountDisplay" class="mb-2 block text-sm font-medium text-slate-700">Room Count for Website</label>
                   <input id="roomCountDisplay" type="number" min="1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="20">
                 </div>
                 <div>
-                  <label for="beachDistanceMeters" class="mb-2 block text-sm font-medium text-slate-700">Distance from Beach</label>
-                  <select id="beachDistanceMeters" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                    <option value="">Select distance</option>
-                    <option value="100">100 m</option>
-                    <option value="250">250 m</option>
-                    <option value="500">500 m</option>
-                    <option value="750">750 m</option>
-                    <option value="1000">1 km</option>
-                    <option value="1500">1.5 km</option>
-                    <option value="2000">2 km</option>
-                    <option value="3000">3 km</option>
-                    <option value="5000">5 km</option>
-                  </select>
+                  <label for="distanceFromBeach" class="mb-2 block text-sm font-medium text-slate-700">Distance from Beach</label>
+                  <input id="distanceFromBeach" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="100 m">
                 </div>
                 <div>
-                  <label for="beachDistanceLabel" class="mb-2 block text-sm font-medium text-slate-700">Custom Distance Label</label>
-                  <input id="beachDistanceLabel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="5 min walk from beach">
+                  <label for="distanceFromLocalBusStop" class="mb-2 block text-sm font-medium text-slate-700">Distance from Local Bus Stop</label>
+                  <input id="distanceFromLocalBusStop" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="300 m">
+                </div>
+                <div>
+                  <label for="distanceFromAlibaugBusStand" class="mb-2 block text-sm font-medium text-slate-700">Distance from Alibaug Bus Stand</label>
+                  <input id="distanceFromAlibaugBusStand" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="12 km">
+                </div>
+                <div>
+                  <label for="distanceFromMandwaJetty" class="mb-2 block text-sm font-medium text-slate-700">Distance from Mandwa Jetty</label>
+                  <input id="distanceFromMandwaJetty" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="20 km">
                 </div>
               </div>
 
@@ -247,8 +245,10 @@
       const checkInTimeInput = document.getElementById("checkInTime");
       const checkOutTimeInput = document.getElementById("checkOutTime");
       const roomCountDisplayInput = document.getElementById("roomCountDisplay");
-      const beachDistanceMetersInput = document.getElementById("beachDistanceMeters");
-      const beachDistanceLabelInput = document.getElementById("beachDistanceLabel");
+      const distanceFromBeachInput = document.getElementById("distanceFromBeach");
+      const distanceFromLocalBusStopInput = document.getElementById("distanceFromLocalBusStop");
+      const distanceFromAlibaugBusStandInput = document.getElementById("distanceFromAlibaugBusStand");
+      const distanceFromMandwaJettyInput = document.getElementById("distanceFromMandwaJetty");
       const amenityOptions = document.getElementById("amenityOptions");
       const roomTypeOptions = document.getElementById("roomTypeOptions");
       const amenitiesLinesInput = document.getElementById("amenitiesLines");
@@ -260,7 +260,6 @@
       const saveContentButton = document.getElementById("saveContentButton");
       const savePhotosButton = document.getElementById("savePhotosButton");
       const loadPhotoSectionButton = document.getElementById("loadPhotoSectionButton");
-      const autoGenerateButton = document.getElementById("autoGenerateButton");
       const amenityPresets = [
         "AC Rooms", "Non AC Rooms", "Family Rooms", "Deluxe Rooms", "Cottages", "Swimming Pool", "Kids Play Area",
         "Free Wi-Fi", "Parking", "Restaurant", "Room Service", "Power Backup", "Hot Water", "TV", "Sea View",
@@ -277,6 +276,17 @@
       });
 
       let currentPage = null;
+
+      function buildHourOptions(selectElement, placeholder) {
+        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+        for (let hour = 0; hour < 24; hour += 1) {
+          const value = `${String(hour).padStart(2, "0")}:00`;
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = value;
+          selectElement.appendChild(option);
+        }
+      }
 
       function safeParseList(value) {
         try {
@@ -323,23 +333,12 @@
         return [...new Set([...selected, ...multilineToList(customText)])];
       }
 
-      function formatDistanceLabel() {
-        if (beachDistanceLabelInput.value.trim()) {
-          return beachDistanceLabelInput.value.trim();
-        }
-        const value = Number(beachDistanceMetersInput.value || "0");
-        if (!value) {
-          return "";
-        }
-        return value < 1000 ? `${value} m` : `${Number.isInteger(value / 1000) ? value / 1000 : (value / 1000).toFixed(1)} km`;
-      }
-
       function generateWebsiteCopy() {
         const hotelName = currentPage?.hotel_name || publicTitleInput.value || "Hotel";
         const categoryLabel = currentPage?.category === "resort" ? "Resort" : currentPage?.category === "cottage" ? "Cottage" : currentPage?.category === "homestay" ? "Homestay" : "Hotel";
         const categoryValue = currentPage?.category || "hotel";
         const roomCount = Number(roomCountDisplayInput.value || currentPage?.total_rooms || 0);
-        const beachLabel = formatDistanceLabel();
+        const beachLabel = distanceFromBeachInput.value.trim();
         const locationLabel = currentPage?.address_village || currentPage?.address_taluka || "Alibaug";
         publicTitleInput.value = `${hotelName} ${categoryLabel}`.trim();
         metaTitleInput.value = `${hotelName} ${categoryLabel} | ${locationLabel} | Hotels In Alibaug`;
@@ -411,8 +410,10 @@
         checkInTimeInput.value = page?.check_in_time || "";
         checkOutTimeInput.value = page?.check_out_time || "";
         roomCountDisplayInput.value = page?.room_count_display || page?.total_rooms || "";
-        beachDistanceMetersInput.value = page?.beach_distance_meters || "";
-        beachDistanceLabelInput.value = page?.beach_distance_label || "";
+        distanceFromBeachInput.value = page?.distance_from_beach || page?.beach_distance_label || "";
+        distanceFromLocalBusStopInput.value = page?.distance_from_local_bus_stop || "";
+        distanceFromAlibaugBusStandInput.value = page?.distance_from_alibaug_bus_stand || "";
+        distanceFromMandwaJettyInput.value = page?.distance_from_mandwa_jetty || "";
         const amenityValues = safeParseList(page?.amenities_json);
         const roomTypeValues = safeParseList(page?.room_types_json);
         setCheckedValues("amenity_selected", amenityValues);
@@ -471,8 +472,10 @@
         formData.set("check_in_time", checkInTimeInput.value);
         formData.set("check_out_time", checkOutTimeInput.value);
         formData.set("room_count_display", roomCountDisplayInput.value);
-        formData.set("beach_distance_meters", beachDistanceMetersInput.value);
-        formData.set("beach_distance_label", formatDistanceLabel());
+        formData.set("distance_from_beach", distanceFromBeachInput.value);
+        formData.set("distance_from_local_bus_stop", distanceFromLocalBusStopInput.value);
+        formData.set("distance_from_alibaug_bus_stand", distanceFromAlibaugBusStandInput.value);
+        formData.set("distance_from_mandwa_jetty", distanceFromMandwaJettyInput.value);
         formData.set("amenities_lines", amenitiesLinesInput.value);
         formData.set("room_types_lines", roomTypesLinesInput.value);
         formData.set("faq_lines", faqLinesInput.value);
@@ -518,6 +521,9 @@
         }
         hotelAdminCommon.setButtonLoading(button, true, loadingText);
         try {
+          if (!publicTitleInput.value.trim() || !metaTitleInput.value.trim() || !metaDescriptionInput.value.trim() || !shortDescriptionInput.value.trim() || !fullDescriptionInput.value.trim()) {
+            generateWebsiteCopy();
+          }
           const response = await fetch("/api/hotel-admin/public-page", {
             method: "POST",
             body: buildFormData(includePhotos),
@@ -539,7 +545,8 @@
       loadPhotoSectionButton.addEventListener("click", loadPage);
       saveContentButton.addEventListener("click", () => save(false, saveContentButton, "Saving..."));
       savePhotosButton.addEventListener("click", () => save(true, savePhotosButton, "Uploading..."));
-      autoGenerateButton.addEventListener("click", generateWebsiteCopy);
+      buildHourOptions(checkInTimeInput, "Select check-in time");
+      buildHourOptions(checkOutTimeInput, "Select check-out time");
       renderCheckboxOptions(amenityOptions, "amenity_selected", amenityPresets);
       renderCheckboxOptions(roomTypeOptions, "room_type_selected", roomTypePresets);
     </script>

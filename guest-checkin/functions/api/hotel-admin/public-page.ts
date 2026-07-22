@@ -114,8 +114,7 @@ function buildEditablePayload(formData: FormData, existingPage: Record<string, u
   const selectedAmenities = formData.getAll("amenity_selected");
   const selectedRoomTypes = formData.getAll("room_type_selected");
   const roomCountDisplay = normalizeText(formData.get("room_count_display")) || String(existingPage.room_count_display || existingPage.total_rooms || "");
-  const beachDistanceMeters = normalizeText(formData.get("beach_distance_meters"));
-  const beachDistanceLabel = formatBeachDistanceLabel(beachDistanceMeters, normalizeText(formData.get("beach_distance_label")));
+  const distanceFromBeach = normalizeText(formData.get("distance_from_beach"));
 
   return normalizePublicPagePayload(
     {
@@ -140,8 +139,12 @@ function buildEditablePayload(formData: FormData, existingPage: Record<string, u
       check_in_time: normalizeText(formData.get("check_in_time")),
       check_out_time: normalizeText(formData.get("check_out_time")),
       room_count_display: roomCountDisplay,
-      beach_distance_meters: beachDistanceMeters,
-      beach_distance_label: beachDistanceLabel,
+      distance_from_beach: distanceFromBeach,
+      distance_from_local_bus_stop: normalizeText(formData.get("distance_from_local_bus_stop")),
+      distance_from_alibaug_bus_stand: normalizeText(formData.get("distance_from_alibaug_bus_stand")),
+      distance_from_mandwa_jetty: normalizeText(formData.get("distance_from_mandwa_jetty")),
+      beach_distance_meters: null,
+      beach_distance_label: formatBeachDistanceLabel(null, distanceFromBeach),
       amenities_json: mergeSelectedWithCustom(selectedAmenities, normalizeText(formData.get("amenities_lines"))),
       room_types_json: mergeSelectedWithCustom(selectedRoomTypes, normalizeText(formData.get("room_types_lines"))),
       faq_json: parseFaqLines(normalizeText(formData.get("faq_lines"))),
@@ -350,14 +353,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
            check_in_time = ?16,
            check_out_time = ?17,
            room_count_display = ?18,
-           beach_distance_meters = ?19,
-           beach_distance_label = ?20,
-           room_types_json = ?21,
-           amenities_json = ?22,
-           faq_json = ?23,
-           nearby_places_json = ?24,
-           policies_json = ?25,
-           inquiry_whatsapp_prefill = ?26,
+           distance_from_beach = ?19,
+           distance_from_local_bus_stop = ?20,
+           distance_from_alibaug_bus_stand = ?21,
+           distance_from_mandwa_jetty = ?22,
+           beach_distance_meters = ?23,
+           beach_distance_label = ?24,
+           room_types_json = ?25,
+           amenities_json = ?26,
+           faq_json = ?27,
+           nearby_places_json = ?28,
+           policies_json = ?29,
+           inquiry_whatsapp_prefill = ?30,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ?1`
     )
@@ -380,6 +387,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         payload.checkInTime,
         payload.checkOutTime,
         payload.roomCountDisplay,
+        payload.distanceFromBeach,
+        payload.distanceFromLocalBusStop,
+        payload.distanceFromAlibaugBusStand,
+        payload.distanceFromMandwaJetty,
         payload.beachDistanceMeters,
         payload.beachDistanceLabel,
         payload.roomTypesJson,
