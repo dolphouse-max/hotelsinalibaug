@@ -1,6 +1,202 @@
-const SITE_URL = "https://hotelsinalibaug.in";
-const PHOTO_PROXY_BASE = "https://checkin.hotelsinalibaug.in/api/public/hotel-photo";
-const DIRECTORY_PAGE_STYLES = `
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+
+// _lib/website-inquiries.js
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+__name(normalizeText, "normalizeText");
+async function ensureColumn(db, tableName, columnName, definition) {
+  const columns = await db.prepare(`PRAGMA table_info(${tableName})`).all();
+  const hasColumn = (columns.results || []).some((column) => String(column.name || "") === columnName);
+  if (!hasColumn) {
+    await db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+  }
+}
+__name(ensureColumn, "ensureColumn");
+async function ensureWebsiteInquiryTable(db) {
+  await db.batch([
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS hotel_public_inquiries (
+        id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+        hotel_id TEXT NOT NULL,
+        public_page_id TEXT,
+        public_page_slug TEXT,
+        hotel_name_snapshot TEXT,
+        page_title_snapshot TEXT,
+        guest_name TEXT NOT NULL,
+        guest_phone TEXT NOT NULL,
+        check_in_date TEXT,
+        check_out_date TEXT,
+        total_persons INTEGER,
+        requested_room_type TEXT,
+        guest_message TEXT NOT NULL,
+        inquiry_status TEXT NOT NULL DEFAULT 'new' CHECK (inquiry_status IN ('new', 'reviewed', 'closed')),
+        source_path TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+        FOREIGN KEY (public_page_id) REFERENCES hotel_public_pages(id) ON DELETE SET NULL
+      )
+    `),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_hotel_public_inquiries_hotel_id ON hotel_public_inquiries(hotel_id)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_hotel_public_inquiries_created_at ON hotel_public_inquiries(created_at)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_hotel_public_inquiries_status ON hotel_public_inquiries(inquiry_status)`)
+  ]);
+  await ensureColumn(db, "hotel_public_inquiries", "public_page_id", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "public_page_slug", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "hotel_name_snapshot", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "page_title_snapshot", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "check_in_date", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "check_out_date", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "total_persons", "INTEGER");
+  await ensureColumn(db, "hotel_public_inquiries", "requested_room_type", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "inquiry_status", "TEXT NOT NULL DEFAULT 'new'");
+  await ensureColumn(db, "hotel_public_inquiries", "source_path", "TEXT");
+  await ensureColumn(db, "hotel_public_inquiries", "updated_at", "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP");
+}
+__name(ensureWebsiteInquiryTable, "ensureWebsiteInquiryTable");
+function normalizeInquiryPayload(payload) {
+  const hotelId = normalizeText(payload.hotel_id).toLowerCase();
+  const guestName = normalizeText(payload.guest_name);
+  const guestPhone = normalizeText(payload.guest_phone);
+  const guestMessage = normalizeText(payload.guest_message || payload.special_request);
+  const checkInDate = normalizeText(payload.check_in_date);
+  const checkOutDate = normalizeText(payload.check_out_date);
+  const totalPersonsValue = Number(payload.total_persons);
+  const requestedRoomType = normalizeText(payload.requested_room_type);
+  if (!hotelId || !/^[a-z][a-z0-9]{5,63}$/.test(hotelId)) {
+    throw new Error("Valid hotel_id is required.");
+  }
+  if (!guestName) {
+    throw new Error("Guest name is required.");
+  }
+  if (!guestPhone || guestPhone.replace(/[^0-9]/g, "").length < 10) {
+    throw new Error("Valid guest mobile number is required.");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(checkInDate)) {
+    throw new Error("Valid check-in date is required.");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(checkOutDate)) {
+    throw new Error("Valid check-out date is required.");
+  }
+  if (checkOutDate <= checkInDate) {
+    throw new Error("Check-out date must be after check-in date.");
+  }
+  if (!Number.isFinite(totalPersonsValue) || totalPersonsValue < 1) {
+    throw new Error("Valid number of persons is required.");
+  }
+  if (!requestedRoomType) {
+    throw new Error("Room type is required.");
+  }
+  return {
+    hotelId,
+    publicPageId: normalizeText(payload.public_page_id) || null,
+    publicPageSlug: normalizeText(payload.public_page_slug) || null,
+    hotelNameSnapshot: normalizeText(payload.hotel_name_snapshot) || null,
+    pageTitleSnapshot: normalizeText(payload.page_title_snapshot) || null,
+    guestName,
+    guestPhone,
+    checkInDate,
+    checkOutDate,
+    totalPersons: Math.floor(totalPersonsValue),
+    requestedRoomType,
+    guestMessage: guestMessage || "No special request",
+    inquiryStatus: "new",
+    sourcePath: normalizeText(payload.source_path) || null
+  };
+}
+__name(normalizeInquiryPayload, "normalizeInquiryPayload");
+
+// api/inquiry.js
+function json(body, init = {}) {
+  const headers = new Headers(init.headers);
+  headers.set("content-type", "application/json; charset=utf-8");
+  headers.set("cache-control", "no-store");
+  return new Response(JSON.stringify(body), { ...init, headers });
+}
+__name(json, "json");
+function badRequest(message) {
+  return json({ error: message }, { status: 400 });
+}
+__name(badRequest, "badRequest");
+async function onRequestPost(context) {
+  try {
+    await ensureWebsiteInquiryTable(context.env.DB);
+    const payload = normalizeInquiryPayload(await context.request.json());
+    const page = await context.env.DB.prepare(
+      `SELECT hpp.id, hpp.hotel_id, hpp.slug, hpp.public_title, h.name AS hotel_name
+       FROM hotel_public_pages hpp
+       INNER JOIN hotels h ON lower(h.id) = lower(hpp.hotel_id)
+       WHERE lower(hpp.hotel_id) = lower(?1)
+         AND hpp.is_published = 1
+       LIMIT 1`
+    ).bind(payload.hotelId).first();
+    if (!page) {
+      return badRequest("Published hotel page not found.");
+    }
+    const result = await context.env.DB.prepare(
+      `INSERT INTO hotel_public_inquiries (
+         hotel_id,
+         public_page_id,
+         public_page_slug,
+         hotel_name_snapshot,
+       page_title_snapshot,
+       guest_name,
+       guest_phone,
+       check_in_date,
+       check_out_date,
+       total_persons,
+       requested_room_type,
+       guest_message,
+       inquiry_status,
+       source_path,
+         updated_at
+       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, CURRENT_TIMESTAMP)`
+    ).bind(
+      payload.hotelId,
+      payload.publicPageId || page.id,
+      payload.publicPageSlug || page.slug,
+      payload.hotelNameSnapshot || page.hotel_name || "",
+      payload.pageTitleSnapshot || page.public_title || "",
+      payload.guestName,
+      payload.guestPhone,
+      payload.checkInDate,
+      payload.checkOutDate,
+      payload.totalPersons,
+      payload.requestedRoomType,
+      payload.guestMessage,
+      "new",
+      payload.sourcePath || new URL(context.request.url).pathname
+    ).run();
+    if (!result.success) {
+      throw new Error("Unable to save inquiry.");
+    }
+    return json({
+      ok: true,
+      message: `Inquiry sent to ${page.hotel_name || page.public_title || "the hotel"} successfully.`
+    });
+  } catch (error) {
+    return badRequest(error instanceof Error ? error.message : "Unable to save inquiry.");
+  }
+}
+__name(onRequestPost, "onRequestPost");
+async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      allow: "POST, OPTIONS",
+      "access-control-allow-methods": "POST, OPTIONS",
+      "access-control-allow-headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions, "onRequestOptions");
+
+// _lib/hotel-page.js
+var SITE_URL = "https://hotelsinalibaug.in";
+var PHOTO_PROXY_BASE = "https://checkin.hotelsinalibaug.in/api/public/hotel-photo";
+var DIRECTORY_PAGE_STYLES = `
 <style>
 body.directory-page{
   margin:0;
@@ -88,16 +284,10 @@ body.directory-page{
   .directory-page .search-form{grid-template-columns:1fr 1fr;}
 }
 </style>`;
-
 function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
-
+__name(escapeHtml, "escapeHtml");
 function safeParseJsonArray(value) {
   try {
     const parsed = JSON.parse(String(value || "[]"));
@@ -106,7 +296,7 @@ function safeParseJsonArray(value) {
     return [];
   }
 }
-
+__name(safeParseJsonArray, "safeParseJsonArray");
 function categoryLabel(category) {
   switch (category) {
     case "resort":
@@ -121,7 +311,7 @@ function categoryLabel(category) {
       return "Stay";
   }
 }
-
+__name(categoryLabel, "categoryLabel");
 function categoryDescription(category) {
   switch (category) {
     case "resort":
@@ -136,7 +326,7 @@ function categoryDescription(category) {
       return "Browse stays in Alibaug with direct contact details, maps, and inquiry options.";
   }
 }
-
+__name(categoryDescription, "categoryDescription");
 function categoryPath(category) {
   switch (category) {
     case "resort":
@@ -151,11 +341,11 @@ function categoryPath(category) {
       return "/stays";
   }
 }
-
+__name(categoryPath, "categoryPath");
 function buildPhotoUrl(hotelId, photoId) {
   return `${PHOTO_PROXY_BASE}?hotel_id=${encodeURIComponent(hotelId)}&photo_id=${encodeURIComponent(photoId)}`;
 }
-
+__name(buildPhotoUrl, "buildPhotoUrl");
 function excerpt(value, maxLength = 180) {
   const text = String(value || "").trim();
   if (text.length <= maxLength) {
@@ -163,20 +353,19 @@ function excerpt(value, maxLength = 180) {
   }
   return `${text.slice(0, maxLength).trimEnd()}...`;
 }
-
+__name(excerpt, "excerpt");
 function renderList(items, emptyText) {
   if (!items.length) {
     return `<p>${escapeHtml(emptyText)}</p>`;
   }
-
   return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 }
-
+__name(renderList, "renderList");
 function normalizeDateInput(value) {
   const text = String(value || "").trim();
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
 }
-
+__name(normalizeDateInput, "normalizeDateInput");
 function normalizePositiveInteger(value, fallback) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 1) {
@@ -184,48 +373,45 @@ function normalizePositiveInteger(value, fallback) {
   }
   return Math.floor(parsed);
 }
-
+__name(normalizePositiveInteger, "normalizePositiveInteger");
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  return (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
 }
-
+__name(todayIso, "todayIso");
 function addDaysIso(isoDate, days) {
-  const date = new Date(`${isoDate}T00:00:00Z`);
+  const date = /* @__PURE__ */ new Date(`${isoDate}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
-
-export function parseAvailabilityFilters(searchParams) {
+__name(addDaysIso, "addDaysIso");
+function parseAvailabilityFilters(searchParams) {
   const checkIn = normalizeDateInput(searchParams?.get("check_in"));
   const checkOut = normalizeDateInput(searchParams?.get("check_out"));
   const rooms = normalizePositiveInteger(searchParams?.get("rooms"), 1);
   const adults = normalizePositiveInteger(searchParams?.get("adults"), 2);
   const children = Math.max(0, Math.floor(Number(searchParams?.get("children") || "0") || 0));
   const hasDateRange = Boolean(checkIn && checkOut && checkOut > checkIn);
-
   return {
     checkIn,
     checkOut,
     rooms,
     adults,
     children,
-    hasDateRange,
+    hasDateRange
   };
 }
-
+__name(parseAvailabilityFilters, "parseAvailabilityFilters");
 function availabilitySummary(filters, resultCount, label) {
   if (!filters.hasDateRange) {
     return `${resultCount} ${label.toLowerCase()}${resultCount === 1 ? "" : "s"} listed`;
   }
-
   return `${resultCount} ${label.toLowerCase()}${resultCount === 1 ? "" : "s"} available for ${filters.rooms} room${filters.rooms === 1 ? "" : "s"} from ${filters.checkIn} to ${filters.checkOut}`;
 }
-
+__name(availabilitySummary, "availabilitySummary");
 function renderAvailabilitySearch(category, filters) {
   const actionPath = categoryPath(category);
   const defaultCheckIn = filters.checkIn || todayIso();
   const defaultCheckOut = filters.checkOut || addDaysIso(defaultCheckIn, 1);
-
   return `
     <article class="panel search-panel">
       <div>
@@ -267,12 +453,11 @@ function renderAvailabilitySearch(category, filters) {
     </article>
   `;
 }
-
+__name(renderAvailabilitySearch, "renderAvailabilitySearch");
 function renderFaq(faqItems) {
   if (!faqItems.length) {
     return "";
   }
-
   return `
     <section class="section">
       <div class="container">
@@ -289,12 +474,11 @@ function renderFaq(faqItems) {
     </section>
   `;
 }
-
+__name(renderFaq, "renderFaq");
 function renderNearby(nearbyItems) {
   if (!nearbyItems.length) {
     return "";
   }
-
   return `
     <section class="section">
       <div class="container">
@@ -312,13 +496,12 @@ function renderNearby(nearbyItems) {
     </section>
   `;
 }
-
+__name(renderNearby, "renderNearby");
 function renderPhotoGallery(page) {
   const photos = Array.isArray(page.photos) ? page.photos : [];
   if (!photos.length) {
     return "";
   }
-
   return `
     <section class="section">
       <div class="container">
@@ -340,7 +523,7 @@ function renderPhotoGallery(page) {
     </section>
   `;
 }
-
+__name(renderPhotoGallery, "renderPhotoGallery");
 function displayRoomCount(page) {
   const count = Number(page.room_count_display || page.total_rooms || 0);
   if (!Number.isFinite(count) || count <= 0) {
@@ -348,7 +531,7 @@ function displayRoomCount(page) {
   }
   return `${count} room${count === 1 ? "" : "s"}`;
 }
-
+__name(displayRoomCount, "displayRoomCount");
 function displayBeachDistance(page) {
   if (page.distance_from_beach) {
     return String(page.distance_from_beach);
@@ -360,22 +543,22 @@ function displayBeachDistance(page) {
   if (!Number.isFinite(meters) || meters <= 0) {
     return "";
   }
-  if (meters < 1000) {
+  if (meters < 1e3) {
     return `${meters} m`;
   }
-  const km = meters / 1000;
+  const km = meters / 1e3;
   return Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
 }
-
+__name(displayBeachDistance, "displayBeachDistance");
 function travelDistanceItems(page) {
   return [
     { label: "Beach Distance", value: displayBeachDistance(page) },
     { label: "Local Bus Stop", value: page.distance_from_local_bus_stop || "" },
     { label: "Alibaug Bus Stand", value: page.distance_from_alibaug_bus_stand || "" },
-    { label: "Mandwa Jetty", value: page.distance_from_mandwa_jetty || "" },
+    { label: "Mandwa Jetty", value: page.distance_from_mandwa_jetty || "" }
   ].filter((item) => item.value);
 }
-
+__name(travelDistanceItems, "travelDistanceItems");
 function contactDetailItems(page) {
   return [
     { label: "Contact Person", value: page.contact_person_name || "" },
@@ -383,30 +566,29 @@ function contactDetailItems(page) {
     { label: "Primary Phone", value: page.primary_phone || "" },
     { label: "Secondary Phone", value: page.secondary_phone || "" },
     { label: "WhatsApp", value: page.whatsapp_number || "" },
-    { label: "Email", value: page.inquiry_email || "" },
+    { label: "Email", value: page.inquiry_email || "" }
   ].filter((item) => item.value);
 }
-
+__name(contactDetailItems, "contactDetailItems");
 function addressSummary(page) {
   return [
     page.address_line_1,
     page.address_village,
     page.address_taluka,
     page.address_district,
-    page.address_pincode,
+    page.address_pincode
   ].filter(Boolean).join(", ");
 }
-
+__name(addressSummary, "addressSummary");
 function buildAutoMapQuery(page) {
   return [page.public_title, addressSummary(page)].filter(Boolean).join(", ");
 }
-
+__name(buildAutoMapQuery, "buildAutoMapQuery");
 function extractCoordinatesFromGoogleMapUrl(value) {
   const text = String(value || "").trim();
   if (!text) {
     return null;
   }
-
   try {
     const url = new URL(text);
     const queryValue = url.searchParams.get("query") || url.searchParams.get("q") || "";
@@ -414,77 +596,67 @@ function extractCoordinatesFromGoogleMapUrl(value) {
     if (queryMatch) {
       return {
         lat: Number(queryMatch[1]),
-        lng: Number(queryMatch[2]),
+        lng: Number(queryMatch[2])
       };
     }
-
     const atMatch = text.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
     if (atMatch) {
       return {
         lat: Number(atMatch[1]),
-        lng: Number(atMatch[2]),
+        lng: Number(atMatch[2])
       };
     }
-
     const dataMatch = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
     if (dataMatch) {
       return {
         lat: Number(dataMatch[1]),
-        lng: Number(dataMatch[2]),
+        lng: Number(dataMatch[2])
       };
     }
   } catch {
     return null;
   }
-
   return null;
 }
-
+__name(extractCoordinatesFromGoogleMapUrl, "extractCoordinatesFromGoogleMapUrl");
 function hasSavedCoordinates(page) {
   const latitude = Number(page.latitude);
   const longitude = Number(page.longitude);
   return Number.isFinite(latitude) && Number.isFinite(longitude);
 }
-
+__name(hasSavedCoordinates, "hasSavedCoordinates");
 function resolvedMapPlaceUrl(page) {
   if (page.google_maps_place_url) {
     return String(page.google_maps_place_url);
   }
-
   if (hasSavedCoordinates(page)) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${page.latitude},${page.longitude}`)}`;
   }
-
   const query = buildAutoMapQuery(page);
   if (!query) {
     return "";
   }
-
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
-
+__name(resolvedMapPlaceUrl, "resolvedMapPlaceUrl");
 function resolvedMapEmbedUrl(page) {
   const linkCoordinates = extractCoordinatesFromGoogleMapUrl(page.google_maps_place_url);
   if (linkCoordinates) {
     return `https://www.google.com/maps?q=${encodeURIComponent(`${linkCoordinates.lat},${linkCoordinates.lng}`)}&output=embed`;
   }
-
   if (hasSavedCoordinates(page)) {
     return `https://www.google.com/maps?q=${encodeURIComponent(`${page.latitude},${page.longitude}`)}&output=embed`;
   }
-
   if (page.google_maps_embed_url) {
     return String(page.google_maps_embed_url);
   }
-
   const query = buildAutoMapQuery(page);
   if (!query) {
     return "";
   }
-
   return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
 }
-
+__name(resolvedMapEmbedUrl, "resolvedMapEmbedUrl");
 function hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems) {
   const data = {
     "@context": "https://schema.org",
@@ -493,28 +665,25 @@ function hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems) {
     description: page.meta_description,
     url: canonicalUrl,
     image: heroImageUrl,
-    telephone: page.primary_phone || undefined,
-    email: page.inquiry_email || undefined,
+    telephone: page.primary_phone || void 0,
+    email: page.inquiry_email || void 0,
     address: {
       "@type": "PostalAddress",
-      streetAddress: page.address_line_1 || undefined,
-      addressLocality: page.address_village || undefined,
-      addressRegion: page.address_district || undefined,
-      postalCode: page.address_pincode || undefined,
-      addressCountry: "IN",
-    },
+      streetAddress: page.address_line_1 || void 0,
+      addressLocality: page.address_village || void 0,
+      addressRegion: page.address_district || void 0,
+      postalCode: page.address_pincode || void 0,
+      addressCountry: "IN"
+    }
   };
-
   if (hasSavedCoordinates(page)) {
     data.geo = {
       "@type": "GeoCoordinates",
       latitude: Number(page.latitude),
-      longitude: Number(page.longitude),
+      longitude: Number(page.longitude)
     };
   }
-
   const blocks = [JSON.stringify(data)];
-
   if (faqItems.length) {
     blocks.push(
       JSON.stringify({
@@ -525,13 +694,12 @@ function hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems) {
           name: item.question || "",
           acceptedAnswer: {
             "@type": "Answer",
-            text: item.answer || "",
-          },
-        })),
+            text: item.answer || ""
+          }
+        }))
       })
     );
   }
-
   blocks.push(
     JSON.stringify({
       "@context": "https://schema.org",
@@ -539,22 +707,19 @@ function hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems) {
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
         { "@type": "ListItem", position: 2, name: categoryLabel(page.category), item: `${SITE_URL}${page.canonical_path.split("/").slice(0, 2).join("/")}` },
-        { "@type": "ListItem", position: 3, name: page.public_title, item: canonicalUrl },
-      ],
+        { "@type": "ListItem", position: 3, name: page.public_title, item: canonicalUrl }
+      ]
     })
   );
-
-  return blocks.map((block) => `<script type="application/ld+json">${block}</script>`).join("\n");
+  return blocks.map((block) => `<script type="application/ld+json">${block}<\/script>`).join("\n");
 }
-
+__name(hotelJsonLd, "hotelJsonLd");
 function renderHtml(page) {
   const canonicalPath = page.canonical_path || `/${page.category}/${page.slug}`;
   const canonicalUrl = `${SITE_URL}${canonicalPath}`;
   const photos = Array.isArray(page.photos) ? page.photos : [];
   const coverPhoto = photos.find((photo) => Number(photo.is_cover) === 1) || photos[0] || null;
-  const heroImageUrl = coverPhoto
-    ? buildPhotoUrl(page.hotel_id, coverPhoto.id)
-    : `${SITE_URL}/assets/images/alibaug-coastline.webp`;
+  const heroImageUrl = coverPhoto ? buildPhotoUrl(page.hotel_id, coverPhoto.id) : `${SITE_URL}/assets/images/alibaug-coastline.webp`;
   const amenities = safeParseJsonArray(page.amenities_json);
   const roomTypes = safeParseJsonArray(page.room_types_json);
   const faqItems = safeParseJsonArray(page.faq_json);
@@ -566,12 +731,7 @@ function renderHtml(page) {
   const mapPlaceUrl = resolvedMapPlaceUrl(page);
   const mapEmbedUrl = resolvedMapEmbedUrl(page);
   const fullAddress = addressSummary(page);
-  const roomTypeOptions = roomTypes.length
-    ? roomTypes
-        .map((item) => `<option value="${escapeHtml(String(item || ""))}">${escapeHtml(String(item || ""))}</option>`)
-        .join("")
-    : `<option value="Standard Room">Standard Room</option><option value="Deluxe Room">Deluxe Room</option><option value="Family Room">Family Room</option>`;
-
+  const roomTypeOptions = roomTypes.length ? roomTypes.map((item) => `<option value="${escapeHtml(String(item || ""))}">${escapeHtml(String(item || ""))}</option>`).join("") : `<option value="Standard Room">Standard Room</option><option value="Deluxe Room">Deluxe Room</option><option value="Family Room">Family Room</option>`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -839,12 +999,12 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
         }
       });
   });
-</script>
+<\/script>
 </body>
 </html>`;
 }
-
-export async function fetchPublishedHotelPage(env, category, slug) {
+__name(renderHtml, "renderHtml");
+async function fetchPublishedHotelPage(env, category, slug) {
   const page = await env.DB.prepare(
     `SELECT
        hpp.*,
@@ -856,14 +1016,10 @@ export async function fetchPublishedHotelPage(env, category, slug) {
        AND lower(hpp.slug) = lower(?2)
        AND hpp.is_published = 1
      LIMIT 1`
-  )
-    .bind(category, slug)
-    .first();
-
+  ).bind(category, slug).first();
   if (!page) {
     return null;
   }
-
   const photos = await env.DB.prepare(
     `SELECT
        id,
@@ -880,38 +1036,31 @@ export async function fetchPublishedHotelPage(env, category, slug) {
      WHERE public_page_id = ?1
        AND is_active = 1
      ORDER BY is_cover DESC, photo_order ASC, created_at ASC`
-  )
-    .bind(page.id)
-    .all();
-
+  ).bind(page.id).all();
   return {
     ...page,
-    photos: photos.results || [],
+    photos: photos.results || []
   };
 }
-
-export function hotelPageResponse(page) {
+__name(fetchPublishedHotelPage, "fetchPublishedHotelPage");
+function hotelPageResponse(page) {
   return new Response(renderHtml(page), {
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "public, max-age=300",
-    },
+      "cache-control": "public, max-age=300"
+    }
   });
 }
-
+__name(hotelPageResponse, "hotelPageResponse");
 async function reservationTableExists(db) {
-  const table = await db
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hotel_future_reservations' LIMIT 1")
-    .first()
-    .catch(() => null);
+  const table = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hotel_future_reservations' LIMIT 1").first().catch(() => null);
   return Boolean(table?.name);
 }
-
+__name(reservationTableExists, "reservationTableExists");
 async function fetchAvailabilityMap(db, filters) {
   if (!filters.hasDateRange) {
-    return new Map();
+    return /* @__PURE__ */ new Map();
   }
-
   const activeStayResults = await db.prepare(
     `SELECT
        lower(hotel_id) AS hotel_id,
@@ -923,15 +1072,13 @@ async function fetchAvailabilityMap(db, filters) {
        AND COALESCE(substr(check_out_time, 1, 10), expected_check_out_date, '9999-12-31') > ?2
      GROUP BY lower(hotel_id)`
   ).bind(filters.checkOut, filters.checkIn).all();
-
-  const map = new Map();
+  const map = /* @__PURE__ */ new Map();
   for (const row of activeStayResults.results || []) {
     map.set(String(row.hotel_id || "").toLowerCase(), {
       occupiedRooms: Number(row.occupied_rooms || 0),
-      reservedRooms: 0,
+      reservedRooms: 0
     });
   }
-
   if (await reservationTableExists(db)) {
     const reservationResults = await db.prepare(
       `SELECT
@@ -942,7 +1089,6 @@ async function fetchAvailabilityMap(db, filters) {
          AND check_out_date > ?2
        GROUP BY lower(hotel_id)`
     ).bind(filters.checkOut, filters.checkIn).all();
-
     for (const row of reservationResults.results || []) {
       const hotelId = String(row.hotel_id || "").toLowerCase();
       const entry = map.get(hotelId) || { occupiedRooms: 0, reservedRooms: 0 };
@@ -950,11 +1096,10 @@ async function fetchAvailabilityMap(db, filters) {
       map.set(hotelId, entry);
     }
   }
-
   return map;
 }
-
-export async function fetchPublishedCategoryPages(env, category, filters = { hasDateRange: false, rooms: 1, adults: 2, children: 0 }) {
+__name(fetchAvailabilityMap, "fetchAvailabilityMap");
+async function fetchPublishedCategoryPages(env, category, filters = { hasDateRange: false, rooms: 1, adults: 2, children: 0 }) {
   const result = await env.DB.prepare(
     `SELECT
        hpp.id,
@@ -997,32 +1142,26 @@ export async function fetchPublishedCategoryPages(env, category, filters = { has
      WHERE hpp.category = ?1
        AND hpp.is_published = 1
      ORDER BY hpp.sort_order ASC, hpp.updated_at DESC, hpp.public_title ASC`
-  )
-    .bind(category)
-    .all();
-
+  ).bind(category).all();
   const pages = result.results || [];
   if (!filters.hasDateRange) {
     return pages;
   }
-
   const availabilityMap = await fetchAvailabilityMap(env.DB, filters);
-  return pages
-    .map((page) => {
-      const hotelId = String(page.hotel_id || "").toLowerCase();
-      const availability = availabilityMap.get(hotelId) || { occupiedRooms: 0, reservedRooms: 0 };
-      const totalRooms = Number(page.total_rooms || page.room_count_display || 0);
-      const blockedRooms = availability.occupiedRooms + availability.reservedRooms;
-      const availableRooms = Math.max(0, totalRooms - blockedRooms);
-      return {
-        ...page,
-        available_rooms: availableRooms,
-        blocked_rooms: blockedRooms,
-      };
-    })
-    .filter((page) => Number(page.available_rooms || 0) >= filters.rooms);
+  return pages.map((page) => {
+    const hotelId = String(page.hotel_id || "").toLowerCase();
+    const availability = availabilityMap.get(hotelId) || { occupiedRooms: 0, reservedRooms: 0 };
+    const totalRooms = Number(page.total_rooms || page.room_count_display || 0);
+    const blockedRooms = availability.occupiedRooms + availability.reservedRooms;
+    const availableRooms = Math.max(0, totalRooms - blockedRooms);
+    return {
+      ...page,
+      available_rooms: availableRooms,
+      blocked_rooms: blockedRooms
+    };
+  }).filter((page) => Number(page.available_rooms || 0) >= filters.rooms);
 }
-
+__name(fetchPublishedCategoryPages, "fetchPublishedCategoryPages");
 function renderCategoryHtml(category, pages, filters) {
   const label = categoryLabel(category);
   const canonicalPath = categoryPath(category);
@@ -1031,12 +1170,8 @@ function renderCategoryHtml(category, pages, filters) {
   const description = categoryDescription(category);
   const countLabel = availabilitySummary(filters, pages.length, label);
   const cards = pages.map((page) => {
-    const imageUrl = page.cover_photo_id
-      ? buildPhotoUrl(page.hotel_id, page.cover_photo_id)
-      : `${SITE_URL}/assets/images/alibaug-coastline.webp`;
-    const location = [page.address_village, page.address_taluka, page.address_district]
-      .filter(Boolean)
-      .join(", ");
+    const imageUrl = page.cover_photo_id ? buildPhotoUrl(page.hotel_id, page.cover_photo_id) : `${SITE_URL}/assets/images/alibaug-coastline.webp`;
+    const location = [page.address_village, page.address_taluka, page.address_district].filter(Boolean).join(", ");
     const roomCount = displayRoomCount(page);
     const beachDistance = displayBeachDistance(page);
     const amenities = safeParseJsonArray(page.amenities_json).slice(0, 4);
@@ -1044,12 +1179,10 @@ function renderCategoryHtml(category, pages, filters) {
     const highlights = [
       roomCount ? `${roomCount} available for listing` : "",
       beachDistance ? `${beachDistance} from the beach` : "",
-      location ? location : "",
+      location ? location : ""
     ].filter(Boolean);
     const href = page.canonical_path || `${canonicalPath}/${page.slug}`;
-    const availabilityText = filters.hasDateRange
-      ? `${Number(page.available_rooms || 0)} room${Number(page.available_rooms || 0) === 1 ? "" : "s"} available for selected dates`
-      : "Open the full page for photos, location map, contact details, and inquiry form.";
+    const availabilityText = filters.hasDateRange ? `${Number(page.available_rooms || 0)} room${Number(page.available_rooms || 0) === 1 ? "" : "s"} available for selected dates` : "Open the full page for photos, location map, contact details, and inquiry form.";
     return `
       <article class="stay-card">
         <div class="stay-card-image">
@@ -1057,7 +1190,7 @@ function renderCategoryHtml(category, pages, filters) {
         </div>
         <div class="stay-card-body">
           <h3><a href="${href}" style="color:inherit;text-decoration:none;">${escapeHtml(page.public_title)}</a></h3>
-          ${location ? `<a class="location-link" href="${href}#location">📍 ${escapeHtml(location)}</a>` : ""}
+          ${location ? `<a class="location-link" href="${href}#location">\u{1F4CD} ${escapeHtml(location)}</a>` : ""}
           <p class="summary">${escapeHtml(excerpt(page.short_description || page.meta_description, 220))}</p>
           ${amenityChips ? `<div class="meta-row">${amenityChips}</div>` : ""}
           ${highlights.length ? `<ul class="highlight-list">${highlights.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
@@ -1078,7 +1211,6 @@ function renderCategoryHtml(category, pages, filters) {
       </article>
     `;
   }).join("");
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1100,12 +1232,12 @@ function renderCategoryHtml(category, pages, filters) {
 <meta name="twitter:image" content="${SITE_URL}/assets/images/alibaug-coastline.webp">
 ${DIRECTORY_PAGE_STYLES}
 <script type="application/ld+json">${JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  name: title,
-  description,
-  url: canonicalUrl,
-})}</script>
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: title,
+    description,
+    url: canonicalUrl
+  })}<\/script>
 </head>
 <body class="directory-page">
 <header class="site-header">
@@ -1130,7 +1262,7 @@ ${DIRECTORY_PAGE_STYLES}
       <p class="lead">${escapeHtml(description)}</p>
       <div class="results-note">
         <span class="results-pill">${escapeHtml(countLabel)}</span>
-        ${filters.hasDateRange ? `<span class="results-pill">${escapeHtml(`${filters.adults} adults • ${filters.children} children • ${filters.rooms} room${filters.rooms === 1 ? "" : "s"}`)}</span>` : ""}
+        ${filters.hasDateRange ? `<span class="results-pill">${escapeHtml(`${filters.adults} adults \u2022 ${filters.children} children \u2022 ${filters.rooms} room${filters.rooms === 1 ? "" : "s"}`)}</span>` : ""}
       </div>
       ${renderAvailabilitySearch(category, filters)}
     </div>
@@ -1181,12 +1313,779 @@ ${DIRECTORY_PAGE_STYLES}
 </body>
 </html>`;
 }
-
-export function categoryPageResponse(category, pages, filters = { hasDateRange: false, rooms: 1, adults: 2, children: 0 }) {
+__name(renderCategoryHtml, "renderCategoryHtml");
+function categoryPageResponse(category, pages, filters = { hasDateRange: false, rooms: 1, adults: 2, children: 0 }) {
   return new Response(renderCategoryHtml(category, pages, filters), {
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "public, max-age=300",
-    },
+      "cache-control": "public, max-age=300"
+    }
   });
 }
+__name(categoryPageResponse, "categoryPageResponse");
+
+// cottages/[slug].js
+async function onRequestGet(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for cottage detail page.", { status: 500 });
+    }
+    const slug = context.params.slug;
+    const page = await fetchPublishedHotelPage(context.env, "cottage", slug);
+    if (!page) {
+      return new Response("Cottage page not found", { status: 404 });
+    }
+    return hotelPageResponse(page);
+  } catch (error) {
+    return new Response(`Website error in cottage detail page: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet, "onRequestGet");
+
+// homestays/[slug].js
+async function onRequestGet2(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for homestay detail page.", { status: 500 });
+    }
+    const slug = context.params.slug;
+    const page = await fetchPublishedHotelPage(context.env, "homestay", slug);
+    if (!page) {
+      return new Response("Homestay page not found", { status: 404 });
+    }
+    return hotelPageResponse(page);
+  } catch (error) {
+    return new Response(`Website error in homestay detail page: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet2, "onRequestGet");
+
+// hotels/[slug].js
+async function onRequestGet3(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for hotel detail page.", { status: 500 });
+    }
+    const slug = context.params.slug;
+    const page = await fetchPublishedHotelPage(context.env, "hotel", slug);
+    if (!page) {
+      return new Response("Hotel page not found", { status: 404 });
+    }
+    return hotelPageResponse(page);
+  } catch (error) {
+    return new Response(`Website error in hotel detail page: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet3, "onRequestGet");
+
+// resorts/[slug].js
+async function onRequestGet4(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for resort detail page.", { status: 500 });
+    }
+    const slug = context.params.slug;
+    const page = await fetchPublishedHotelPage(context.env, "resort", slug);
+    if (!page) {
+      return new Response("Resort page not found", { status: 404 });
+    }
+    return hotelPageResponse(page);
+  } catch (error) {
+    return new Response(`Website error in resort detail page: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet4, "onRequestGet");
+
+// cottages/index.js
+async function onRequestGet5(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for cottages directory.", { status: 500 });
+    }
+    const filters = parseAvailabilityFilters(new URL(context.request.url).searchParams);
+    const pages = await fetchPublishedCategoryPages(context.env, "cottage", filters);
+    return categoryPageResponse("cottage", pages, filters);
+  } catch (error) {
+    return new Response(`Website error in cottages directory: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet5, "onRequestGet");
+
+// homestays/index.js
+async function onRequestGet6(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for homestays directory.", { status: 500 });
+    }
+    const filters = parseAvailabilityFilters(new URL(context.request.url).searchParams);
+    const pages = await fetchPublishedCategoryPages(context.env, "homestay", filters);
+    return categoryPageResponse("homestay", pages, filters);
+  } catch (error) {
+    return new Response(`Website error in homestays directory: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet6, "onRequestGet");
+
+// hotels/index.js
+async function onRequestGet7(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for hotels directory.", { status: 500 });
+    }
+    const filters = parseAvailabilityFilters(new URL(context.request.url).searchParams);
+    const pages = await fetchPublishedCategoryPages(context.env, "hotel", filters);
+    return categoryPageResponse("hotel", pages, filters);
+  } catch (error) {
+    return new Response(`Website error in hotels directory: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet7, "onRequestGet");
+
+// resorts/index.js
+async function onRequestGet8(context) {
+  try {
+    if (!context.env?.DB) {
+      return new Response("Website error: DB binding is missing for resorts directory.", { status: 500 });
+    }
+    const filters = parseAvailabilityFilters(new URL(context.request.url).searchParams);
+    const pages = await fetchPublishedCategoryPages(context.env, "resort", filters);
+    return categoryPageResponse("resort", pages, filters);
+  } catch (error) {
+    return new Response(`Website error in resorts directory: ${error instanceof Error ? error.message : "Unknown error"}`, { status: 500 });
+  }
+}
+__name(onRequestGet8, "onRequestGet");
+
+// sitemap.xml.js
+var SITE_URL2 = "https://hotelsinalibaug.in";
+var STATIC_PATHS = [
+  "/",
+  "/hotels",
+  "/resorts",
+  "/cottages",
+  "/homestays",
+  "/about.html",
+  "/contact.html",
+  "/pricing.html",
+  "/privacy-policy.html",
+  "/editorial-policy.html",
+  "/alibaug-travel-guide.html",
+  "/best-hotels-in-alibaug.html",
+  "/beach-resorts-in-alibaug.html",
+  "/budget-hotels-in-alibaug.html",
+  "/family-resorts-in-alibaug.html",
+  "/group-stay-in-alibaug.html",
+  "/hidden-beaches-in-alibaug.html",
+  "/hotels-for-couples-in-alibaug.html",
+  "/hotels-near-alibaug-beach.html",
+  "/how-to-reach-alibaug-from-mumbai.html",
+  "/kashid-beach-travel-guide.html",
+  "/luxury-resorts-in-alibaug.html",
+  "/nagaon-beach-alibaug-travel-guide.html",
+  "/pet-friendly-hotels-in-alibaug.html",
+  "/resorts-near-kashid-beach.html",
+  "/resorts-near-nagaon-beach.html",
+  "/things-to-do-in-alibaug.html",
+  "/top-beaches-in-alibaug.html",
+  "/ultimate-alibaug-travel-guide-2026.html",
+  "/water-sports-in-alibaug.html",
+  "/weekend-stay-in-alibaug.html",
+  "/weekend-trip-from-mumbai-to-alibaug.html",
+  "/1-day-alibaug-trip-from-mumbai.html",
+  "/2-day-alibaug-itinerary.html",
+  "/alibaug-beach-sunset-guide.html",
+  "/best-seafood-restaurants-in-alibaug.html",
+  "/best-time-to-visit-alibaug.html",
+  "/hotel-guest-checkin-app-alibaug.html"
+];
+function xmlEscape(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+__name(xmlEscape, "xmlEscape");
+function normalizeDate(value) {
+  const text = String(value || "").slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "2026-07-22";
+}
+__name(normalizeDate, "normalizeDate");
+function makeUrlEntry(path, lastmod, priority = "0.7") {
+  const loc = path.startsWith("http") ? path : `${SITE_URL2}${path}`;
+  return [
+    "  <url>",
+    `    <loc>${xmlEscape(loc)}</loc>`,
+    `    <lastmod>${xmlEscape(normalizeDate(lastmod))}</lastmod>`,
+    `    <priority>${xmlEscape(priority)}</priority>`,
+    "  </url>"
+  ].join("\n");
+}
+__name(makeUrlEntry, "makeUrlEntry");
+async function loadPublishedHotelPages(db) {
+  const result = await db.prepare(
+    `SELECT
+       canonical_path,
+       updated_at
+     FROM hotel_public_pages
+     WHERE is_published = 1
+       AND canonical_path IS NOT NULL
+       AND trim(canonical_path) <> ''
+     ORDER BY updated_at DESC, canonical_path ASC`
+  ).all();
+  return result.results || [];
+}
+__name(loadPublishedHotelPages, "loadPublishedHotelPages");
+async function onRequestGet9(context) {
+  const today = "2026-07-22";
+  const staticEntries = STATIC_PATHS.map((path) => makeUrlEntry(path, today, path === "/" ? "1.0" : "0.8"));
+  let dynamicEntries = [];
+  if (context.env?.DB) {
+    try {
+      const publishedPages = await loadPublishedHotelPages(context.env.DB);
+      dynamicEntries = publishedPages.map((page) => makeUrlEntry(page.canonical_path, page.updated_at || today, "0.9"));
+    } catch {
+      dynamicEntries = [];
+    }
+  }
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...staticEntries,
+    ...dynamicEntries,
+    "</urlset>"
+  ].join("\n");
+  return new Response(xml, {
+    headers: {
+      "content-type": "application/xml; charset=utf-8",
+      "cache-control": "public, max-age=3600"
+    }
+  });
+}
+__name(onRequestGet9, "onRequestGet");
+
+// ../../.wrangler/tmp/pages-AVAImT/functionsRoutes-0.9333326453980537.mjs
+var routes = [
+  {
+    routePath: "/api/inquiry",
+    mountPath: "/api",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions]
+  },
+  {
+    routePath: "/api/inquiry",
+    mountPath: "/api",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost]
+  },
+  {
+    routePath: "/cottages/:slug",
+    mountPath: "/cottages",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet]
+  },
+  {
+    routePath: "/homestays/:slug",
+    mountPath: "/homestays",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet2]
+  },
+  {
+    routePath: "/hotels/:slug",
+    mountPath: "/hotels",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet3]
+  },
+  {
+    routePath: "/resorts/:slug",
+    mountPath: "/resorts",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet4]
+  },
+  {
+    routePath: "/cottages",
+    mountPath: "/cottages",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet5]
+  },
+  {
+    routePath: "/homestays",
+    mountPath: "/homestays",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet6]
+  },
+  {
+    routePath: "/hotels",
+    mountPath: "/hotels",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet7]
+  },
+  {
+    routePath: "/resorts",
+    mountPath: "/resorts",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet8]
+  },
+  {
+    routePath: "/sitemap.xml",
+    mountPath: "/",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet9]
+  }
+];
+
+// ../../../Users/gjpat/AppData/Local/nvm/v20.18.1/node_modules/wrangler/node_modules/path-to-regexp/dist.es2015/index.js
+function lexer(str) {
+  var tokens = [];
+  var i = 0;
+  while (i < str.length) {
+    var char = str[i];
+    if (char === "*" || char === "+" || char === "?") {
+      tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
+      continue;
+    }
+    if (char === "\\") {
+      tokens.push({ type: "ESCAPED_CHAR", index: i++, value: str[i++] });
+      continue;
+    }
+    if (char === "{") {
+      tokens.push({ type: "OPEN", index: i, value: str[i++] });
+      continue;
+    }
+    if (char === "}") {
+      tokens.push({ type: "CLOSE", index: i, value: str[i++] });
+      continue;
+    }
+    if (char === ":") {
+      var name = "";
+      var j = i + 1;
+      while (j < str.length) {
+        var code = str.charCodeAt(j);
+        if (
+          // `0-9`
+          code >= 48 && code <= 57 || // `A-Z`
+          code >= 65 && code <= 90 || // `a-z`
+          code >= 97 && code <= 122 || // `_`
+          code === 95
+        ) {
+          name += str[j++];
+          continue;
+        }
+        break;
+      }
+      if (!name)
+        throw new TypeError("Missing parameter name at ".concat(i));
+      tokens.push({ type: "NAME", index: i, value: name });
+      i = j;
+      continue;
+    }
+    if (char === "(") {
+      var count = 1;
+      var pattern = "";
+      var j = i + 1;
+      if (str[j] === "?") {
+        throw new TypeError('Pattern cannot start with "?" at '.concat(j));
+      }
+      while (j < str.length) {
+        if (str[j] === "\\") {
+          pattern += str[j++] + str[j++];
+          continue;
+        }
+        if (str[j] === ")") {
+          count--;
+          if (count === 0) {
+            j++;
+            break;
+          }
+        } else if (str[j] === "(") {
+          count++;
+          if (str[j + 1] !== "?") {
+            throw new TypeError("Capturing groups are not allowed at ".concat(j));
+          }
+        }
+        pattern += str[j++];
+      }
+      if (count)
+        throw new TypeError("Unbalanced pattern at ".concat(i));
+      if (!pattern)
+        throw new TypeError("Missing pattern at ".concat(i));
+      tokens.push({ type: "PATTERN", index: i, value: pattern });
+      i = j;
+      continue;
+    }
+    tokens.push({ type: "CHAR", index: i, value: str[i++] });
+  }
+  tokens.push({ type: "END", index: i, value: "" });
+  return tokens;
+}
+__name(lexer, "lexer");
+function parse(str, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  var tokens = lexer(str);
+  var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a, _b = options.delimiter, delimiter = _b === void 0 ? "/#?" : _b;
+  var result = [];
+  var key = 0;
+  var i = 0;
+  var path = "";
+  var tryConsume = /* @__PURE__ */ __name(function(type) {
+    if (i < tokens.length && tokens[i].type === type)
+      return tokens[i++].value;
+  }, "tryConsume");
+  var mustConsume = /* @__PURE__ */ __name(function(type) {
+    var value2 = tryConsume(type);
+    if (value2 !== void 0)
+      return value2;
+    var _a2 = tokens[i], nextType = _a2.type, index = _a2.index;
+    throw new TypeError("Unexpected ".concat(nextType, " at ").concat(index, ", expected ").concat(type));
+  }, "mustConsume");
+  var consumeText = /* @__PURE__ */ __name(function() {
+    var result2 = "";
+    var value2;
+    while (value2 = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")) {
+      result2 += value2;
+    }
+    return result2;
+  }, "consumeText");
+  var isSafe = /* @__PURE__ */ __name(function(value2) {
+    for (var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++) {
+      var char2 = delimiter_1[_i];
+      if (value2.indexOf(char2) > -1)
+        return true;
+    }
+    return false;
+  }, "isSafe");
+  var safePattern = /* @__PURE__ */ __name(function(prefix2) {
+    var prev = result[result.length - 1];
+    var prevText = prefix2 || (prev && typeof prev === "string" ? prev : "");
+    if (prev && !prevText) {
+      throw new TypeError('Must have text between two parameters, missing text after "'.concat(prev.name, '"'));
+    }
+    if (!prevText || isSafe(prevText))
+      return "[^".concat(escapeString(delimiter), "]+?");
+    return "(?:(?!".concat(escapeString(prevText), ")[^").concat(escapeString(delimiter), "])+?");
+  }, "safePattern");
+  while (i < tokens.length) {
+    var char = tryConsume("CHAR");
+    var name = tryConsume("NAME");
+    var pattern = tryConsume("PATTERN");
+    if (name || pattern) {
+      var prefix = char || "";
+      if (prefixes.indexOf(prefix) === -1) {
+        path += prefix;
+        prefix = "";
+      }
+      if (path) {
+        result.push(path);
+        path = "";
+      }
+      result.push({
+        name: name || key++,
+        prefix,
+        suffix: "",
+        pattern: pattern || safePattern(prefix),
+        modifier: tryConsume("MODIFIER") || ""
+      });
+      continue;
+    }
+    var value = char || tryConsume("ESCAPED_CHAR");
+    if (value) {
+      path += value;
+      continue;
+    }
+    if (path) {
+      result.push(path);
+      path = "";
+    }
+    var open = tryConsume("OPEN");
+    if (open) {
+      var prefix = consumeText();
+      var name_1 = tryConsume("NAME") || "";
+      var pattern_1 = tryConsume("PATTERN") || "";
+      var suffix = consumeText();
+      mustConsume("CLOSE");
+      result.push({
+        name: name_1 || (pattern_1 ? key++ : ""),
+        pattern: name_1 && !pattern_1 ? safePattern(prefix) : pattern_1,
+        prefix,
+        suffix,
+        modifier: tryConsume("MODIFIER") || ""
+      });
+      continue;
+    }
+    mustConsume("END");
+  }
+  return result;
+}
+__name(parse, "parse");
+function match(str, options) {
+  var keys = [];
+  var re = pathToRegexp(str, keys, options);
+  return regexpToFunction(re, keys, options);
+}
+__name(match, "match");
+function regexpToFunction(re, keys, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  var _a = options.decode, decode = _a === void 0 ? function(x) {
+    return x;
+  } : _a;
+  return function(pathname) {
+    var m = re.exec(pathname);
+    if (!m)
+      return false;
+    var path = m[0], index = m.index;
+    var params = /* @__PURE__ */ Object.create(null);
+    var _loop_1 = /* @__PURE__ */ __name(function(i2) {
+      if (m[i2] === void 0)
+        return "continue";
+      var key = keys[i2 - 1];
+      if (key.modifier === "*" || key.modifier === "+") {
+        params[key.name] = m[i2].split(key.prefix + key.suffix).map(function(value) {
+          return decode(value, key);
+        });
+      } else {
+        params[key.name] = decode(m[i2], key);
+      }
+    }, "_loop_1");
+    for (var i = 1; i < m.length; i++) {
+      _loop_1(i);
+    }
+    return { path, index, params };
+  };
+}
+__name(regexpToFunction, "regexpToFunction");
+function escapeString(str) {
+  return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
+}
+__name(escapeString, "escapeString");
+function flags(options) {
+  return options && options.sensitive ? "" : "i";
+}
+__name(flags, "flags");
+function regexpToRegexp(path, keys) {
+  if (!keys)
+    return path;
+  var groupsRegex = /\((?:\?<(.*?)>)?(?!\?)/g;
+  var index = 0;
+  var execResult = groupsRegex.exec(path.source);
+  while (execResult) {
+    keys.push({
+      // Use parenthesized substring match if available, index otherwise
+      name: execResult[1] || index++,
+      prefix: "",
+      suffix: "",
+      modifier: "",
+      pattern: ""
+    });
+    execResult = groupsRegex.exec(path.source);
+  }
+  return path;
+}
+__name(regexpToRegexp, "regexpToRegexp");
+function arrayToRegexp(paths, keys, options) {
+  var parts = paths.map(function(path) {
+    return pathToRegexp(path, keys, options).source;
+  });
+  return new RegExp("(?:".concat(parts.join("|"), ")"), flags(options));
+}
+__name(arrayToRegexp, "arrayToRegexp");
+function stringToRegexp(path, keys, options) {
+  return tokensToRegexp(parse(path, options), keys, options);
+}
+__name(stringToRegexp, "stringToRegexp");
+function tokensToRegexp(tokens, keys, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  var _a = options.strict, strict = _a === void 0 ? false : _a, _b = options.start, start = _b === void 0 ? true : _b, _c = options.end, end = _c === void 0 ? true : _c, _d = options.encode, encode = _d === void 0 ? function(x) {
+    return x;
+  } : _d, _e = options.delimiter, delimiter = _e === void 0 ? "/#?" : _e, _f = options.endsWith, endsWith = _f === void 0 ? "" : _f;
+  var endsWithRe = "[".concat(escapeString(endsWith), "]|$");
+  var delimiterRe = "[".concat(escapeString(delimiter), "]");
+  var route = start ? "^" : "";
+  for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
+    var token = tokens_1[_i];
+    if (typeof token === "string") {
+      route += escapeString(encode(token));
+    } else {
+      var prefix = escapeString(encode(token.prefix));
+      var suffix = escapeString(encode(token.suffix));
+      if (token.pattern) {
+        if (keys)
+          keys.push(token);
+        if (prefix || suffix) {
+          if (token.modifier === "+" || token.modifier === "*") {
+            var mod = token.modifier === "*" ? "?" : "";
+            route += "(?:".concat(prefix, "((?:").concat(token.pattern, ")(?:").concat(suffix).concat(prefix, "(?:").concat(token.pattern, "))*)").concat(suffix, ")").concat(mod);
+          } else {
+            route += "(?:".concat(prefix, "(").concat(token.pattern, ")").concat(suffix, ")").concat(token.modifier);
+          }
+        } else {
+          if (token.modifier === "+" || token.modifier === "*") {
+            throw new TypeError('Can not repeat "'.concat(token.name, '" without a prefix and suffix'));
+          }
+          route += "(".concat(token.pattern, ")").concat(token.modifier);
+        }
+      } else {
+        route += "(?:".concat(prefix).concat(suffix, ")").concat(token.modifier);
+      }
+    }
+  }
+  if (end) {
+    if (!strict)
+      route += "".concat(delimiterRe, "?");
+    route += !options.endsWith ? "$" : "(?=".concat(endsWithRe, ")");
+  } else {
+    var endToken = tokens[tokens.length - 1];
+    var isEndDelimited = typeof endToken === "string" ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1 : endToken === void 0;
+    if (!strict) {
+      route += "(?:".concat(delimiterRe, "(?=").concat(endsWithRe, "))?");
+    }
+    if (!isEndDelimited) {
+      route += "(?=".concat(delimiterRe, "|").concat(endsWithRe, ")");
+    }
+  }
+  return new RegExp(route, flags(options));
+}
+__name(tokensToRegexp, "tokensToRegexp");
+function pathToRegexp(path, keys, options) {
+  if (path instanceof RegExp)
+    return regexpToRegexp(path, keys);
+  if (Array.isArray(path))
+    return arrayToRegexp(path, keys, options);
+  return stringToRegexp(path, keys, options);
+}
+__name(pathToRegexp, "pathToRegexp");
+
+// ../../../Users/gjpat/AppData/Local/nvm/v20.18.1/node_modules/wrangler/templates/pages-template-worker.ts
+var escapeRegex = /[.+?^${}()|[\]\\]/g;
+function* executeRequest(request) {
+  const requestPath = new URL(request.url).pathname;
+  for (const route of [...routes].reverse()) {
+    if (route.method && route.method !== request.method) {
+      continue;
+    }
+    const routeMatcher = match(route.routePath.replace(escapeRegex, "\\$&"), {
+      end: false
+    });
+    const mountMatcher = match(route.mountPath.replace(escapeRegex, "\\$&"), {
+      end: false
+    });
+    const matchResult = routeMatcher(requestPath);
+    const mountMatchResult = mountMatcher(requestPath);
+    if (matchResult && mountMatchResult) {
+      for (const handler of route.middlewares.flat()) {
+        yield {
+          handler,
+          params: matchResult.params,
+          path: mountMatchResult.path
+        };
+      }
+    }
+  }
+  for (const route of routes) {
+    if (route.method && route.method !== request.method) {
+      continue;
+    }
+    const routeMatcher = match(route.routePath.replace(escapeRegex, "\\$&"), {
+      end: true
+    });
+    const mountMatcher = match(route.mountPath.replace(escapeRegex, "\\$&"), {
+      end: false
+    });
+    const matchResult = routeMatcher(requestPath);
+    const mountMatchResult = mountMatcher(requestPath);
+    if (matchResult && mountMatchResult && route.modules.length) {
+      for (const handler of route.modules.flat()) {
+        yield {
+          handler,
+          params: matchResult.params,
+          path: matchResult.path
+        };
+      }
+      break;
+    }
+  }
+}
+__name(executeRequest, "executeRequest");
+var pages_template_worker_default = {
+  async fetch(originalRequest, env, workerContext) {
+    let request = originalRequest;
+    const handlerIterator = executeRequest(request);
+    let data = {};
+    let isFailOpen = false;
+    const next = /* @__PURE__ */ __name(async (input, init) => {
+      if (input !== void 0) {
+        let url = input;
+        if (typeof input === "string") {
+          url = new URL(input, request.url).toString();
+        }
+        request = new Request(url, init);
+      }
+      const result = handlerIterator.next();
+      if (result.done === false) {
+        const { handler, params, path } = result.value;
+        const context = {
+          request: new Request(request.clone()),
+          functionPath: path,
+          next,
+          params,
+          get data() {
+            return data;
+          },
+          set data(value) {
+            if (typeof value !== "object" || value === null) {
+              throw new Error("context.data must be an object");
+            }
+            data = value;
+          },
+          env,
+          waitUntil: workerContext.waitUntil.bind(workerContext),
+          passThroughOnException: /* @__PURE__ */ __name(() => {
+            isFailOpen = true;
+          }, "passThroughOnException")
+        };
+        const response = await handler(context);
+        if (!(response instanceof Response)) {
+          throw new Error("Your Pages function should return a Response");
+        }
+        return cloneResponse(response);
+      } else if ("ASSETS") {
+        const response = await env["ASSETS"].fetch(request);
+        return cloneResponse(response);
+      } else {
+        const response = await fetch(request);
+        return cloneResponse(response);
+      }
+    }, "next");
+    try {
+      return await next();
+    } catch (error) {
+      if (isFailOpen) {
+        const response = await env["ASSETS"].fetch(request);
+        return cloneResponse(response);
+      }
+      throw error;
+    }
+  }
+};
+var cloneResponse = /* @__PURE__ */ __name((response) => (
+  // https://fetch.spec.whatwg.org/#null-body-status
+  new Response(
+    [101, 204, 205, 304].includes(response.status) ? null : response.body,
+    response
+  )
+), "cloneResponse");
+export {
+  pages_template_worker_default as default
+};
