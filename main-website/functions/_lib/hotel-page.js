@@ -157,6 +157,29 @@ function renderPhotoGallery(page) {
   `;
 }
 
+function displayRoomCount(page) {
+  const count = Number(page.room_count_display || page.total_rooms || 0);
+  if (!Number.isFinite(count) || count <= 0) {
+    return "";
+  }
+  return `${count} room${count === 1 ? "" : "s"}`;
+}
+
+function displayBeachDistance(page) {
+  if (page.beach_distance_label) {
+    return String(page.beach_distance_label);
+  }
+  const meters = Number(page.beach_distance_meters || 0);
+  if (!Number.isFinite(meters) || meters <= 0) {
+    return "";
+  }
+  if (meters < 1000) {
+    return `${meters} m`;
+  }
+  const km = meters / 1000;
+  return Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
+}
+
 function hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems) {
   const data = {
     "@context": "https://schema.org",
@@ -225,6 +248,8 @@ function renderHtml(page) {
   const nearbyItems = safeParseJsonArray(page.nearby_places_json);
   const policies = safeParseJsonArray(page.policies_json);
   const whatsappText = encodeURIComponent(page.inquiry_whatsapp_prefill || `Hello, I want to enquire about ${page.public_title}.`);
+  const roomCountLabel = displayRoomCount(page);
+  const beachDistanceLabel = displayBeachDistance(page);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -296,6 +321,8 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
           <h3>Quick Facts</h3>
           <ul>
             <li><strong>Category:</strong> ${escapeHtml(categoryLabel(page.category))}</li>
+            ${roomCountLabel ? `<li><strong>Rooms:</strong> ${escapeHtml(roomCountLabel)}</li>` : ""}
+            ${beachDistanceLabel ? `<li><strong>Beach Distance:</strong> ${escapeHtml(beachDistanceLabel)}</li>` : ""}
             ${page.check_in_time ? `<li><strong>Check-in:</strong> ${escapeHtml(page.check_in_time)}</li>` : ""}
             ${page.check_out_time ? `<li><strong>Check-out:</strong> ${escapeHtml(page.check_out_time)}</li>` : ""}
             ${page.address_village ? `<li><strong>Village:</strong> ${escapeHtml(page.address_village)}</li>` : ""}
@@ -310,6 +337,7 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
     <div class="container content-grid">
       <article class="content-card">
         <h3>Room Types</h3>
+        ${roomCountLabel ? `<p><strong>Total Rooms:</strong> ${escapeHtml(roomCountLabel)}</p>` : ""}
         ${renderList(roomTypes, "Room type details will be updated soon.")}
       </article>
       <article class="content-card">
@@ -478,6 +506,9 @@ export async function fetchPublishedCategoryPages(env, category) {
        hpp.meta_title,
        hpp.meta_description,
        hpp.short_description,
+       hpp.room_count_display,
+       hpp.beach_distance_meters,
+       hpp.beach_distance_label,
        hpp.address_village,
        hpp.address_taluka,
        hpp.address_district,
@@ -487,6 +518,7 @@ export async function fetchPublishedCategoryPages(env, category) {
        hpp.canonical_path,
        hpp.sort_order,
        h.name AS hotel_name,
+       h.total_rooms,
        (
          SELECT p.id
          FROM hotel_public_page_photos p
@@ -521,6 +553,9 @@ function renderCategoryHtml(category, pages) {
     const location = [page.address_village, page.address_taluka, page.address_district]
       .filter(Boolean)
       .join(", ");
+    const roomCount = displayRoomCount(page);
+    const beachDistance = displayBeachDistance(page);
+    const amenities = safeParseJsonArray(page.amenities_json).slice(0, 3);
     const href = page.canonical_path || `${canonicalPath}/${page.slug}`;
     return `
       <article class="stay-card">
@@ -528,6 +563,9 @@ function renderCategoryHtml(category, pages) {
         <h3>${escapeHtml(page.public_title)}</h3>
         <p>${escapeHtml(excerpt(page.short_description || page.meta_description))}</p>
         ${location ? `<p class="meta"><strong>Location:</strong> ${escapeHtml(location)}</p>` : ""}
+        ${roomCount ? `<p class="meta"><strong>Rooms:</strong> ${escapeHtml(roomCount)}</p>` : ""}
+        ${beachDistance ? `<p class="meta"><strong>Beach:</strong> ${escapeHtml(beachDistance)}</p>` : ""}
+        ${amenities.length ? `<p class="meta"><strong>Amenities:</strong> ${escapeHtml(amenities.join(", "))}</p>` : ""}
         <div class="button-row">
           <a class="button primary" href="${href}">View Details</a>
           ${page.primary_phone ? `<a class="button secondary" href="tel:${escapeHtml(page.primary_phone)}">Call</a>` : ""}

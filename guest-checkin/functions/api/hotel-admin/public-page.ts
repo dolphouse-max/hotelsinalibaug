@@ -1,7 +1,9 @@
 import { requireHotelAdminSession } from "../../_lib/auth";
 import { getHotelDriveAccessToken, uploadFileToHotelDrive } from "../../_lib/google-drive";
 import {
+  formatBeachDistanceLabel,
   ensurePublicPageTables,
+  mergeSelectedWithCustom,
   multilineToSimpleList,
   normalizePublicPagePayload,
   parseFaqLines,
@@ -64,7 +66,7 @@ function parseBoolean(value: string) {
 
 async function getPageForHotel(env: Env, hotelId: string) {
   const page = await env.DB.prepare(
-    `SELECT hpp.*, h.name AS hotel_name
+    `SELECT hpp.*, h.name AS hotel_name, h.total_rooms
      FROM hotel_public_pages hpp
      INNER JOIN hotels h
        ON lower(h.id) = lower(hpp.hotel_id)
@@ -109,6 +111,11 @@ function buildEditablePayload(formData: FormData, existingPage: Record<string, u
   const category = String(existingPage.category || "hotel");
   const slug = String(existingPage.slug || "");
   const canonicalPath = String(existingPage.canonical_path || "");
+  const selectedAmenities = formData.getAll("amenity_selected");
+  const selectedRoomTypes = formData.getAll("room_type_selected");
+  const roomCountDisplay = normalizeText(formData.get("room_count_display")) || String(existingPage.room_count_display || existingPage.total_rooms || "");
+  const beachDistanceMeters = normalizeText(formData.get("beach_distance_meters"));
+  const beachDistanceLabel = formatBeachDistanceLabel(beachDistanceMeters, normalizeText(formData.get("beach_distance_label")));
 
   return normalizePublicPagePayload(
     {
@@ -132,8 +139,11 @@ function buildEditablePayload(formData: FormData, existingPage: Record<string, u
       google_maps_place_url: normalizeText(formData.get("google_maps_place_url")),
       check_in_time: normalizeText(formData.get("check_in_time")),
       check_out_time: normalizeText(formData.get("check_out_time")),
-      amenities_json: multilineToSimpleList(normalizeText(formData.get("amenities_lines"))),
-      room_types_json: multilineToSimpleList(normalizeText(formData.get("room_types_lines"))),
+      room_count_display: roomCountDisplay,
+      beach_distance_meters: beachDistanceMeters,
+      beach_distance_label: beachDistanceLabel,
+      amenities_json: mergeSelectedWithCustom(selectedAmenities, normalizeText(formData.get("amenities_lines"))),
+      room_types_json: mergeSelectedWithCustom(selectedRoomTypes, normalizeText(formData.get("room_types_lines"))),
       faq_json: parseFaqLines(normalizeText(formData.get("faq_lines"))),
       nearby_places_json: parseNearbyLines(normalizeText(formData.get("nearby_places_lines"))),
       policies_json: multilineToSimpleList(normalizeText(formData.get("policies_lines"))),
@@ -331,12 +341,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
            google_maps_place_url = ?15,
            check_in_time = ?16,
            check_out_time = ?17,
-           room_types_json = ?18,
-           amenities_json = ?19,
-           faq_json = ?20,
-           nearby_places_json = ?21,
-           policies_json = ?22,
-           inquiry_whatsapp_prefill = ?23,
+           room_count_display = ?18,
+           beach_distance_meters = ?19,
+           beach_distance_label = ?20,
+           room_types_json = ?21,
+           amenities_json = ?22,
+           faq_json = ?23,
+           nearby_places_json = ?24,
+           policies_json = ?25,
+           inquiry_whatsapp_prefill = ?26,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = ?1`
     )
@@ -358,6 +371,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         payload.googleMapsPlaceUrl,
         payload.checkInTime,
         payload.checkOutTime,
+        payload.roomCountDisplay,
+        payload.beachDistanceMeters,
+        payload.beachDistanceLabel,
         payload.roomTypesJson,
         payload.amenitiesJson,
         payload.faqJson,

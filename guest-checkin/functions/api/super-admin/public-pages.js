@@ -21,7 +21,7 @@ function badRequest(message) {
 
 async function getHotel(env, hotelId) {
   return env.DB.prepare(
-    `SELECT id, name, contact, address
+    `SELECT id, name, contact, address, total_rooms
      FROM hotels
      WHERE lower(id) = lower(?1)
      LIMIT 1`
@@ -42,6 +42,9 @@ async function listPages(env) {
        hpp.meta_title,
        hpp.meta_description,
        hpp.short_description,
+       hpp.room_count_display,
+       hpp.beach_distance_meters,
+       hpp.beach_distance_label,
        hpp.is_published,
        hpp.sort_order,
        hpp.updated_at,
@@ -63,7 +66,7 @@ async function listPages(env) {
 async function getPageDetails(env, pageId, hotelId) {
   const page = pageId
     ? await env.DB.prepare(
-        `SELECT hpp.*, h.name AS hotel_name
+        `SELECT hpp.*, h.name AS hotel_name, h.total_rooms
          FROM hotel_public_pages hpp
          INNER JOIN hotels h
            ON lower(h.id) = lower(hpp.hotel_id)
@@ -73,7 +76,7 @@ async function getPageDetails(env, pageId, hotelId) {
         .bind(pageId)
         .first()
     : await env.DB.prepare(
-        `SELECT hpp.*, h.name AS hotel_name
+        `SELECT hpp.*, h.name AS hotel_name, h.total_rooms
          FROM hotel_public_pages hpp
          INNER JOIN hotels h
            ON lower(h.id) = lower(hpp.hotel_id)
@@ -203,16 +206,19 @@ export async function onRequestPost(context) {
              google_maps_place_url = ?22,
              check_in_time = ?23,
              check_out_time = ?24,
-             room_types_json = ?25,
-             amenities_json = ?26,
-             faq_json = ?27,
-             nearby_places_json = ?28,
-             policies_json = ?29,
-             inquiry_whatsapp_prefill = ?30,
-             canonical_path = ?31,
-             is_published = ?32,
-             sort_order = ?33,
-             last_reviewed_by = ?34,
+             room_count_display = ?25,
+             beach_distance_meters = ?26,
+             beach_distance_label = ?27,
+             room_types_json = ?28,
+             amenities_json = ?29,
+             faq_json = ?30,
+             nearby_places_json = ?31,
+             policies_json = ?32,
+             inquiry_whatsapp_prefill = ?33,
+             canonical_path = ?34,
+             is_published = ?35,
+             sort_order = ?36,
+             last_reviewed_by = ?37,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = ?1`
       )
@@ -241,6 +247,9 @@ export async function onRequestPost(context) {
           normalized.googleMapsPlaceUrl,
           normalized.checkInTime,
           normalized.checkOutTime,
+          normalized.roomCountDisplay,
+          normalized.beachDistanceMeters,
+          normalized.beachDistanceLabel,
           normalized.roomTypesJson,
           normalized.amenitiesJson,
           normalized.faqJson,
@@ -284,6 +293,9 @@ export async function onRequestPost(context) {
            google_maps_place_url,
            check_in_time,
            check_out_time,
+           room_count_display,
+           beach_distance_meters,
+           beach_distance_label,
            room_types_json,
            amenities_json,
            faq_json,
@@ -299,7 +311,7 @@ export async function onRequestPost(context) {
            ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10,
            ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20,
            ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30,
-           ?31, ?32, ?33, ?34, ?35
+           ?31, ?32, ?33, ?34, ?35, ?36, ?37, ?38
          )`
       )
         .bind(
@@ -327,6 +339,9 @@ export async function onRequestPost(context) {
           normalized.googleMapsPlaceUrl,
           normalized.checkInTime,
           normalized.checkOutTime,
+          normalized.roomCountDisplay,
+          normalized.beachDistanceMeters,
+          normalized.beachDistanceLabel,
           normalized.roomTypesJson,
           normalized.amenitiesJson,
           normalized.faqJson,

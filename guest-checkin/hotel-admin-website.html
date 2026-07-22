@@ -159,13 +159,55 @@
               </div>
             </div>
 
-            <div>
-              <label for="amenitiesLines" class="mb-2 block text-sm font-medium text-slate-700">Amenities (one per line)</label>
-              <textarea id="amenitiesLines" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Swimming Pool&#10;Free Wi-Fi&#10;AC Rooms"></textarea>
-            </div>
-            <div>
-              <label for="roomTypesLines" class="mb-2 block text-sm font-medium text-slate-700">Room Types (one per line)</label>
-              <textarea id="roomTypesLines" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Deluxe AC Room&#10;Family Room&#10;Pool View Cottage"></textarea>
+            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-lg font-semibold text-ocean">Structured Website Data</h2>
+                  <p class="mt-1 text-sm text-slate-600">Keep room count, room types, amenities, and beach distance updated. Then auto-generate standard SEO text for your hotel page.</p>
+                </div>
+                <button id="autoGenerateButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">Auto Generate SEO</button>
+              </div>
+
+              <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label for="roomCountDisplay" class="mb-2 block text-sm font-medium text-slate-700">Room Count for Website</label>
+                  <input id="roomCountDisplay" type="number" min="1" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="20">
+                </div>
+                <div>
+                  <label for="beachDistanceMeters" class="mb-2 block text-sm font-medium text-slate-700">Distance from Beach</label>
+                  <select id="beachDistanceMeters" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <option value="">Select distance</option>
+                    <option value="100">100 m</option>
+                    <option value="250">250 m</option>
+                    <option value="500">500 m</option>
+                    <option value="750">750 m</option>
+                    <option value="1000">1 km</option>
+                    <option value="1500">1.5 km</option>
+                    <option value="2000">2 km</option>
+                    <option value="3000">3 km</option>
+                    <option value="5000">5 km</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="beachDistanceLabel" class="mb-2 block text-sm font-medium text-slate-700">Custom Distance Label</label>
+                  <input id="beachDistanceLabel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="5 min walk from beach">
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-slate-700">Select Room Types</label>
+                  <div id="roomTypeOptions" class="grid gap-2 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2"></div>
+                  <label for="roomTypesLines" class="mt-3 mb-2 block text-sm font-medium text-slate-700">Extra Room Types</label>
+                  <textarea id="roomTypesLines" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Sea View Family Suite&#10;Garden Cottage"></textarea>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-slate-700">Select Amenities</label>
+                  <div id="amenityOptions" class="grid gap-2 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2"></div>
+                  <label for="amenitiesLines" class="mt-3 mb-2 block text-sm font-medium text-slate-700">Extra Amenities</label>
+                  <textarea id="amenitiesLines" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Bonfire Area&#10;Driver Room"></textarea>
+                </div>
+              </div>
             </div>
             <div>
               <label for="faqLines" class="mb-2 block text-sm font-medium text-slate-700">FAQ (one per line as Question | Answer)</label>
@@ -225,6 +267,11 @@
       const googleMapsPlaceUrlInput = document.getElementById("googleMapsPlaceUrl");
       const checkInTimeInput = document.getElementById("checkInTime");
       const checkOutTimeInput = document.getElementById("checkOutTime");
+      const roomCountDisplayInput = document.getElementById("roomCountDisplay");
+      const beachDistanceMetersInput = document.getElementById("beachDistanceMeters");
+      const beachDistanceLabelInput = document.getElementById("beachDistanceLabel");
+      const amenityOptions = document.getElementById("amenityOptions");
+      const roomTypeOptions = document.getElementById("roomTypeOptions");
       const amenitiesLinesInput = document.getElementById("amenitiesLines");
       const roomTypesLinesInput = document.getElementById("roomTypesLines");
       const faqLinesInput = document.getElementById("faqLines");
@@ -234,6 +281,16 @@
       const saveContentButton = document.getElementById("saveContentButton");
       const savePhotosButton = document.getElementById("savePhotosButton");
       const loadPhotoSectionButton = document.getElementById("loadPhotoSectionButton");
+      const autoGenerateButton = document.getElementById("autoGenerateButton");
+      const amenityPresets = [
+        "AC Rooms", "Non AC Rooms", "Family Rooms", "Deluxe Rooms", "Cottages", "Swimming Pool", "Kids Play Area",
+        "Free Wi-Fi", "Parking", "Restaurant", "Room Service", "Power Backup", "Hot Water", "TV", "Sea View",
+        "Garden View", "Pet Friendly", "Campfire Area", "Driver Stay", "Breakfast Available",
+      ];
+      const roomTypePresets = [
+        "Standard Room", "Deluxe Room", "Super Deluxe Room", "Premium Room", "Executive Room", "Family Room",
+        "Quad Room", "Cottage", "Villa", "Dormitory", "Pool View Room", "Sea View Room",
+      ];
 
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
       hotelIdInput.addEventListener("input", () => {
@@ -256,6 +313,63 @@
           return "";
         }
         return items.map(mapper).filter(Boolean).join("\n");
+      }
+
+      function renderCheckboxOptions(container, name, options) {
+        container.innerHTML = "";
+        for (const option of options) {
+          const label = document.createElement("label");
+          label.className = "inline-flex items-center gap-2 text-sm text-slate-700";
+          label.innerHTML = `<input type="checkbox" name="${name}" value="${option}"> <span>${option}</span>`;
+          container.appendChild(label);
+        }
+      }
+
+      function getCheckedValues(name) {
+        return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((input) => input.value);
+      }
+
+      function setCheckedValues(name, values) {
+        const wanted = new Set(Array.isArray(values) ? values : []);
+        for (const input of document.querySelectorAll(`input[name="${name}"]`)) {
+          input.checked = wanted.has(input.value);
+        }
+      }
+
+      function multilineToList(value) {
+        return String(value || "").split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+      }
+
+      function uniqueCombined(selected, customText) {
+        return [...new Set([...selected, ...multilineToList(customText)])];
+      }
+
+      function formatDistanceLabel() {
+        if (beachDistanceLabelInput.value.trim()) {
+          return beachDistanceLabelInput.value.trim();
+        }
+        const value = Number(beachDistanceMetersInput.value || "0");
+        if (!value) {
+          return "";
+        }
+        return value < 1000 ? `${value} m` : `${Number.isInteger(value / 1000) ? value / 1000 : (value / 1000).toFixed(1)} km`;
+      }
+
+      function generateWebsiteCopy() {
+        const hotelName = currentPage?.hotel_name || publicTitleInput.value || "Hotel";
+        const categoryLabel = currentPage?.category === "resort" ? "Resort" : currentPage?.category === "cottage" ? "Cottage" : currentPage?.category === "homestay" ? "Homestay" : "Hotel";
+        const roomCount = Number(roomCountDisplayInput.value || currentPage?.total_rooms || 0);
+        const roomLabel = roomCount > 0 ? `${roomCount} room${roomCount === 1 ? "" : "s"}` : "comfortable rooms";
+        const beachLabel = formatDistanceLabel();
+        const amenities = uniqueCombined(getCheckedValues("amenity_selected"), amenitiesLinesInput.value).slice(0, 4);
+        const roomTypes = uniqueCombined(getCheckedValues("room_type_selected"), roomTypesLinesInput.value).slice(0, 3);
+        publicTitleInput.value = `${hotelName} ${categoryLabel}`.trim();
+        metaTitleInput.value = `${hotelName} ${categoryLabel} | Alibaug | Hotels In Alibaug`;
+        metaDescriptionInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug with ${roomLabel}${beachLabel ? `, ${beachLabel} from the beach,` : ","} and amenities like ${amenities.join(", ") || "practical guest facilities"}.`;
+        heroHeadingInput.value = `${hotelName} - ${categoryLabel} in Alibaug`;
+        heroSubheadingInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug${beachLabel ? `, about ${beachLabel} from the beach,` : ""} suitable for guests looking for ${roomLabel}.`;
+        shortDescriptionInput.value = `${hotelName} is a practical ${categoryLabel.toLowerCase()} in Alibaug with ${roomLabel}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`;
+        fullDescriptionInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug offering ${roomLabel}${roomTypes.length ? ` with options such as ${roomTypes.join(", ")}` : ""}. Guests choosing ${hotelName} can expect ${amenities.join(", ") || "useful stay amenities"}${beachLabel ? ` and a location around ${beachLabel} from the beach` : " in a practical Alibaug location"}.`;
       }
 
       function renderPhotoSlots(photos = []) {
@@ -322,8 +436,15 @@
         googleMapsPlaceUrlInput.value = page?.google_maps_place_url || "";
         checkInTimeInput.value = page?.check_in_time || "";
         checkOutTimeInput.value = page?.check_out_time || "";
-        amenitiesLinesInput.value = joinLines(safeParseList(page?.amenities_json), (item) => String(item || "").trim());
-        roomTypesLinesInput.value = joinLines(safeParseList(page?.room_types_json), (item) => String(item || "").trim());
+        roomCountDisplayInput.value = page?.room_count_display || page?.total_rooms || "";
+        beachDistanceMetersInput.value = page?.beach_distance_meters || "";
+        beachDistanceLabelInput.value = page?.beach_distance_label || "";
+        const amenityValues = safeParseList(page?.amenities_json);
+        const roomTypeValues = safeParseList(page?.room_types_json);
+        setCheckedValues("amenity_selected", amenityValues);
+        setCheckedValues("room_type_selected", roomTypeValues);
+        amenitiesLinesInput.value = joinLines(amenityValues.filter((item) => !amenityPresets.includes(item)), (item) => String(item || "").trim());
+        roomTypesLinesInput.value = joinLines(roomTypeValues.filter((item) => !roomTypePresets.includes(item)), (item) => String(item || "").trim());
         faqLinesInput.value = joinLines(safeParseList(page?.faq_json), (item) => `${item.question || ""} | ${item.answer || ""}`.trim());
         nearbyPlacesLinesInput.value = joinLines(safeParseList(page?.nearby_places_json), (item) => [item.name || "", item.distance || "", item.note || ""].join(" | ").replace(/\s+\|\s+\|\s*$/, "").trim());
         policiesLinesInput.value = joinLines(safeParseList(page?.policies_json), (item) => String(item || "").trim());
@@ -379,12 +500,21 @@
         formData.set("google_maps_place_url", googleMapsPlaceUrlInput.value);
         formData.set("check_in_time", checkInTimeInput.value);
         formData.set("check_out_time", checkOutTimeInput.value);
+        formData.set("room_count_display", roomCountDisplayInput.value);
+        formData.set("beach_distance_meters", beachDistanceMetersInput.value);
+        formData.set("beach_distance_label", formatDistanceLabel());
         formData.set("amenities_lines", amenitiesLinesInput.value);
         formData.set("room_types_lines", roomTypesLinesInput.value);
         formData.set("faq_lines", faqLinesInput.value);
         formData.set("nearby_places_lines", nearbyPlacesLinesInput.value);
         formData.set("policies_lines", policiesLinesInput.value);
         formData.set("update_photos", includePhotos ? "true" : "false");
+        for (const value of getCheckedValues("amenity_selected")) {
+          formData.append("amenity_selected", value);
+        }
+        for (const value of getCheckedValues("room_type_selected")) {
+          formData.append("room_type_selected", value);
+        }
 
         if (includePhotos) {
           for (let slot = 1; slot <= 20; slot += 1) {
@@ -439,6 +569,9 @@
       loadPhotoSectionButton.addEventListener("click", loadPage);
       saveContentButton.addEventListener("click", () => save(false, saveContentButton, "Saving..."));
       savePhotosButton.addEventListener("click", () => save(true, savePhotosButton, "Uploading..."));
+      autoGenerateButton.addEventListener("click", generateWebsiteCopy);
+      renderCheckboxOptions(amenityOptions, "amenity_selected", amenityPresets);
+      renderCheckboxOptions(roomTypeOptions, "room_type_selected", roomTypePresets);
     </script>
   </body>
 </html>

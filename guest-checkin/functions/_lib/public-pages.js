@@ -33,6 +33,69 @@ function normalizeJsonArray(value) {
   return "[]";
 }
 
+function normalizeInteger(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric < 0) {
+    return null;
+  }
+
+  return Math.floor(numeric);
+}
+
+export const PUBLIC_PAGE_AMENITY_OPTIONS = [
+  "AC Rooms",
+  "Non AC Rooms",
+  "Family Rooms",
+  "Deluxe Rooms",
+  "Cottages",
+  "Swimming Pool",
+  "Kids Play Area",
+  "Free Wi-Fi",
+  "Parking",
+  "Restaurant",
+  "Room Service",
+  "Power Backup",
+  "Hot Water",
+  "TV",
+  "Sea View",
+  "Garden View",
+  "Pet Friendly",
+  "Campfire Area",
+  "Driver Stay",
+  "Breakfast Available",
+];
+
+export const PUBLIC_PAGE_ROOM_TYPE_OPTIONS = [
+  "Standard Room",
+  "Deluxe Room",
+  "Super Deluxe Room",
+  "Premium Room",
+  "Executive Room",
+  "Family Room",
+  "Quad Room",
+  "Cottage",
+  "Villa",
+  "Dormitory",
+  "Pool View Room",
+  "Sea View Room",
+];
+
+export const PUBLIC_PAGE_DISTANCE_OPTIONS = [
+  { value: "100", label: "100 m" },
+  { value: "250", label: "250 m" },
+  { value: "500", label: "500 m" },
+  { value: "750", label: "750 m" },
+  { value: "1000", label: "1 km" },
+  { value: "1500", label: "1.5 km" },
+  { value: "2000", label: "2 km" },
+  { value: "3000", label: "3 km" },
+  { value: "5000", label: "5 km" },
+];
+
 export function slugifyPublicPageValue(value) {
   return normalizeText(value)
     .toLowerCase()
@@ -111,6 +174,9 @@ export function normalizePublicPagePayload(payload, fallbackHotelName = "") {
     googleMapsPlaceUrl: normalizeNullableText(payload.google_maps_place_url),
     checkInTime: normalizeNullableText(payload.check_in_time),
     checkOutTime: normalizeNullableText(payload.check_out_time),
+    roomCountDisplay: normalizeInteger(payload.room_count_display),
+    beachDistanceMeters: normalizeInteger(payload.beach_distance_meters),
+    beachDistanceLabel: normalizeNullableText(payload.beach_distance_label),
     roomTypesJson: normalizeJsonArray(payload.room_types_json),
     amenitiesJson: normalizeJsonArray(payload.amenities_json),
     faqJson: normalizeJsonArray(payload.faq_json),
@@ -121,6 +187,14 @@ export function normalizePublicPagePayload(payload, fallbackHotelName = "") {
     isPublished: payload.is_published === true || payload.is_published === 1 ? 1 : 0,
     sortOrder: Number.isFinite(Number(payload.sort_order)) ? Math.floor(Number(payload.sort_order)) : 0,
   };
+}
+
+async function ensureColumn(db, tableName, columnName, definition) {
+  const columns = await db.prepare(`PRAGMA table_info(${tableName})`).all();
+  const hasColumn = (columns.results || []).some((column) => String(column.name || "") === columnName);
+  if (!hasColumn) {
+    await db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+  }
 }
 
 export async function ensurePublicPageTables(db) {
@@ -151,6 +225,9 @@ export async function ensurePublicPageTables(db) {
       google_maps_place_url TEXT,
       check_in_time TEXT,
       check_out_time TEXT,
+      room_count_display INTEGER,
+      beach_distance_meters INTEGER,
+      beach_distance_label TEXT,
       room_types_json TEXT NOT NULL DEFAULT '[]',
       amenities_json TEXT NOT NULL DEFAULT '[]',
       faq_json TEXT NOT NULL DEFAULT '[]',
@@ -189,6 +266,10 @@ export async function ensurePublicPageTables(db) {
     CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_hotel_id ON hotel_public_page_photos(hotel_id);
     CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_photo_order ON hotel_public_page_photos(photo_order);
   `);
+
+  await ensureColumn(db, "hotel_public_pages", "room_count_display", "INTEGER");
+  await ensureColumn(db, "hotel_public_pages", "beach_distance_meters", "INTEGER");
+  await ensureColumn(db, "hotel_public_pages", "beach_distance_label", "TEXT");
 }
 
 export function multilineToSimpleList(value) {
@@ -227,4 +308,76 @@ export function parseNearbyLines(value) {
       };
     })
     .filter((item) => item.name);
+}
+
+export function mergeSelectedWithCustom(selectedValues = [], customLines = "") {
+  const selected = Array.isArray(selectedValues) ? selectedValues : [];
+  const custom = multilineToSimpleList(customLines);
+  return [...new Set([...selected.map((item) => String(item || "").trim()).filter(Boolean), ...custom])];
+}
+
+export function formatBeachDistanceLabel(meters, explicitLabel = "") {
+  const directLabel = normalizeText(explicitLabel);
+  if (directLabel) {
+    return directLabel;
+  }
+
+  const value = normalizeInteger(meters);
+  if (value === null) {
+    return "";
+  }
+
+  if (value < 1000) {
+    return `${value} m`;
+  }
+
+  const km = value / 1000;
+  return Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
+}
+
+export function buildStandardPublicPageContent({
+  hotelName = "",
+  category = "hotel",
+  village = "",
+  taluka = "Alibaug",
+  district = "Raigad",
+  roomCount = null,
+  roomTypes = [],
+  amenities = [],
+  beachDistanceLabel = "",
+} = {}) {
+  const safeHotelName = normalizeText(hotelName) || "Hotel";
+  const categoryLabel =
+    category === "resort"
+      ? "Resort"
+      : category === "cottage"
+        ? "Cottage"
+        : category === "homestay"
+          ? "Homestay"
+          : "Hotel";
+  const locationBits = [normalizeText(village), normalizeText(taluka), normalizeText(district)].filter(Boolean);
+  const locationLabel = locationBits.length ? locationBits.join(", ") : "Alibaug";
+  const roomLabel = roomCount ? `${roomCount} room${roomCount === 1 ? "" : "s"}` : "comfortable rooms";
+  const topRoomTypes = roomTypes.slice(0, 3).join(", ");
+  const topAmenities = amenities.slice(0, 4).join(", ");
+  const beachLabel = normalizeText(beachDistanceLabel);
+  const beachSentence = beachLabel ? `located about ${beachLabel} from the beach` : "located in Alibaug";
+  const typePlural =
+    category === "resort"
+      ? "resorts"
+      : category === "cottage"
+        ? "cottages"
+        : category === "homestay"
+          ? "homestays"
+          : "hotels";
+
+  return {
+    publicTitle: `${safeHotelName} ${categoryLabel}`.trim(),
+    metaTitle: `${safeHotelName} ${categoryLabel} | ${locationLabel} | Hotels In Alibaug`,
+    metaDescription: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel} with ${roomLabel}${beachLabel ? `, ${beachLabel} from the beach,` : ","} and amenities like ${topAmenities || "practical guest facilities"}.`,
+    heroHeading: `${safeHotelName} - ${categoryLabel} in ${locationLabel}`,
+    heroSubheading: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel}, ${beachSentence}, suitable for guests looking for ${roomLabel} and direct stay inquiries.`,
+    shortDescription: `${safeHotelName} is one of the practical ${typePlural} in ${locationLabel} with ${roomLabel}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`,
+    fullDescription: `${safeHotelName} is a ${categoryLabel.toLowerCase()} in ${locationLabel} offering ${roomLabel}${topRoomTypes ? ` with options such as ${topRoomTypes}` : ""}. Guests choosing ${safeHotelName} can expect ${topAmenities || "useful stay amenities"}${beachLabel ? ` and a location around ${beachLabel} from the beach` : " in a practical Alibaug location"}.`,
+  };
 }
