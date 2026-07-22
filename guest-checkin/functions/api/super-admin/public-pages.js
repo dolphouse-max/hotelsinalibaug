@@ -124,6 +124,8 @@ export async function onRequestGet(context) {
       return unauthorized();
     }
 
+    await ensurePublicPageTables(context.env.DB);
+
     const url = new URL(context.request.url);
     const pageId = url.searchParams.get("id")?.trim() || "";
     const hotelId = url.searchParams.get("hotel_id")?.trim() || "";

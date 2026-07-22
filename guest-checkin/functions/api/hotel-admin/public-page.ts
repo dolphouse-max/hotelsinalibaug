@@ -278,6 +278,8 @@ async function normalizeCoverFlags(env: Env, pageId: string) {
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
+    await ensurePublicPageTables(context.env.DB);
+
     const url = new URL(context.request.url);
     const hotelId = url.searchParams.get("hotel_id");
 
