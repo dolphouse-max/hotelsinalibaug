@@ -266,6 +266,45 @@ function buildAutoMapQuery(page) {
   return [page.public_title, addressSummary(page)].filter(Boolean).join(", ");
 }
 
+function extractCoordinatesFromGoogleMapUrl(value) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    const url = new URL(text);
+    const queryValue = url.searchParams.get("query") || url.searchParams.get("q") || "";
+    const queryMatch = queryValue.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+    if (queryMatch) {
+      return {
+        lat: Number(queryMatch[1]),
+        lng: Number(queryMatch[2]),
+      };
+    }
+
+    const atMatch = text.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+    if (atMatch) {
+      return {
+        lat: Number(atMatch[1]),
+        lng: Number(atMatch[2]),
+      };
+    }
+
+    const dataMatch = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+    if (dataMatch) {
+      return {
+        lat: Number(dataMatch[1]),
+        lng: Number(dataMatch[2]),
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function hasSavedCoordinates(page) {
   const latitude = Number(page.latitude);
   const longitude = Number(page.longitude);
@@ -273,12 +312,12 @@ function hasSavedCoordinates(page) {
 }
 
 function resolvedMapPlaceUrl(page) {
-  if (hasSavedCoordinates(page)) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${page.latitude},${page.longitude}`)}`;
-  }
-
   if (page.google_maps_place_url) {
     return String(page.google_maps_place_url);
+  }
+
+  if (hasSavedCoordinates(page)) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${page.latitude},${page.longitude}`)}`;
   }
 
   const query = buildAutoMapQuery(page);
@@ -290,6 +329,11 @@ function resolvedMapPlaceUrl(page) {
 }
 
 function resolvedMapEmbedUrl(page) {
+  const linkCoordinates = extractCoordinatesFromGoogleMapUrl(page.google_maps_place_url);
+  if (linkCoordinates) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(`${linkCoordinates.lat},${linkCoordinates.lng}`)}&output=embed`;
+  }
+
   if (hasSavedCoordinates(page)) {
     return `https://www.google.com/maps?q=${encodeURIComponent(`${page.latitude},${page.longitude}`)}&output=embed`;
   }

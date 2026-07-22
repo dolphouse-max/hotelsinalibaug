@@ -439,6 +439,45 @@
         return numeric.toFixed(6);
       }
 
+      function extractCoordinatesFromGoogleMapUrl(value) {
+        const text = String(value || "").trim();
+        if (!text) {
+          return null;
+        }
+
+        try {
+          const url = new URL(text);
+          const queryValue = url.searchParams.get("query") || url.searchParams.get("q") || "";
+          const queryMatch = queryValue.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+          if (queryMatch) {
+            return {
+              lat: Number(queryMatch[1]),
+              lng: Number(queryMatch[2]),
+            };
+          }
+
+          const atMatch = text.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+          if (atMatch) {
+            return {
+              lat: Number(atMatch[1]),
+              lng: Number(atMatch[2]),
+            };
+          }
+
+          const dataMatch = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+          if (dataMatch) {
+            return {
+              lat: Number(dataMatch[1]),
+              lng: Number(dataMatch[2]),
+            };
+          }
+        } catch {
+          return null;
+        }
+
+        return null;
+      }
+
       function updateCoordinateDisplay() {
         latitudeDisplay.textContent = latitudeInput.value ? formatCoordinate(latitudeInput.value) : "Not selected";
         longitudeDisplay.textContent = longitudeInput.value ? formatCoordinate(longitudeInput.value) : "Not selected";
@@ -528,12 +567,16 @@
       function updateMapPreview() {
         const query = buildMapQuery();
         const savedLink = googleMapsPlaceUrlInput.value.trim();
+        const linkCoordinates = extractCoordinatesFromGoogleMapUrl(savedLink);
+        if (linkCoordinates && (!latitudeInput.value || !longitudeInput.value)) {
+          setMapPosition(linkCoordinates.lat, linkCoordinates.lng, 17, { skipUrlSync: true });
+        }
         if (!latitudeInput.value || !longitudeInput.value) {
           ensureLocationPicker();
           setMapPosition(defaultMapCenter.lat, defaultMapCenter.lng, 13, { skipUrlSync: true });
         }
         if (savedLink) {
-          mapPreviewNote.textContent = "Saved Google Maps link is present. You can still drag the pin to make the location exact.";
+          mapPreviewNote.textContent = "Saved Google Maps link is being used. Drag the pin only if you want to fine-tune the exact point.";
           return;
         }
         mapPreviewNote.textContent = query
@@ -646,8 +689,16 @@
         updateCoordinateDisplay();
         if (latitudeInput.value && longitudeInput.value) {
           setMapPosition(Number(latitudeInput.value), Number(longitudeInput.value), 17, { skipUrlSync: true });
+        } else if (googleMapsPlaceUrlInput.value) {
+          const linkCoordinates = extractCoordinatesFromGoogleMapUrl(googleMapsPlaceUrlInput.value);
+          if (linkCoordinates) {
+            setMapPosition(linkCoordinates.lat, linkCoordinates.lng, 17, { skipUrlSync: true });
+            mapPreviewNote.textContent = "Loaded from the saved Google Maps link. Drag only if you need a small correction.";
+          } else {
+            updateMapPreview();
+          }
         } else {
-          searchSuggestedLocation();
+          updateMapPreview();
         }
       }
 
