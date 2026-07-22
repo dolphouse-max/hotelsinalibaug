@@ -128,18 +128,36 @@
 
             <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <h2 class="text-lg font-semibold text-ocean">Map And Contact Handling</h2>
-              <p class="mt-1 text-sm text-slate-600">Contact numbers are used directly by the public hotel page. For location, you can keep the saved hotel address correct and also paste the exact Google Maps link of your property below.</p>
+              <p class="mt-1 text-sm text-slate-600">Contact numbers are used directly by the public hotel page. For location, keep the saved hotel address correct and check the preview below. If the shown place is slightly wrong, paste the exact Google Maps share link of your property and the preview will refresh.</p>
               <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
                 <div>
                   <label for="googleMapsPlaceUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Location Link</label>
                   <input id="googleMapsPlaceUrl" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Paste Google Maps share link of the hotel">
-                  <p class="mt-2 text-xs text-slate-500">If the hotel appears on Google Maps, the app will prefill a suggested location link from the hotel name and address. If the pin is wrong or the hotel is not listed, open Google Maps, find the exact place, use Share, copy the link, and paste it here.</p>
+                  <p class="mt-2 text-xs text-slate-500">The app creates a suggested location from your hotel name and address. If the hotel is already on Google Maps, you can open the suggestion, verify the place, copy the exact share link, and paste it here.</p>
                 </div>
-                <div class="sm:self-end">
+                <div class="grid gap-3 sm:self-end">
+                  <button id="useSuggestedMapButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 text-sm font-semibold text-white">
+                    Use Suggested Location
+                  </button>
                   <a id="mapSearchLink" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700">
                     Open Suggested Map
                   </a>
                 </div>
+              </div>
+              <div class="mt-4 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                  <div>
+                    <h3 class="text-sm font-semibold text-ocean">Map Preview</h3>
+                    <p id="mapPreviewNote" class="mt-1 text-xs text-slate-500">The preview uses your saved location link or the suggested hotel address.</p>
+                  </div>
+                </div>
+                <iframe
+                  id="mapPreviewFrame"
+                  title="Hotel location preview"
+                  class="h-72 w-full border-0"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  src="https://www.google.com/maps?q=Alibaug&output=embed"></iframe>
               </div>
             </div>
 
@@ -255,7 +273,10 @@
       const whatsappNumberInput = document.getElementById("whatsappNumber");
       const inquiryEmailInput = document.getElementById("inquiryEmail");
       const googleMapsPlaceUrlInput = document.getElementById("googleMapsPlaceUrl");
+      const useSuggestedMapButton = document.getElementById("useSuggestedMapButton");
       const mapSearchLink = document.getElementById("mapSearchLink");
+      const mapPreviewFrame = document.getElementById("mapPreviewFrame");
+      const mapPreviewNote = document.getElementById("mapPreviewNote");
       const checkInTimeInput = document.getElementById("checkInTime");
       const checkOutTimeInput = document.getElementById("checkOutTime");
       const roomCountDisplayInput = document.getElementById("roomCountDisplay");
@@ -392,10 +413,32 @@
         ].filter(Boolean).join(", ");
       }
 
+      function buildMapPreviewUrl() {
+        const savedLink = googleMapsPlaceUrlInput.value.trim();
+        if (savedLink) {
+          return `https://www.google.com/maps?q=${encodeURIComponent(savedLink)}&output=embed`;
+        }
+        const query = buildMapQuery();
+        return `https://www.google.com/maps?q=${encodeURIComponent(query || "Alibaug")}&output=embed`;
+      }
+
       function applySuggestedMapLink() {
         if (!googleMapsPlaceUrlInput.value.trim()) {
           googleMapsPlaceUrlInput.value = mapSearchLink.href;
         }
+      }
+
+      function updateMapPreview() {
+        const query = buildMapQuery();
+        const savedLink = googleMapsPlaceUrlInput.value.trim();
+        mapPreviewFrame.src = buildMapPreviewUrl();
+        if (savedLink) {
+          mapPreviewNote.textContent = "Preview is using the Google Maps link saved for this hotel page.";
+          return;
+        }
+        mapPreviewNote.textContent = query
+          ? "Preview is using the suggested hotel name and address. If the place is wrong, paste the exact Google Maps share link above."
+          : "Preview will appear after hotel name and address details are available.";
       }
 
       function updateMapSearchLink() {
@@ -404,6 +447,7 @@
           ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
           : "https://www.google.com/maps";
         applySuggestedMapLink();
+        updateMapPreview();
       }
 
       function escapeAttribute(value) {
@@ -620,8 +664,14 @@
       buildHourOptions(checkInTimeInput, "Select check-in time");
       buildHourOptions(checkOutTimeInput, "Select check-out time");
       publicTitleInput.addEventListener("input", updateMapSearchLink);
+      googleMapsPlaceUrlInput.addEventListener("input", updateMapPreview);
+      useSuggestedMapButton.addEventListener("click", () => {
+        googleMapsPlaceUrlInput.value = mapSearchLink.href;
+        updateMapPreview();
+      });
       renderCheckboxOptions(amenityOptions, "amenity_selected", amenityPresets);
       renderCheckboxOptions(roomTypeOptions, "room_type_selected", roomTypePresets);
+      updateMapPreview();
     </script>
   </body>
 </html>
