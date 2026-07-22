@@ -198,9 +198,17 @@
                     <span id="longitudeDisplay" class="mt-1 block font-medium text-slate-900">Not selected</span>
                   </div>
                 </div>
+                <div class="grid gap-3 border-t border-slate-200 px-4 py-3 sm:grid-cols-2">
+                  <div>
+                    <label for="latitude" class="mb-2 block text-sm font-medium text-slate-700">Latitude</label>
+                    <input id="latitude" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="18.641400">
+                  </div>
+                  <div>
+                    <label for="longitude" class="mb-2 block text-sm font-medium text-slate-700">Longitude</label>
+                    <input id="longitude" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="72.872200">
+                  </div>
+                </div>
               </div>
-              <input id="latitude" type="hidden">
-              <input id="longitude" type="hidden">
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
@@ -534,8 +542,8 @@
           return;
         }
 
-        latitudeInput.value = String(latitude);
-        longitudeInput.value = String(longitude);
+        latitudeInput.value = formatCoordinate(latitude);
+        longitudeInput.value = formatCoordinate(longitude);
         updateCoordinateDisplay();
         if (!options.skipUrlSync) {
           updateGoogleMapUrlFromCoordinates();
@@ -570,6 +578,17 @@
         pickerMap.setView([lat, lng], zoom);
         setCoordinates(lat, lng, options);
         window.setTimeout(() => pickerMap.invalidateSize(), 50);
+      }
+
+      function applyManualCoordinates() {
+        const latitude = Number(latitudeInput.value);
+        const longitude = Number(longitudeInput.value);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          updateCoordinateDisplay();
+          return;
+        }
+        setMapPosition(latitude, longitude, 17);
+        mapPreviewNote.textContent = "Manual latitude and longitude applied. Save the page to keep this exact location.";
       }
 
       async function searchSuggestedLocation() {
@@ -880,6 +899,10 @@
       addressDistrictInput.addEventListener("input", updateMapSearchLink);
       addressPincodeInput.addEventListener("input", updateMapSearchLink);
       googleMapsPlaceUrlInput.addEventListener("input", updateMapPreview);
+      latitudeInput.addEventListener("change", applyManualCoordinates);
+      longitudeInput.addEventListener("change", applyManualCoordinates);
+      latitudeInput.addEventListener("blur", applyManualCoordinates);
+      longitudeInput.addEventListener("blur", applyManualCoordinates);
       findSuggestedMapButton.addEventListener("click", searchSuggestedLocation);
       useSuggestedMapButton.addEventListener("click", () => {
         googleMapsPlaceUrlInput.value = mapSearchLink.href;
