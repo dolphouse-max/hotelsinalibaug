@@ -28,13 +28,29 @@ body.directory-page{
 .directory-page p{margin:.35rem 0 0;max-width:none;}
 .directory-page .lead{font-size:.95rem !important;color:#5f7280;max-width:72ch;}
 .directory-page .section{padding:1.5rem 0;}
-.directory-page .pages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;}
+.directory-page .pages-grid{display:grid;grid-template-columns:1fr;gap:1rem;}
 .directory-page .stay-card,.directory-page .panel,.directory-page .content-card{
   background:#fff;border:1px solid #d9e3e8;border-radius:18px;box-shadow:0 14px 36px rgba(23,48,66,.08);
 }
-.directory-page .stay-card{overflow:hidden;padding:0 0 1rem;}
-.directory-page .stay-card img{width:100%;height:210px;object-fit:cover;display:block;}
-.directory-page .stay-card h3,.directory-page .stay-card p,.directory-page .stay-card .meta,.directory-page .stay-card .button-row{padding-left:1rem;padding-right:1rem;}
+.directory-page .stay-card{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr) minmax(220px,260px);overflow:hidden;}
+.directory-page .stay-card-image{position:relative;min-height:100%;background:#dbe8ef;}
+.directory-page .stay-card-image img{width:100%;height:100%;min-height:240px;object-fit:cover;display:block;}
+.directory-page .stay-card-body{padding:1rem 1.1rem;}
+.directory-page .stay-card-actions{display:flex;flex-direction:column;justify-content:space-between;gap:1rem;padding:1rem;border-left:1px solid #d9e3e8;background:#f9fbfd;}
+.directory-page .stay-card h3{margin:0;font-size:1.2rem !important;line-height:1.2;}
+.directory-page .stay-card p,.directory-page .stay-card .meta,.directory-page .stay-card .button-row{padding-left:0;padding-right:0;}
+.directory-page .stay-card .meta-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.65rem;}
+.directory-page .stay-card .meta-chip{display:inline-flex;align-items:center;border-radius:999px;background:#eef5fb;color:#29506b;padding:.38rem .7rem;font-size:.78rem !important;font-weight:600;}
+.directory-page .stay-card .location-link{display:inline-flex;align-items:center;gap:.35rem;margin-top:.45rem;color:#0b6e8a;text-decoration:none;font-weight:600;}
+.directory-page .stay-card .summary{margin-top:.55rem;color:#4f6472;}
+.directory-page .stay-card .highlight-list{display:grid;gap:.35rem;margin-top:.8rem;padding:0;list-style:none;}
+.directory-page .stay-card .highlight-list li{margin:0;padding-left:0;color:#274556;}
+.directory-page .stay-card .action-top{display:grid;gap:.7rem;justify-items:end;text-align:right;}
+.directory-page .stay-card .action-bottom{display:grid;gap:.6rem;}
+.directory-page .stay-card .action-note{font-size:.8rem !important;color:#5f7280;}
+.directory-page .stay-card .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#0f2436;color:#fff;padding:.45rem .7rem;font-size:.78rem !important;font-weight:700;}
+.directory-page .stay-card .property-count{font-size:.84rem !important;color:#5f7280;}
+.directory-page .stay-card .cta-title{font-size:.92rem !important;font-weight:700;color:#173042;}
 .directory-page .meta{font-size:.85rem !important;color:#4f6472;}
 .directory-page .button-row{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem;}
 .directory-page .button{display:inline-flex;align-items:center;justify-content:center;padding:.78rem .95rem;border-radius:12px;font-size:.86rem !important;font-weight:600;text-decoration:none;border:1px solid transparent;}
@@ -58,6 +74,9 @@ body.directory-page{
   .directory-page .header-inner,.directory-page .footer-grid{display:block;}
   .directory-page .nav{margin-top:.75rem;}
   .directory-page .page-layout,.directory-page .grid-2,.directory-page .content-grid{grid-template-columns:1fr;}
+  .directory-page .stay-card{grid-template-columns:1fr;}
+  .directory-page .stay-card-actions{border-left:0;border-top:1px solid #d9e3e8;}
+  .directory-page .stay-card .action-top{justify-items:start;text-align:left;}
 }
 </style>`;
 
@@ -832,21 +851,38 @@ function renderCategoryHtml(category, pages) {
       .join(", ");
     const roomCount = displayRoomCount(page);
     const beachDistance = displayBeachDistance(page);
-    const amenities = safeParseJsonArray(page.amenities_json).slice(0, 3);
+    const amenities = safeParseJsonArray(page.amenities_json).slice(0, 4);
+    const amenityChips = amenities.map((item) => `<span class="meta-chip">${escapeHtml(item)}</span>`).join("");
+    const highlights = [
+      roomCount ? `${roomCount} available for listing` : "",
+      beachDistance ? `${beachDistance} from the beach` : "",
+      location ? location : "",
+    ].filter(Boolean);
     const href = page.canonical_path || `${canonicalPath}/${page.slug}`;
     return `
       <article class="stay-card">
-        <img src="${imageUrl}" alt="${escapeHtml(page.public_title)}" loading="lazy" decoding="async">
-        <h3>${escapeHtml(page.public_title)}</h3>
-        <p>${escapeHtml(excerpt(page.short_description || page.meta_description))}</p>
-        ${location ? `<p class="meta"><strong>Location:</strong> ${escapeHtml(location)}</p>` : ""}
-        ${roomCount ? `<p class="meta"><strong>Rooms:</strong> ${escapeHtml(roomCount)}</p>` : ""}
-        ${beachDistance ? `<p class="meta"><strong>Beach:</strong> ${escapeHtml(beachDistance)}</p>` : ""}
-        ${amenities.length ? `<p class="meta"><strong>Amenities:</strong> ${escapeHtml(amenities.join(", "))}</p>` : ""}
-        <div class="button-row">
-          <a class="button primary" href="${href}">Check Availability at ${escapeHtml(page.public_title)}</a>
-          ${page.primary_phone ? `<a class="button secondary" href="tel:${escapeHtml(page.primary_phone)}">Call</a>` : ""}
-          ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
+        <div class="stay-card-image">
+          <img src="${imageUrl}" alt="${escapeHtml(page.public_title)}" loading="lazy" decoding="async">
+        </div>
+        <div class="stay-card-body">
+          <h3><a href="${href}" style="color:inherit;text-decoration:none;">${escapeHtml(page.public_title)}</a></h3>
+          ${location ? `<a class="location-link" href="${href}#location">📍 ${escapeHtml(location)}</a>` : ""}
+          <p class="summary">${escapeHtml(excerpt(page.short_description || page.meta_description, 220))}</p>
+          ${amenityChips ? `<div class="meta-row">${amenityChips}</div>` : ""}
+          ${highlights.length ? `<ul class="highlight-list">${highlights.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
+        </div>
+        <div class="stay-card-actions">
+          <div class="action-top">
+            <span class="badge">Direct Hotel Contact</span>
+            <span class="property-count">Hotels In Alibaug listing</span>
+          </div>
+          <div class="action-bottom">
+            <div class="cta-title">Check availability at ${escapeHtml(page.public_title)}</div>
+            <div class="action-note">Open the full page for photos, location map, contact details, and inquiry form.</div>
+            <a class="button primary" href="${href}">See Availability</a>
+            ${page.primary_phone ? `<a class="button secondary" href="tel:${escapeHtml(page.primary_phone)}">Call Hotel</a>` : ""}
+            ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
+          </div>
         </div>
       </article>
     `;
