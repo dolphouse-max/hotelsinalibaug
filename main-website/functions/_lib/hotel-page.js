@@ -359,12 +359,16 @@ function renderHtml(page) {
   const faqItems = safeParseJsonArray(page.faq_json);
   const nearbyItems = safeParseJsonArray(page.nearby_places_json);
   const policies = safeParseJsonArray(page.policies_json);
-  const whatsappText = encodeURIComponent(page.inquiry_whatsapp_prefill || `Hello, I want to enquire about ${page.public_title}.`);
   const roomCountLabel = displayRoomCount(page);
   const travelDistances = travelDistanceItems(page);
   const mapPlaceUrl = resolvedMapPlaceUrl(page);
   const mapEmbedUrl = resolvedMapEmbedUrl(page);
   const fullAddress = addressSummary(page);
+  const roomTypeOptions = roomTypes.length
+    ? roomTypes
+        .map((item) => `<option value="${escapeHtml(String(item || ""))}">${escapeHtml(String(item || ""))}</option>`)
+        .join("")
+    : `<option value="Standard Room">Standard Room</option><option value="Deluxe Room">Deluxe Room</option><option value="Family Room">Family Room</option>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -418,7 +422,6 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
       </figure>
       <div class="button-row">
         ${page.primary_phone ? `<a class="button primary" href="tel:${escapeHtml(page.primary_phone)}">Call Now</a>` : ""}
-        ${page.whatsapp_number ? `<a class="button secondary" href="https://wa.me/${escapeHtml(String(page.whatsapp_number).replace(/[^0-9]/g, ""))}?text=${whatsappText}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
         ${mapPlaceUrl ? `<a class="button secondary" href="${escapeHtml(mapPlaceUrl)}" target="_blank" rel="noopener noreferrer">Open Map</a>` : ""}
       </div>
     </div>
@@ -493,13 +496,25 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
       </article>
       <article class="panel">
         <h2 style="margin-top:0;">Send Inquiry</h2>
-        <p>Use this form to quickly start an inquiry by WhatsApp or email.</p>
-        <form id="inquiryForm" data-whatsapp="${escapeHtml(page.whatsapp_number || "")}" data-email="${escapeHtml(page.inquiry_email || "")}" data-title="${escapeHtml(page.public_title)}">
+        <p>Send your inquiry directly to the hotel. The request is saved in the hotel dashboard for follow-up.</p>
+        <form id="inquiryForm" data-hotel-id="${escapeHtml(page.hotel_id || "")}" data-page-id="${escapeHtml(page.id || "")}" data-slug="${escapeHtml(page.slug || "")}" data-title="${escapeHtml(page.public_title)}">
           <div style="display:grid;gap:12px;">
-            <input id="inqName" type="text" placeholder="Your Name" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
-            <input id="inqPhone" type="tel" placeholder="Mobile Number" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
-            <textarea id="inqMessage" rows="4" placeholder="Tell us your preferred dates, guests, and room type." style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;"></textarea>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <input id="inqCheckIn" type="date" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
+              <input id="inqCheckOut" type="date" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <input id="inqPersons" type="number" min="1" value="2" placeholder="No. of persons" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
+              <select id="inqRoomType" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
+                <option value="">Select room type</option>
+                ${roomTypeOptions}
+              </select>
+            </div>
+            <input id="inqName" type="text" placeholder="Name of person" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
+            <input id="inqPhone" type="tel" placeholder="Mobile number" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;">
+            <textarea id="inqMessage" rows="3" placeholder="Special request (optional)" style="width:100%;padding:12px;border:1px solid #d9e3e8;border-radius:14px;"></textarea>
             <button class="button primary" type="submit">Send Inquiry</button>
+            <p id="inquiryStatus" style="display:none;margin:0;padding:12px;border-radius:14px;border:1px solid #d9e3e8;background:#f8fafc;color:#3a5160;"></p>
           </div>
         </form>
       </article>
@@ -530,25 +545,80 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
 <script>
   document.getElementById("inquiryForm")?.addEventListener("submit", function (event) {
     event.preventDefault();
+    const checkInDate = document.getElementById("inqCheckIn")?.value?.trim() || "";
+    const checkOutDate = document.getElementById("inqCheckOut")?.value?.trim() || "";
+    const totalPersons = document.getElementById("inqPersons")?.value?.trim() || "";
+    const requestedRoomType = document.getElementById("inqRoomType")?.value?.trim() || "";
     const name = document.getElementById("inqName")?.value?.trim() || "";
     const phone = document.getElementById("inqPhone")?.value?.trim() || "";
     const message = document.getElementById("inqMessage")?.value?.trim() || "";
-    const whatsapp = this.dataset.whatsapp || "";
-    const email = this.dataset.email || "";
+    const hotelId = this.dataset.hotelId || "";
+    const publicPageId = this.dataset.pageId || "";
+    const slug = this.dataset.slug || "";
     const title = this.dataset.title || "hotel stay";
-    const text = encodeURIComponent("Inquiry for " + title + "\\nName: " + name + "\\nPhone: " + phone + "\\nMessage: " + message);
-
-    if (whatsapp) {
-      window.open("https://wa.me/" + whatsapp.replace(/[^0-9]/g, "") + "?text=" + text, "_blank", "noopener,noreferrer");
+    const status = document.getElementById("inquiryStatus");
+    const button = this.querySelector("button[type='submit']");
+    if (!checkInDate || !checkOutDate || !totalPersons || !requestedRoomType || !name || !phone) {
+      if (status) {
+        status.style.display = "block";
+        status.textContent = "Please fill check-in, check-out, persons, room type, name, and mobile number.";
+      }
       return;
     }
-
-    if (email) {
-      window.location.href = "mailto:" + email + "?subject=" + encodeURIComponent("Inquiry for " + title) + "&body=" + text;
-      return;
+    if (status) {
+      status.style.display = "block";
+      status.textContent = "Sending inquiry...";
     }
-
-    alert("Direct inquiry contact is not configured yet.");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Sending...";
+    }
+    fetch("/api/inquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hotel_id: hotelId,
+        public_page_id: publicPageId,
+        public_page_slug: slug,
+        page_title_snapshot: title,
+        hotel_name_snapshot: title,
+        check_in_date: checkInDate,
+        check_out_date: checkOutDate,
+        total_persons: totalPersons,
+        requested_room_type: requestedRoomType,
+        guest_name: name,
+        guest_phone: phone,
+        guest_message: message,
+        source_path: window.location.pathname,
+      }),
+    })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to send inquiry.");
+        }
+        document.getElementById("inqCheckIn").value = "";
+        document.getElementById("inqCheckOut").value = "";
+        document.getElementById("inqPersons").value = "2";
+        document.getElementById("inqRoomType").value = "";
+        document.getElementById("inqName").value = "";
+        document.getElementById("inqPhone").value = "";
+        document.getElementById("inqMessage").value = "";
+        if (status) {
+          status.textContent = data.message || ("Inquiry sent to " + title + " successfully.");
+        }
+      })
+      .catch((error) => {
+        if (status) {
+          status.textContent = error.message || "Unable to send inquiry.";
+        }
+      })
+      .finally(() => {
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Send Inquiry";
+        }
+      });
   });
 </script>
 </body>

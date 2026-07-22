@@ -283,6 +283,28 @@ CREATE TABLE IF NOT EXISTS hotel_public_page_photos (
   FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS hotel_public_inquiries (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  hotel_id TEXT NOT NULL,
+  public_page_id TEXT,
+  public_page_slug TEXT,
+  hotel_name_snapshot TEXT,
+  page_title_snapshot TEXT,
+  guest_name TEXT NOT NULL,
+  guest_phone TEXT NOT NULL,
+  check_in_date TEXT,
+  check_out_date TEXT,
+  total_persons INTEGER,
+  requested_room_type TEXT,
+  guest_message TEXT NOT NULL,
+  inquiry_status TEXT NOT NULL DEFAULT 'new' CHECK (inquiry_status IN ('new', 'reviewed', 'closed')),
+  source_path TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+  FOREIGN KEY (public_page_id) REFERENCES hotel_public_pages(id) ON DELETE SET NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_hotels_is_active ON hotels(is_active);
 CREATE INDEX IF NOT EXISTS idx_hotels_subscription_end_date ON hotels(subscription_end_date);
 CREATE INDEX IF NOT EXISTS idx_hotel_staff_hotel_id ON hotel_staff(hotel_id);
@@ -312,6 +334,9 @@ CREATE INDEX IF NOT EXISTS idx_hotel_messages_thread_id ON hotel_messages(thread
 CREATE INDEX IF NOT EXISTS idx_hotel_messages_created_at ON hotel_messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_hotel_message_reads_hotel_id ON hotel_message_reads(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_hotel_public_pages_category ON hotel_public_pages(category);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_inquiries_hotel_id ON hotel_public_inquiries(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_inquiries_created_at ON hotel_public_inquiries(created_at);
+CREATE INDEX IF NOT EXISTS idx_hotel_public_inquiries_status ON hotel_public_inquiries(inquiry_status);
 CREATE INDEX IF NOT EXISTS idx_hotel_public_pages_published ON hotel_public_pages(is_published);
 CREATE INDEX IF NOT EXISTS idx_hotel_public_pages_sort_order ON hotel_public_pages(sort_order);
 CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_public_page_id ON hotel_public_page_photos(public_page_id);
