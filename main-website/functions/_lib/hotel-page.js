@@ -373,7 +373,7 @@ ${hotelJsonLd(page, canonicalUrl, heroImageUrl, faqItems)}
     <div>
       <h3>Explore More</h3>
       <ul>
-        <li><a href="/best-hotels-in-alibaug.html">Best Hotels in Alibaug</a></li>
+        <li><a href="/best-hotels-in-alibaug.html">Hotels in Alibaug</a></li>
         <li><a href="/resorts">Browse Resorts</a></li>
         <li><a href="/hotels">Browse Hotels</a></li>
         <li><a href="/cottages">Browse Cottages</a></li>
