@@ -3,12 +3,23 @@
   const SUPER_ADMIN_LOGIN_PATH = "/super-admin-home.html";
   const HIDDEN_ATTRIBUTE = "data-super-admin-auth-hidden";
 
+  function normalizePath(pathname = window.location.pathname) {
+    const raw = String(pathname || "").trim().toLowerCase() || "/";
+    const withoutQuery = raw.split("?")[0].split("#")[0] || "/";
+    const withoutTrailingSlash = withoutQuery.length > 1 ? withoutQuery.replace(/\/+$/, "") : withoutQuery;
+    return withoutTrailingSlash.endsWith(".html")
+      ? withoutTrailingSlash.slice(0, -5)
+      : withoutTrailingSlash;
+  }
+
+  function isSuperAdminLoginPath(pathname = window.location.pathname) {
+    const path = normalizePath(pathname);
+    return path === "/super-admin-home" || path === "/super-admin" || path === "/dashboard";
+  }
+
   function isProtectedSuperAdminPath(pathname = window.location.pathname) {
-    const path = String(pathname || "").toLowerCase();
-    return path.startsWith("/super-admin")
-      && path !== "/super-admin-home.html"
-      && path !== "/super-admin.html"
-      && path !== "/super-admin";
+    const path = normalizePath(pathname);
+    return path.startsWith("/super-admin") && !isSuperAdminLoginPath(path);
   }
 
   function hideProtectedPageUntilAuth() {
@@ -34,6 +45,10 @@
   }
 
   function redirectToSuperAdminLogin() {
+    if (isSuperAdminLoginPath()) {
+      return;
+    }
+
     const loginUrl = new URL(SUPER_ADMIN_LOGIN_PATH, window.location.origin);
     loginUrl.searchParams.set("next", `${window.location.pathname}${window.location.search}`);
     window.location.replace(loginUrl.toString());
