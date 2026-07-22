@@ -287,7 +287,7 @@
               <div class="flex items-center justify-between gap-3">
                 <div>
                   <h2 class="text-lg font-semibold text-ocean">Website Photos</h2>
-                  <p class="mt-1 text-sm text-slate-600">Use up to 20 photo slots. Upload replaces the image in that slot. Choose the nearest photo type from the list.</p>
+                  <p class="mt-1 text-sm text-slate-600">Use up to 20 photo slots. Upload replaces the image in that slot. Choose the nearest photo type from the list. Photos are uploaded only when you click the upload button below.</p>
                 </div>
                 <button id="loadPhotoSectionButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">Refresh Photos</button>
               </div>
@@ -295,8 +295,8 @@
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
-              <button id="saveContentButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">Save Website Content</button>
-              <button id="savePhotosButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold text-slate-700">Save Photo Slots</button>
+              <button id="saveContentButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">Save Text And Details</button>
+              <button id="savePhotosButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold text-slate-700">Upload Selected Photos</button>
             </div>
           </form>
         </div>
@@ -764,6 +764,13 @@
         }
       }
 
+      function updateStaticDisplays(page) {
+        currentPage = page;
+        categoryDisplay.textContent = page?.category || "Not loaded";
+        slugDisplay.textContent = page?.slug || "Not loaded";
+        publishDisplay.textContent = Number(page?.is_published || 0) === 1 ? "Published" : "Draft";
+      }
+
       async function loadPage() {
         hotelAdminCommon.clearMessage(pageMessage);
         const hotelId = hotelAdminCommon.safeHotelId(hotelIdInput);
@@ -877,8 +884,13 @@
           if (!response.ok) {
             throw new Error(data.error || "Unable to save website page.");
           }
-          fillPage(data.page);
-          hotelAdminCommon.setMessage(pageMessage, includePhotos ? "Website content and photo slots saved successfully." : "Website content saved successfully.", "success");
+          if (includePhotos) {
+            fillPage(data.page);
+            hotelAdminCommon.setMessage(pageMessage, "Photos uploaded successfully. The saved filenames are shown in each slot.", "success");
+          } else {
+            updateStaticDisplays(data.page);
+            hotelAdminCommon.setMessage(pageMessage, "Website text and details saved successfully. Selected photo files are kept until you click Upload Selected Photos.", "success");
+          }
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to save website page.", "error");
         } finally {
