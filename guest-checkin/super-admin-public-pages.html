@@ -60,7 +60,7 @@
               <span id="modeBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Create</span>
             </div>
 
-            <form id="publicPageForm" class="mt-5 space-y-4">
+            <form id="publicPageForm" novalidate class="mt-5 space-y-4">
               <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div>
@@ -136,20 +136,20 @@
                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                   <div>
                     <label for="publicTitle" class="mb-2 block text-sm font-medium text-slate-700">Public Title</label>
-                    <input id="publicTitle" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <input id="publicTitle" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                   </div>
                   <div>
                     <label for="metaTitle" class="mb-2 block text-sm font-medium text-slate-700">Meta Title</label>
-                    <input id="metaTitle" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                    <input id="metaTitle" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                   </div>
                 </div>
                 <div class="mt-4">
                   <label for="metaDescription" class="mb-2 block text-sm font-medium text-slate-700">Meta Description</label>
-                  <textarea id="metaDescription" required rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                  <textarea id="metaDescription" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
                 </div>
                 <div class="mt-4">
                   <label for="heroHeading" class="mb-2 block text-sm font-medium text-slate-700">Hero Heading</label>
-                  <input id="heroHeading" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  <input id="heroHeading" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
                 </div>
                 <div class="mt-4">
                   <label for="heroSubheading" class="mb-2 block text-sm font-medium text-slate-700">Hero Subheading</label>
@@ -157,11 +157,11 @@
                 </div>
                 <div class="mt-4">
                   <label for="shortDescription" class="mb-2 block text-sm font-medium text-slate-700">Short Description</label>
-                  <textarea id="shortDescription" required rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                  <textarea id="shortDescription" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
                 </div>
                 <div class="mt-4">
                   <label for="fullDescription" class="mb-2 block text-sm font-medium text-slate-700">Full Description</label>
-                  <textarea id="fullDescription" required rows="6" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                  <textarea id="fullDescription" rows="6" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
                 </div>
               </details>
 
@@ -728,6 +728,15 @@
       }
 
       function buildPayload() {
+        if (!hotelIdInput.value.trim()) {
+          throw new Error("Please select a hotel.");
+        }
+        if (!categoryInput.value.trim()) {
+          throw new Error("Please select a category.");
+        }
+        if (!slugInput.value.trim()) {
+          throw new Error("Please enter the page slug.");
+        }
         if (!publicTitleInput.value.trim() || !metaTitleInput.value.trim() || !metaDescriptionInput.value.trim() || !shortDescriptionInput.value.trim() || !fullDescriptionInput.value.trim()) {
           generateWebsiteCopy();
         }
