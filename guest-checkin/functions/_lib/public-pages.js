@@ -190,3 +190,41 @@ export async function ensurePublicPageTables(db) {
     CREATE INDEX IF NOT EXISTS idx_hotel_public_page_photos_photo_order ON hotel_public_page_photos(photo_order);
   `);
 }
+
+export function multilineToSimpleList(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export function parseFaqLines(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [question, ...rest] = line.split("|");
+      return {
+        question: String(question || "").trim(),
+        answer: rest.join("|").trim(),
+      };
+    })
+    .filter((item) => item.question && item.answer);
+}
+
+export function parseNearbyLines(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [name, distance, note] = line.split("|").map((part) => String(part || "").trim());
+      return {
+        name,
+        distance: distance || "",
+        note: note || "",
+      };
+    })
+    .filter((item) => item.name);
+}

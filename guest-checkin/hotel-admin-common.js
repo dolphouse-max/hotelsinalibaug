@@ -164,6 +164,7 @@
       { id: "home", label: "Home", href: "/hotel-admin-home.html" },
       { id: "help", label: "Help", href: "/hotel-help.html" },
       { id: "profile", label: "Profile", href: "/hotel-admin-profile.html" },
+      { id: "website", label: "Website", href: "/hotel-admin-website.html" },
       { id: "drive", label: "Drive", href: "/hotel-admin-google-drive.html" },
       { id: "staff", label: "Staff", href: "/hotel-admin-staff.html" },
       { id: "checkin", label: "Guest QR", href: "/hotel-admin-checkin.html" },
