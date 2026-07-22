@@ -30,7 +30,7 @@
 
       <section class="p-5">
         <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-          Create the public hotel page, choose structured room and amenity data, auto-generate standard SEO text, and publish when ready. Hotels can later update the same website page from their hotel-admin panel.
+          Stage 1 is simple: select the hotel, confirm the basic contact details, and let the app create the page draft automatically. The hotel can later open its own website-page section and fill room types, amenities, photos, maps, and other optional details.
         </div>
 
         <div id="pageMessage" class="mt-4 hidden rounded-2xl border px-4 py-3 text-sm"></div>
@@ -61,104 +61,126 @@
             </div>
 
             <form id="publicPageForm" class="mt-5 space-y-4">
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel</label>
-                  <select id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                    <option value="">Select hotel</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="category" class="mb-2 block text-sm font-medium text-slate-700">Category</label>
-                  <select id="category" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                    <option value="resort">Resort</option>
-                    <option value="hotel">Hotel</option>
-                    <option value="cottage">Cottage</option>
-                    <option value="homestay">Homestay</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label for="slug" class="mb-2 block text-sm font-medium text-slate-700">Slug</label>
-                  <input id="slug" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="dolphin-house-beach-resort">
-                </div>
-                <div>
-                  <label for="canonicalPath" class="mb-2 block text-sm font-medium text-slate-700">Canonical Path</label>
-                  <input id="canonicalPath" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none" placeholder="/resorts/dolphin-house-beach-resort">
-                </div>
-              </div>
-
-              <div>
-                <label for="publicTitle" class="mb-2 block text-sm font-medium text-slate-700">Public Title</label>
-                <input id="publicTitle" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-              </div>
-              <div>
-                <label for="metaTitle" class="mb-2 block text-sm font-medium text-slate-700">Meta Title</label>
-                <input id="metaTitle" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-              </div>
-              <div>
-                <label for="metaDescription" class="mb-2 block text-sm font-medium text-slate-700">Meta Description</label>
-                <textarea id="metaDescription" required rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-              </div>
-              <div>
-                <label for="heroHeading" class="mb-2 block text-sm font-medium text-slate-700">Hero Heading</label>
-                <input id="heroHeading" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-              </div>
-              <div>
-                <label for="heroSubheading" class="mb-2 block text-sm font-medium text-slate-700">Hero Subheading</label>
-                <textarea id="heroSubheading" rows="2" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-              </div>
-              <div>
-                <label for="shortDescription" class="mb-2 block text-sm font-medium text-slate-700">Short Description</label>
-                <textarea id="shortDescription" required rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-              </div>
-              <div>
-                <label for="fullDescription" class="mb-2 block text-sm font-medium text-slate-700">Full Description</label>
-                <textarea id="fullDescription" required rows="6" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-              </div>
-
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label for="primaryPhone" class="mb-2 block text-sm font-medium text-slate-700">Primary Phone</label>
-                  <input id="primaryPhone" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                </div>
-                <div>
-                  <label for="whatsappNumber" class="mb-2 block text-sm font-medium text-slate-700">WhatsApp Number</label>
-                  <input id="whatsappNumber" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                </div>
-              </div>
-
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label for="inquiryEmail" class="mb-2 block text-sm font-medium text-slate-700">Inquiry Email</label>
-                  <input id="inquiryEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                </div>
-                <div>
-                  <label for="websiteUrl" class="mb-2 block text-sm font-medium text-slate-700">Website URL</label>
-                  <input id="websiteUrl" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-                </div>
-              </div>
-
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label for="googleMapsEmbedUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Embed URL</label>
-                  <textarea id="googleMapsEmbedUrl" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-                </div>
-                <div>
-                  <label for="googleMapsPlaceUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Place URL</label>
-                  <textarea id="googleMapsPlaceUrl" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-                </div>
-              </div>
-
               <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div>
-                    <h3 class="text-base font-semibold text-ocean-950">Structured Website Data</h3>
-                    <p class="mt-1 text-sm text-slate-600">Choose room count, room types, amenities, and beach distance. Then auto-generate standard SEO text for this hotel.</p>
+                    <h3 class="text-base font-semibold text-ocean-950">Stage 1 Basic Details</h3>
+                    <p class="mt-1 text-sm text-slate-600">Choose the hotel and the page type. The app will prepare the page draft automatically from your saved hotel record.</p>
                   </div>
-                  <button id="autoGenerateButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">Auto Generate SEO</button>
+                  <button id="createDraftButton" type="button" class="rounded-2xl bg-ocean-950 px-4 py-3 text-sm font-semibold text-white">Create Draft Automatically</button>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel</label>
+                    <select id="hotelId" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                      <option value="">Select hotel</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="category" class="mb-2 block text-sm font-medium text-slate-700">Category</label>
+                    <select id="category" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                      <option value="resort">Resort</option>
+                      <option value="hotel">Hotel</option>
+                      <option value="cottage">Cottage</option>
+                      <option value="homestay">Homestay</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="slug" class="mb-2 block text-sm font-medium text-slate-700">Slug</label>
+                    <input id="slug" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="dolphin-house-beach-resort">
+                  </div>
+                  <div>
+                    <label for="canonicalPath" class="mb-2 block text-sm font-medium text-slate-700">Canonical Path</label>
+                    <input id="canonicalPath" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none" placeholder="/resorts/dolphin-house-beach-resort">
+                  </div>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="primaryPhone" class="mb-2 block text-sm font-medium text-slate-700">Primary Mobile Number</label>
+                    <input id="primaryPhone" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  </div>
+                  <div>
+                    <label for="whatsappNumber" class="mb-2 block text-sm font-medium text-slate-700">WhatsApp Number</label>
+                    <input id="whatsappNumber" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  </div>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="inquiryEmail" class="mb-2 block text-sm font-medium text-slate-700">Inquiry Email</label>
+                    <input id="inquiryEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  </div>
+                  <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+                    <p class="text-sm font-medium text-slate-700">Saved Hotel Address</p>
+                    <p id="hotelAddressPreview" class="mt-2 whitespace-pre-line text-sm text-slate-600">Select a hotel to load the saved address.</p>
+                  </div>
+                </div>
+              </div>
+
+              <details id="generatedCopyPanel" class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
+                <summary class="cursor-pointer list-none">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 class="text-base font-semibold text-ocean-950">Auto Generated Page Content</h3>
+                      <p class="mt-1 text-sm text-slate-600">These fields are filled by the app. You can still adjust them later if needed.</p>
+                    </div>
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Generated</span>
+                  </div>
+                </summary>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="publicTitle" class="mb-2 block text-sm font-medium text-slate-700">Public Title</label>
+                    <input id="publicTitle" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  </div>
+                  <div>
+                    <label for="metaTitle" class="mb-2 block text-sm font-medium text-slate-700">Meta Title</label>
+                    <input id="metaTitle" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <label for="metaDescription" class="mb-2 block text-sm font-medium text-slate-700">Meta Description</label>
+                  <textarea id="metaDescription" required rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                </div>
+                <div class="mt-4">
+                  <label for="heroHeading" class="mb-2 block text-sm font-medium text-slate-700">Hero Heading</label>
+                  <input id="heroHeading" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                </div>
+                <div class="mt-4">
+                  <label for="heroSubheading" class="mb-2 block text-sm font-medium text-slate-700">Hero Subheading</label>
+                  <textarea id="heroSubheading" rows="2" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                </div>
+                <div class="mt-4">
+                  <label for="shortDescription" class="mb-2 block text-sm font-medium text-slate-700">Short Description</label>
+                  <textarea id="shortDescription" required rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                </div>
+                <div class="mt-4">
+                  <label for="fullDescription" class="mb-2 block text-sm font-medium text-slate-700">Full Description</label>
+                  <textarea id="fullDescription" required rows="6" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                </div>
+              </details>
+
+              <details class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+                <summary class="cursor-pointer list-none">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 class="text-base font-semibold text-ocean-950">Optional Details For Later</h3>
+                      <p class="mt-1 text-sm text-slate-600">Leave these blank in stage 1 if you want. Hotels can complete them later from their own panel.</p>
+                    </div>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Optional</span>
+                  </div>
+                </summary>
+                <div class="mt-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-base font-semibold text-ocean-950">Structured Website Data</h3>
+                    <p class="mt-1 text-sm text-slate-600">Room count, room types, amenities, maps, FAQ, nearby places, and policies can be improved later by the hotel.</p>
+                  </div>
                 </div>
 
                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
@@ -216,7 +238,22 @@
                   <label for="policiesLines" class="mb-2 block text-sm font-medium text-slate-700">Policies</label>
                   <textarea id="policiesLines" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Outside food not allowed&#10;Pets not allowed"></textarea>
                 </div>
-              </div>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label for="websiteUrl" class="mb-2 block text-sm font-medium text-slate-700">Website URL</label>
+                    <input id="websiteUrl" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+                  </div>
+                  <div>
+                    <label for="googleMapsPlaceUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Place URL</label>
+                    <textarea id="googleMapsPlaceUrl" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <label for="googleMapsEmbedUrl" class="mb-2 block text-sm font-medium text-slate-700">Google Maps Embed URL</label>
+                  <textarea id="googleMapsEmbedUrl" rows="3" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
+                </div>
+                </div>
+              </details>
 
               <div class="grid gap-3 sm:grid-cols-3">
                 <div>
@@ -251,6 +288,9 @@
       const publicPageForm = document.getElementById("publicPageForm");
       const deleteButton = document.getElementById("deleteButton");
       const modeBadge = document.getElementById("modeBadge");
+      const hotelAddressPreview = document.getElementById("hotelAddressPreview");
+      const generatedCopyPanel = document.getElementById("generatedCopyPanel");
+      const createDraftButton = document.getElementById("createDraftButton");
       const hotelIdInput = document.getElementById("hotelId");
       const categoryInput = document.getElementById("category");
       const slugInput = document.getElementById("slug");
@@ -280,11 +320,17 @@
       const policiesLinesInput = document.getElementById("policiesLines");
       const sortOrderInput = document.getElementById("sortOrder");
       const publishedFlagInput = document.getElementById("publishedFlag");
-      const autoGenerateButton = document.getElementById("autoGenerateButton");
 
       let allHotels = [];
       let allPages = [];
       let selectedPageId = "";
+      let currentHotelAddressFields = {
+        address_line_1: "",
+        address_village: "",
+        address_taluka: "Alibaug",
+        address_district: "Raigad",
+        address_pincode: "",
+      };
       const amenityPresets = [
         "AC Rooms", "Non AC Rooms", "Family Rooms", "Deluxe Rooms", "Cottages", "Swimming Pool", "Kids Play Area",
         "Free Wi-Fi", "Parking", "Restaurant", "Room Service", "Power Backup", "Hot Water", "TV", "Sea View",
@@ -407,22 +453,124 @@
         return allHotels.find((hotel) => hotel.id === hotelIdInput.value) || null;
       }
 
+      function parseHotelAddress(addressText = "") {
+        const result = {
+          address_line_1: "",
+          address_village: "",
+          address_taluka: "Alibaug",
+          address_district: "Raigad",
+          address_pincode: "",
+        };
+
+        for (const rawLine of String(addressText || "").split(/\r?\n/)) {
+          const line = rawLine.trim();
+          if (!line) {
+            continue;
+          }
+          if (line.startsWith("House/Street:")) {
+            result.address_line_1 = line.replace("House/Street:", "").trim();
+          } else if (line.startsWith("Village:")) {
+            result.address_village = line.replace("Village:", "").trim();
+          } else if (line.startsWith("Taluka:")) {
+            result.address_taluka = line.replace("Taluka:", "").trim() || "Alibaug";
+          } else if (line.startsWith("District:")) {
+            result.address_district = line.replace("District:", "").trim() || "Raigad";
+          } else if (line.startsWith("Pincode:")) {
+            result.address_pincode = line.replace("Pincode:", "").trim();
+          }
+        }
+
+        return result;
+      }
+
+      function syncHotelBasics() {
+        const hotel = getSelectedHotel();
+        if (!hotel) {
+          hotelAddressPreview.textContent = "Select a hotel to load the saved address.";
+          currentHotelAddressFields = {
+            address_line_1: "",
+            address_village: "",
+            address_taluka: "Alibaug",
+            address_district: "Raigad",
+            address_pincode: "",
+          };
+          return;
+        }
+
+        currentHotelAddressFields = parseHotelAddress(hotel.address || "");
+        hotelAddressPreview.textContent = hotel.address || "No address saved yet.";
+
+        if (!primaryPhoneInput.value.trim()) {
+          primaryPhoneInput.value = hotel.admin_phone || hotel.contact || "";
+        }
+        if (!whatsappNumberInput.value.trim()) {
+          whatsappNumberInput.value = hotel.admin_phone || hotel.contact || "";
+        }
+        if (!inquiryEmailInput.value.trim()) {
+          inquiryEmailInput.value = hotel.admin_email || "";
+        }
+        if (!roomCountDisplayInput.value) {
+          roomCountDisplayInput.value = hotel.total_rooms || "";
+        }
+        if (!slugInput.value.trim()) {
+          slugInput.value = slugify(`${hotel.name || ""} ${categoryInput.value || ""}`);
+          autoPath();
+        }
+      }
+
+      function generateDefaultFaqLines(hotel, beachLabel) {
+        const categoryLabel = categoryInput.value === "resort" ? "resort" : categoryInput.value === "cottage" ? "cottage" : categoryInput.value === "homestay" ? "homestay" : "hotel";
+        return [
+          `Where is ${hotel.name}? | ${hotel.name} is a ${categoryLabel} in ${currentHotelAddressFields.address_village || currentHotelAddressFields.address_taluka || "Alibaug"}, ${currentHotelAddressFields.address_district || "Raigad"}.`,
+          `How can guests contact ${hotel.name}? | Guests can contact the property on ${primaryPhoneInput.value.trim() || whatsappNumberInput.value.trim() || "the listed hotel number"}.`,
+          `Is ${hotel.name} near the beach? | ${beachLabel ? `${hotel.name} is about ${beachLabel} from the beach.` : "Beach distance will be updated by the hotel shortly."}`,
+        ].join("\n");
+      }
+
+      function generateDefaultPolicies() {
+        return [
+          "Valid government ID may be required at check-in.",
+          "Check-in and check-out timings can be confirmed directly with the hotel.",
+          "Room availability, tariffs, and amenities are subject to confirmation by the hotel.",
+        ].join("\n");
+      }
+
       function generateWebsiteCopy() {
         const hotel = getSelectedHotel();
-        const hotelName = hotel?.name || publicTitleInput.value || "Hotel";
-        const categoryLabel = categoryInput.value === "resort" ? "Resort" : categoryInput.value === "cottage" ? "Cottage" : categoryInput.value === "homestay" ? "Homestay" : "Hotel";
-        const roomCount = Number(roomCountDisplayInput.value || hotel?.total_rooms || 0);
-        const roomLabel = roomCount > 0 ? `${roomCount} room${roomCount === 1 ? "" : "s"}` : "comfortable rooms";
+        if (!hotel) {
+          throw new Error("Please select a hotel first.");
+        }
+
+        syncHotelBasics();
+        const roomCount = Number(roomCountDisplayInput.value || hotel.total_rooms || 0);
         const beachLabel = formatDistanceLabel();
-        const amenities = uniqueCombined(getCheckedValues("amenity_selected"), amenitiesLinesInput.value).slice(0, 4);
-        const roomTypes = uniqueCombined(getCheckedValues("room_type_selected"), roomTypesLinesInput.value).slice(0, 3);
-        publicTitleInput.value = `${hotelName} ${categoryLabel}`.trim();
-        metaTitleInput.value = `${hotelName} ${categoryLabel} | Alibaug | Hotels In Alibaug`;
-        metaDescriptionInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug with ${roomLabel}${beachLabel ? `, ${beachLabel} from the beach,` : ","} and amenities like ${amenities.join(", ") || "practical guest facilities"}.`;
-        heroHeadingInput.value = `${hotelName} - ${categoryLabel} in Alibaug`;
-        heroSubheadingInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug${beachLabel ? `, about ${beachLabel} from the beach,` : ""} suitable for guests looking for ${roomLabel}.`;
-        shortDescriptionInput.value = `${hotelName} is a practical ${categoryLabel.toLowerCase()} in Alibaug with ${roomLabel}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`;
-        fullDescriptionInput.value = `${hotelName} is a ${categoryLabel.toLowerCase()} in Alibaug offering ${roomLabel}${roomTypes.length ? ` with options such as ${roomTypes.join(", ")}` : ""}. Guests choosing ${hotelName} can expect ${amenities.join(", ") || "useful stay amenities"}${beachLabel ? ` and a location around ${beachLabel} from the beach` : " in a practical Alibaug location"}.`;
+        const locationLabel = currentHotelAddressFields.address_village || currentHotelAddressFields.address_taluka || "Alibaug";
+        const categoryLabel = categoryInput.value;
+        const generated = {
+          publicTitle: `${hotel.name} ${categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel"}`.trim(),
+          metaTitle: `${hotel.name} ${categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel"} | ${locationLabel} | Hotels In Alibaug`,
+          metaDescription: `${hotel.name} is a ${categoryLabel} in ${locationLabel}, ${currentHotelAddressFields.address_district || "Raigad"} with ${roomCount > 0 ? `${roomCount} rooms` : "comfortable stay options"}${beachLabel ? ` and beach access around ${beachLabel}` : ""}.`,
+          heroHeading: `${hotel.name} - ${categoryInput.options[categoryInput.selectedIndex]?.text || "Hotel"} in ${locationLabel}`,
+          heroSubheading: `${hotel.name} is a ${categoryLabel} in ${locationLabel}, ${currentHotelAddressFields.address_district || "Raigad"} for guests looking for a direct stay inquiry and a practical Alibaug area location.`,
+          shortDescription: `${hotel.name} is a ${categoryLabel} in ${locationLabel}${roomCount > 0 ? ` with ${roomCount} rooms` : ""} and direct contact details for guest inquiries.`,
+          fullDescription: `${hotel.name} is a ${categoryLabel} located in ${locationLabel}, ${currentHotelAddressFields.address_taluka || "Alibaug"}, ${currentHotelAddressFields.address_district || "Raigad"}. The page draft has been prepared from the hotel's saved record so guests can quickly see the location, contact number, and basic stay information. Additional amenities, room types, photos, and nearby-place details can be completed later by the hotel.`,
+        };
+
+        publicTitleInput.value = generated.publicTitle;
+        metaTitleInput.value = generated.metaTitle;
+        metaDescriptionInput.value = generated.metaDescription;
+        heroHeadingInput.value = generated.heroHeading;
+        heroSubheadingInput.value = generated.heroSubheading;
+        shortDescriptionInput.value = generated.shortDescription;
+        fullDescriptionInput.value = generated.fullDescription;
+
+        if (!faqLinesInput.value.trim()) {
+          faqLinesInput.value = generateDefaultFaqLines(hotel, beachLabel);
+        }
+        if (!policiesLinesInput.value.trim()) {
+          policiesLinesInput.value = generateDefaultPolicies();
+        }
+        generatedCopyPanel.open = true;
       }
 
       function resetForm() {
@@ -440,6 +588,8 @@
         roomCountDisplayInput.value = "";
         beachDistanceMetersInput.value = "";
         beachDistanceLabelInput.value = "";
+        hotelAddressPreview.textContent = "Select a hotel to load the saved address.";
+        generatedCopyPanel.open = false;
         sortOrderInput.value = "0";
         publishedFlagInput.value = "0";
         canonicalPathInput.value = "";
@@ -548,6 +698,20 @@
         roomCountDisplayInput.value = page.room_count_display || page.total_rooms || "";
         beachDistanceMetersInput.value = page.beach_distance_meters || "";
         beachDistanceLabelInput.value = page.beach_distance_label || "";
+        currentHotelAddressFields = {
+          address_line_1: page.address_line_1 || "",
+          address_village: page.address_village || "",
+          address_taluka: page.address_taluka || "Alibaug",
+          address_district: page.address_district || "Raigad",
+          address_pincode: page.address_pincode || "",
+        };
+        hotelAddressPreview.textContent = [
+          currentHotelAddressFields.address_line_1,
+          currentHotelAddressFields.address_village,
+          currentHotelAddressFields.address_taluka,
+          currentHotelAddressFields.address_district,
+          currentHotelAddressFields.address_pincode,
+        ].filter(Boolean).join("\n") || "No address saved yet.";
         const amenityValues = safeParseList(page.amenities_json);
         const roomTypeValues = safeParseList(page.room_types_json);
         setCheckedValues("amenity_selected", amenityValues);
@@ -559,9 +723,13 @@
         policiesLinesInput.value = listToLines(safeParseList(page.policies_json));
         sortOrderInput.value = Number(page.sort_order || 0);
         publishedFlagInput.value = Number(page.is_published || 0);
+        generatedCopyPanel.open = true;
       }
 
       function buildPayload() {
+        if (!publicTitleInput.value.trim() || !metaTitleInput.value.trim() || !metaDescriptionInput.value.trim() || !shortDescriptionInput.value.trim() || !fullDescriptionInput.value.trim()) {
+          generateWebsiteCopy();
+        }
         return {
           hotel_id: hotelIdInput.value,
           category: categoryInput.value,
@@ -574,6 +742,11 @@
           hero_subheading: heroSubheadingInput.value,
           short_description: shortDescriptionInput.value,
           full_description: fullDescriptionInput.value,
+          address_line_1: currentHotelAddressFields.address_line_1,
+          address_village: currentHotelAddressFields.address_village,
+          address_taluka: currentHotelAddressFields.address_taluka,
+          address_district: currentHotelAddressFields.address_district,
+          address_pincode: currentHotelAddressFields.address_pincode,
           primary_phone: primaryPhoneInput.value,
           whatsapp_number: whatsappNumberInput.value,
           inquiry_email: inquiryEmailInput.value,
@@ -602,12 +775,16 @@
       categoryInput.addEventListener("change", autoPath);
       slugInput.addEventListener("input", autoPath);
       hotelIdInput.addEventListener("change", () => {
-        const hotel = getSelectedHotel();
-        if (hotel && !roomCountDisplayInput.value) {
-          roomCountDisplayInput.value = hotel.total_rooms || "";
+        syncHotelBasics();
+      });
+      createDraftButton.addEventListener("click", () => {
+        try {
+          generateWebsiteCopy();
+          setMessage("Draft content created from the hotel's basic saved details.");
+        } catch (error) {
+          setMessage(error instanceof Error ? error.message : "Unable to create the draft automatically.", "error");
         }
       });
-      autoGenerateButton.addEventListener("click", generateWebsiteCopy);
       newPageButton.addEventListener("click", () => {
         resetForm();
         superAdminCommon.clearMessage(pageMessage);
