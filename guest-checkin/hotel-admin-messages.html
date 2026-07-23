@@ -17,29 +17,29 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <div class="flex items-center justify-between text-sm">
-        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
-        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Messages</span>
+        <a id="messagesBackLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span id="messagesBadge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Messages</span>
       </div>
       <script>document.write(hotelAdminCommon.quickNav("messages"));</script>
 
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Hotel Messages</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Send quick text-only coordination messages to other hotels about room availability, overflow guests, and basic support.</p>
+          <h1 id="messagesHeroTitle" class="text-2xl font-semibold">Hotel Messages</h1>
+          <p id="messagesHeroBody" class="mt-2 text-sm leading-6 text-white/80">Send quick text-only coordination messages to other hotels about room availability, overflow guests, and basic support.</p>
         </div>
         <div class="p-5">
           <div class="space-y-4">
             <div>
-              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <label id="messagesTokenLabel" for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Session</label>
               <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <label id="messagesHotelIdLabel" for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <button id="loadButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">Load Messages</button>
             <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
-            <div class="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+            <div id="messagesNote" class="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
               Text messages only. No photos, PDFs, or documents can be sent. All messages are automatically deleted after 24 hours.
             </div>
           </div>
@@ -47,7 +47,7 @@
       </section>
 
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-        <h2 class="text-lg font-semibold text-ocean">Start New Conversation</h2>
+        <h2 id="newConversationTitle" class="text-lg font-semibold text-ocean">Start New Conversation</h2>
         <div class="mt-4 space-y-3">
           <input id="hotelSearch" placeholder="Search hotel by name or ID" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
           <select id="recipientHotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
@@ -59,14 +59,14 @@
       </section>
 
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-        <h2 class="text-lg font-semibold text-ocean">Conversations</h2>
+        <h2 id="conversationsTitle" class="text-lg font-semibold text-ocean">Conversations</h2>
         <div id="threadsState" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">Load your conversations.</div>
         <div id="threadsList" class="mt-4 grid gap-3"></div>
       </section>
 
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-ocean">Thread View</h2>
+          <h2 id="threadViewTitle" class="text-lg font-semibold text-ocean">Thread View</h2>
           <span id="activeThreadBadge" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">No thread</span>
         </div>
         <div id="messagesState" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">Select a conversation to view messages.</div>
@@ -92,6 +92,88 @@
       const messagesList = document.getElementById("messagesList");
       const messagesState = document.getElementById("messagesState");
       const activeThreadBadge = document.getElementById("activeThreadBadge");
+      const messagesTranslations = {
+        en: {
+          title: "Hotel Messages",
+          back: "Back to Home",
+          badge: "Messages",
+          heroTitle: "Hotel Messages",
+          heroBody: "Send quick text-only coordination messages to other hotels about room availability, overflow guests, and basic support.",
+          tokenLabel: "Session",
+          hotelIdLabel: "Hotel ID",
+          loadButton: "Load Messages",
+          note: "Text messages only. No photos, PDFs, or documents can be sent. All messages are automatically deleted after 24 hours.",
+          newConversationTitle: "Start New Conversation",
+          searchPlaceholder: "Search hotel by name or ID",
+          selectHotel: "Select hotel",
+          newMessagePlaceholder: "Example: Do you have 2 AC rooms available tonight for overflow guests?",
+          sendButton: "Send Message",
+          conversationsTitle: "Conversations",
+          threadsInitial: "Load your conversations.",
+          noConversations: "No conversations yet.",
+          conversationsLoaded: (count) => `${count} conversation${count === 1 ? "" : "s"} loaded.`,
+          newBadge: (count) => `${count} new`,
+          seen: "Seen",
+          noMessagesYet: "No messages yet",
+          lastUpdate: "Last update",
+          threadViewTitle: "Thread View",
+          noThread: "No thread",
+          messagesInitial: "Select a conversation to view messages.",
+          noMessagesInThread: "No messages yet in this conversation.",
+          messagesLoaded: (count) => `${count} message${count === 1 ? "" : "s"} loaded.`,
+          you: "You",
+          replyPlaceholder: "Type a reply in this thread",
+          replyButton: "Send Reply",
+          loading: "Loading...",
+          sending: "Sending...",
+          loadError: "Unable to load messages",
+          sendError: "Unable to send message",
+          replyError: "Unable to send reply",
+          messageSent: "Message sent successfully.",
+          replySent: "Reply sent successfully.",
+          openConversationFirst: "Open a conversation first.",
+        },
+        mr: {
+          title: "हॉटेल संदेश",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "संदेश",
+          heroTitle: "हॉटेल संदेश",
+          heroBody: "रूम उपलब्धता, जादा पाहुणे आणि साध्या समन्वयासाठी इतर हॉटेलना पटकन फक्त मजकूर संदेश पाठवा.",
+          tokenLabel: "सेशन",
+          hotelIdLabel: "हॉटेल आयडी",
+          loadButton: "संदेश लोड करा",
+          note: "फक्त मजकूर संदेश पाठवता येतात. फोटो, पीडीएफ किंवा कागदपत्रे पाठवता येणार नाहीत. सर्व संदेश 24 तासांनंतर आपोआप हटवले जातात.",
+          newConversationTitle: "नवीन संवाद सुरू करा",
+          searchPlaceholder: "हॉटेलचे नाव किंवा आयडीने शोधा",
+          selectHotel: "हॉटेल निवडा",
+          newMessagePlaceholder: "उदाहरण: आज रात्री जादा पाहुण्यांसाठी 2 एसी रूम उपलब्ध आहेत का?",
+          sendButton: "संदेश पाठवा",
+          conversationsTitle: "संवाद",
+          threadsInitial: "आपले संवाद लोड करा.",
+          noConversations: "अद्याप कोणताही संवाद नाही.",
+          conversationsLoaded: (count) => `${count} संवाद लोड झाले.`,
+          newBadge: (count) => `${count} नवीन`,
+          seen: "पाहिले",
+          noMessagesYet: "अजून संदेश नाहीत",
+          lastUpdate: "शेवटचा बदल",
+          threadViewTitle: "संवाद तपशील",
+          noThread: "संवाद नाही",
+          messagesInitial: "संदेश पाहण्यासाठी एक संवाद निवडा.",
+          noMessagesInThread: "या संवादात अजून संदेश नाहीत.",
+          messagesLoaded: (count) => `${count} संदेश लोड झाले.`,
+          you: "आपण",
+          replyPlaceholder: "या संवादात उत्तर लिहा",
+          replyButton: "उत्तर पाठवा",
+          loading: "लोड होत आहे...",
+          sending: "पाठवत आहे...",
+          loadError: "संदेश लोड करता आले नाहीत",
+          sendError: "संदेश पाठवता आला नाही",
+          replyError: "उत्तर पाठवता आले नाही",
+          messageSent: "संदेश यशस्वीरीत्या पाठवला.",
+          replySent: "उत्तर यशस्वीरीत्या पाठवले.",
+          openConversationFirst: "प्रथम एक संवाद उघडा.",
+        },
+      };
 
       let directory = [];
       let threads = [];
@@ -101,8 +183,48 @@
 
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
 
+      function getMessagesText() {
+        return messagesTranslations[hotelAdminCommon.getLanguage()] || messagesTranslations.en;
+      }
+
+      function applyMessagesLanguage() {
+        const text = getMessagesText();
+        document.title = text.title;
+        document.getElementById("messagesBackLink").textContent = text.back;
+        document.getElementById("messagesBadge").textContent = text.badge;
+        document.getElementById("messagesHeroTitle").textContent = text.heroTitle;
+        document.getElementById("messagesHeroBody").textContent = text.heroBody;
+        document.getElementById("messagesTokenLabel").textContent = text.tokenLabel;
+        document.getElementById("messagesHotelIdLabel").textContent = text.hotelIdLabel;
+        document.getElementById("messagesNote").textContent = text.note;
+        document.getElementById("newConversationTitle").textContent = text.newConversationTitle;
+        hotelSearch.placeholder = text.searchPlaceholder;
+        document.getElementById("newMessageText").placeholder = text.newMessagePlaceholder;
+        sendButton.textContent = text.sendButton;
+        document.getElementById("conversationsTitle").textContent = text.conversationsTitle;
+        document.getElementById("threadViewTitle").textContent = text.threadViewTitle;
+        document.getElementById("replyMessageText").placeholder = text.replyPlaceholder;
+        replyButton.textContent = text.replyButton;
+        if (!loadButton.dataset.loading) {
+          loadButton.textContent = text.loadButton;
+        }
+        if (!activeThreadId) {
+          activeThreadBadge.textContent = text.noThread;
+          messagesState.textContent = text.messagesInitial;
+        }
+        if (!threads.length) {
+          threadsState.textContent = text.threadsInitial;
+        }
+        fillDirectoryOptions(directory);
+      }
+
       function fillDirectoryOptions(items) {
-        recipientHotelId.innerHTML = '<option value="">Select hotel</option>';
+        const text = getMessagesText();
+        recipientHotelId.innerHTML = "";
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = text.selectHotel;
+        recipientHotelId.appendChild(defaultOption);
         for (const hotel of items) {
           const option = document.createElement("option");
           option.value = hotel.id;
@@ -122,13 +244,14 @@
       }
 
       function renderThreads() {
+        const text = getMessagesText();
         threadsList.innerHTML = "";
         if (!threads.length) {
-          threadsState.textContent = "No conversations yet.";
+          threadsState.textContent = text.noConversations;
           return;
         }
 
-        threadsState.textContent = `${threads.length} conversation${threads.length === 1 ? "" : "s"} loaded.`;
+        threadsState.textContent = text.conversationsLoaded(threads.length);
         for (const thread of threads) {
           const card = document.createElement("button");
           card.type = "button";
@@ -140,11 +263,11 @@
                 <p class="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">${thread.other_hotel_id}</p>
               </div>
               <span class="rounded-full ${Number(thread.unread_count) > 0 ? "bg-amber-100 text-amber-800" : "bg-white text-slate-500"} px-3 py-1 text-xs font-semibold">
-                ${Number(thread.unread_count) > 0 ? `${thread.unread_count} new` : "Seen"}
+                ${Number(thread.unread_count) > 0 ? text.newBadge(thread.unread_count) : text.seen}
               </span>
             </div>
-            <p class="mt-3 text-sm leading-6 text-slate-600">${thread.latest_message_text || "No messages yet"}</p>
-            <p class="mt-2 text-xs text-slate-500">Last update: ${thread.latest_message_created_at || thread.last_message_at}</p>
+            <p class="mt-3 text-sm leading-6 text-slate-600">${thread.latest_message_text || text.noMessagesYet}</p>
+            <p class="mt-2 text-xs text-slate-500">${text.lastUpdate}: ${thread.latest_message_created_at || thread.last_message_at}</p>
           `;
           card.addEventListener("click", async () => {
             activeThreadId = thread.id;
@@ -157,19 +280,20 @@
       }
 
       function renderMessages(messages) {
+        const text = getMessagesText();
         messagesList.innerHTML = "";
         if (!messages.length) {
-          messagesState.textContent = "No messages yet in this conversation.";
+          messagesState.textContent = text.noMessagesInThread;
           return;
         }
 
-        messagesState.textContent = `${messages.length} message${messages.length === 1 ? "" : "s"} loaded.`;
+        messagesState.textContent = text.messagesLoaded(messages.length);
         for (const message of messages) {
           const mine = message.sender_hotel_id === hotelIdInput.value.trim();
           const card = document.createElement("article");
           card.className = `rounded-2xl p-4 text-sm ${mine ? "border border-sky-200 bg-sky-50" : "border border-slate-200 bg-slate-50"}`;
           card.innerHTML = `
-            <p class="font-semibold ${mine ? "text-sky-900" : "text-slate-900"}">${message.sender_hotel_name}${mine ? " (You)" : ""}</p>
+            <p class="font-semibold ${mine ? "text-sky-900" : "text-slate-900"}">${message.sender_hotel_name}${mine ? ` (${text.you})` : ""}</p>
             <p class="mt-2 leading-6 ${mine ? "text-sky-900" : "text-slate-700"}">${message.message_text}</p>
             <p class="mt-2 text-xs ${mine ? "text-sky-700" : "text-slate-500"}">${message.created_at}</p>
           `;
@@ -202,7 +326,7 @@
 
       async function loadMessages(threadId) {
         const data = await loadInbox(threadId);
-        activeThreadBadge.textContent = activeRecipientHotelName || "Thread";
+        activeThreadBadge.textContent = activeRecipientHotelName || getMessagesText().threadViewTitle;
         renderMessages(data.messages || []);
 
         await fetch("/api/hotel-admin/messages", {
@@ -220,26 +344,29 @@
       }
 
       loadButton.addEventListener("click", async () => {
+        const text = getMessagesText();
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        hotelAdminCommon.setButtonLoading(loadButton, true, text.loading);
         try {
           activeThreadId = "";
           activeRecipientHotelId = "";
           activeRecipientHotelName = "";
-          activeThreadBadge.textContent = "No thread";
+          activeThreadBadge.textContent = text.noThread;
           messagesList.innerHTML = "";
-          messagesState.textContent = "Select a conversation to view messages.";
+          messagesState.textContent = text.messagesInitial;
           await loadInbox();
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(loadButton, false);
+          loadButton.textContent = getMessagesText().loadButton;
         }
       });
 
       sendButton.addEventListener("click", async () => {
+        const text = getMessagesText();
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(sendButton, true, "Sending...");
+        hotelAdminCommon.setButtonLoading(sendButton, true, text.sending);
         try {
           const response = await fetch("/api/hotel-admin/messages", {
             method: "POST",
@@ -260,21 +387,23 @@
           activeRecipientHotelId = recipientHotelId.value;
           activeRecipientHotelName = recipientHotelId.options[recipientHotelId.selectedIndex]?.textContent || "";
           await loadMessages(data.thread_id);
-          hotelAdminCommon.setMessage(pageMessage, "Message sent successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, text.messageSent, "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(sendButton, false);
+          sendButton.textContent = getMessagesText().sendButton;
         }
       });
 
       replyButton.addEventListener("click", async () => {
+        const text = getMessagesText();
         hotelAdminCommon.clearMessage(pageMessage);
         if (!activeRecipientHotelId) {
-          hotelAdminCommon.setMessage(pageMessage, "Open a conversation first.", "error");
+          hotelAdminCommon.setMessage(pageMessage, text.openConversationFirst, "error");
           return;
         }
-        hotelAdminCommon.setButtonLoading(replyButton, true, "Sending...");
+        hotelAdminCommon.setButtonLoading(replyButton, true, text.sending);
         try {
           const response = await fetch("/api/hotel-admin/messages", {
             method: "POST",
@@ -288,19 +417,30 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to send reply");
+            throw new Error(data.error || text.replyError);
           }
           document.getElementById("replyMessageText").value = "";
           await loadMessages(data.thread_id);
-          hotelAdminCommon.setMessage(pageMessage, "Reply sent successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, text.replySent, "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(replyButton, false);
+          replyButton.textContent = getMessagesText().replyButton;
         }
       });
 
       hotelSearch.addEventListener("input", applyHotelSearch);
+      document.addEventListener("click", (event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".hotel-language-button")) {
+          window.setTimeout(() => {
+            applyMessagesLanguage();
+            renderThreads();
+          }, 0);
+        }
+      });
+
+      applyMessagesLanguage();
 
       if (tokenInput.value.trim() && hotelIdInput.value.trim()) {
         loadInbox().catch(() => {});
