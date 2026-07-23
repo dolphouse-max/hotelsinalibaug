@@ -8,8 +8,8 @@
     <link rel="manifest" href="/manifest.json">
     <title>Hotel Help</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="hotel-admin-common.js?v=20260718-1"></script>
-    <script src="hotel-reports-common.js?v=20260718-1"></script>
+    <script src="hotel-admin-common.js?v=20260723-1"></script>
+    <script src="hotel-reports-common.js?v=20260723-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -497,6 +497,7 @@
       const contentEn = document.getElementById("contentEn");
       const contentMr = document.getElementById("contentMr");
 
+      hotelAdminCommon.applyPageTranslations(window.location.pathname);
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
 
       function selectedLanguageFromUrl() {
@@ -525,6 +526,7 @@
 
       function applyLanguage(language) {
         const selected = language === "mr" ? "mr" : "en";
+        hotelAdminCommon.setLanguage(selected);
         localStorage.setItem("hotel_help_language", selected);
         contentEn.classList.toggle("hidden", selected !== "en");
         contentMr.classList.toggle("hidden", selected !== "mr");
@@ -539,7 +541,7 @@
       }
 
       updateBackLink();
-      applyLanguage(selectedLanguageFromUrl());
+      applyLanguage(selectedLanguageFromUrl() === "mr" ? "mr" : hotelAdminCommon.getLanguage());
     </script>
   </body>
 </html>

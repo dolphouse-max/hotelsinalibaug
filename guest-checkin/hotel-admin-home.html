@@ -9,9 +9,9 @@
     <title>Hotel Admin Home</title>
     <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
-    <script src="firebase-auth.js?v=20260718-3"></script>
+    <script src="firebase-auth.js?v=20260723-1"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="hotel-admin-common.js?v=20260718-1"></script>
+    <script src="hotel-admin-common.js?v=20260723-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -165,6 +165,7 @@
       const actionMessage = document.getElementById("actionMessage");
       let deferredInstallPrompt = null;
 
+      hotelAdminCommon.applyPageTranslations("/hotel-admin-home.html");
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
 
       if ("serviceWorker" in navigator) {
@@ -182,13 +183,13 @@
           if (deferredInstallPrompt) {
             await deferredInstallPrompt.prompt();
             deferredInstallPrompt = null;
-            hotelAdminCommon.setMessage(actionMessage, "App install prompt opened on this device.", "success");
+            hotelAdminCommon.setMessage(actionMessage, hotelAdminCommon.getLanguage() === "mr" ? "या device वर app install prompt उघडला." : "App install prompt opened on this device.", "success");
             return;
           }
 
-          hotelAdminCommon.setMessage(actionMessage, "If no install popup appears, use the browser menu and choose Add to Home Screen or Install App.", "success");
+          hotelAdminCommon.setMessage(actionMessage, hotelAdminCommon.getLanguage() === "mr" ? "Install popup दिसला नाही तर browser menu मधून Add to Home Screen किंवा Install App वापरा." : "If no install popup appears, use the browser menu and choose Add to Home Screen or Install App.", "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(actionMessage, error instanceof Error ? error.message : "Unable to open install prompt.", "error");
+          hotelAdminCommon.setMessage(actionMessage, error instanceof Error ? error.message : (hotelAdminCommon.getLanguage() === "mr" ? "Install prompt उघडता आला नाही." : "Unable to open install prompt."), "error");
         }
       });
 
@@ -219,10 +220,10 @@
             emailInput.value = session.email || emailInput.value;
             hotelIdInput.value = session.hotel_id || hotelIdInput.value;
             logoutButton.classList.remove("hidden");
-            hotelAdminCommon.setMessage(contextMessage, `Logged in for ${session.hotel_id}`, "success");
+            hotelAdminCommon.setMessage(contextMessage, `${hotelAdminCommon.getLanguage() === "mr" ? "लॉगिन झाले" : "Logged in for"} ${session.hotel_id}`, "success");
           }
         } catch (error) {
-          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to load hotel session.", "error");
+          hotelAdminCommon.setMessage(contextMessage, error.message || (hotelAdminCommon.getLanguage() === "mr" ? "हॉटेल सेशन लोड करता आले नाही." : "Unable to load hotel session."), "error");
         }
       }
 
@@ -233,48 +234,48 @@
       loginButton.addEventListener("click", async () => {
         const email = emailInput.value.trim().toLowerCase();
         if (!email) {
-          hotelAdminCommon.setMessage(contextMessage, "Enter hotel admin email before login.", "error");
+          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "लॉगिनपूर्वी hotel admin email टाका." : "Enter hotel admin email before login.", "error");
           return;
         }
 
         hotelAdminCommon.clearMessage(contextMessage);
-        hotelAdminCommon.setButtonLoading(loginButton, true, "Logging in...");
+        hotelAdminCommon.setButtonLoading(loginButton, true, hotelAdminCommon.getLanguage() === "mr" ? "लॉगिन होत आहे..." : "Logging in...");
         try {
           const data = await window.firebaseAuthBridge.signIn(email, passwordInput.value);
           hotelIdInput.value = data.session.hotel_id || "";
           emailInput.value = data.session.email || email;
           hotelAdminCommon.persistContext("__app_session__", data.session.hotel_id || "");
-          hotelAdminCommon.setMessage(contextMessage, `Logged in for ${data.session.hotel_id}`, "success");
+          hotelAdminCommon.setMessage(contextMessage, `${hotelAdminCommon.getLanguage() === "mr" ? "लॉगिन झाले" : "Logged in for"} ${data.session.hotel_id}`, "success");
           logoutButton.classList.remove("hidden");
           window.location.href = data.redirect;
         } catch (error) {
-          hotelAdminCommon.setMessage(contextMessage, error.message || "Login failed.", "error");
+          hotelAdminCommon.setMessage(contextMessage, error.message || (hotelAdminCommon.getLanguage() === "mr" ? "लॉगिन अयशस्वी." : "Login failed."), "error");
         } finally {
           hotelAdminCommon.setButtonLoading(loginButton, false);
         }
       });
 
       changePasswordButton.addEventListener("click", async () => {
-        const currentPassword = window.prompt("Enter current password");
+        const currentPassword = window.prompt(hotelAdminCommon.getLanguage() === "mr" ? "सध्याचा पासवर्ड टाका" : "Enter current password");
         if (!currentPassword) {
           return;
         }
-        const newPassword = window.prompt("Enter new password (minimum 8 characters)");
+        const newPassword = window.prompt(hotelAdminCommon.getLanguage() === "mr" ? "नवीन पासवर्ड टाका (किमान 8 अक्षरे)" : "Enter new password (minimum 8 characters)");
         if (!newPassword) {
           return;
         }
         try {
           await window.firebaseAuthBridge.changePassword(currentPassword, newPassword);
-          hotelAdminCommon.setMessage(contextMessage, "Password changed successfully.", "success");
+          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "पासवर्ड यशस्वीरीत्या बदलला." : "Password changed successfully.", "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to change password.", "error");
+          hotelAdminCommon.setMessage(contextMessage, error.message || (hotelAdminCommon.getLanguage() === "mr" ? "पासवर्ड बदलता आला नाही." : "Unable to change password."), "error");
         }
       });
 
       forgotPasswordButton.addEventListener("click", async () => {
         const email = emailInput.value.trim().toLowerCase();
         if (!email) {
-          hotelAdminCommon.setMessage(contextMessage, "Enter hotel admin email first.", "error");
+          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "सर्वप्रथम hotel admin email टाका." : "Enter hotel admin email first.", "error");
           return;
         }
 
@@ -285,9 +286,9 @@
             continueUrl.searchParams.set("hotel_id", hotelId);
           }
           await window.firebaseAuthBridge.sendPasswordReset(email, continueUrl.toString());
-          hotelAdminCommon.setMessage(contextMessage, "Password reset email sent.", "success");
+          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "पासवर्ड रीसेट ईमेल पाठवला." : "Password reset email sent.", "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(contextMessage, error.message || "Unable to send password reset email.", "error");
+          hotelAdminCommon.setMessage(contextMessage, error.message || (hotelAdminCommon.getLanguage() === "mr" ? "पासवर्ड रीसेट ईमेल पाठवता आला नाही." : "Unable to send password reset email."), "error");
         }
       });
 

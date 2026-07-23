@@ -8,6 +8,7 @@
       (function () {
         const url = new URL("/hotel-help.html", window.location.origin);
         const current = new URL(window.location.href);
+        localStorage.setItem("hotel_admin_language", "mr");
         current.searchParams.forEach((value, key) => {
           url.searchParams.set(key, value);
         });

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hotel Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="hotel-admin-common.js?v=20260718-1"></script>
+    <script src="hotel-admin-common.js?v=20260723-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -129,6 +129,7 @@
       const loadButton = document.getElementById("loadButton");
       const saveButton = document.getElementById("saveButton");
 
+      hotelAdminCommon.applyPageTranslations("/hotel-admin-profile.html");
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
       hotelIdInput.addEventListener("input", () => {
         hotelIdInput.value = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
@@ -182,6 +183,7 @@
       }
 
       function fill(hotel) {
+        const language = hotelAdminCommon.getLanguage();
         const address = parseStructuredAddress(hotel.address);
         hotelIdInput.value = hotel.id || hotelIdInput.value;
         document.getElementById("hotelName").value = hotel.name || "";
@@ -194,8 +196,10 @@
         document.getElementById("addressPincode").value = address.pincode;
         document.getElementById("totalRooms").value = hotel.total_rooms ?? 0;
         document.getElementById("occupiedRooms").value = hotel.occupied_rooms ?? 0;
-        document.getElementById("accountStatus").textContent = hotel.is_active === 1 ? "Active" : "Inactive";
-        document.getElementById("paidThrough").textContent = hotel.subscription_end_date || "Not set";
+        document.getElementById("accountStatus").textContent = hotel.is_active === 1
+          ? (language === "mr" ? "सक्रिय" : "Active")
+          : (language === "mr" ? "निष्क्रिय" : "Inactive");
+        document.getElementById("paidThrough").textContent = hotel.subscription_end_date || (language === "mr" ? "सेट नाही" : "Not set");
       }
 
       async function loadHotel() {
@@ -206,7 +210,7 @@
       }
 
       document.getElementById("loadButton").addEventListener("click", async () => {
-        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        hotelAdminCommon.setButtonLoading(loadButton, true, hotelAdminCommon.getLanguage() === "mr" ? "लोड होत आहे..." : "Loading...");
         try {
           await loadHotel();
         } catch (error) {
@@ -219,7 +223,7 @@
       document.getElementById("profileForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(saveButton, true, "Saving...");
+        hotelAdminCommon.setButtonLoading(saveButton, true, hotelAdminCommon.getLanguage() === "mr" ? "सेव्ह होत आहे..." : "Saving...");
         try {
           const response = await fetch("/api/hotel-admin/profile", {
             method: "PUT",
@@ -240,11 +244,11 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to save profile");
+            throw new Error(data.error || (hotelAdminCommon.getLanguage() === "mr" ? "प्रोफाइल सेव्ह करता आले नाही." : "Unable to save profile"));
           }
           fill(data.hotel);
           hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
-          hotelAdminCommon.setMessage(pageMessage, "Hotel profile updated successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, hotelAdminCommon.getLanguage() === "mr" ? "हॉटेल प्रोफाइल यशस्वीरीत्या अपडेट झाले." : "Hotel profile updated successfully.", "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hotel Reports Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="hotel-admin-common.js?v=20260718-1"></script>
-    <script src="hotel-reports-common.js?v=20260718-1"></script>
+    <script src="hotel-admin-common.js?v=20260723-1"></script>
+    <script src="hotel-reports-common.js?v=20260723-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -96,6 +96,7 @@
       const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
       const launcherLinks = Array.from(document.querySelectorAll(".launcher-link"));
 
+      hotelAdminCommon.applyPageTranslations("/hotel-reports-home.html");
       hotelReportsCommon.hydrateFilters(null, hotelIdInput, fromDateInput, toDateInput);
 
       function updateBackLink() {
@@ -127,13 +128,13 @@
       }
 
       if (hotelIdInput.value.trim()) {
-        hotelReportsCommon.setMessage(statusBox, "Saved hotel report filters found on this device.", "success");
+        hotelReportsCommon.setMessage(statusBox, hotelAdminCommon.getLanguage() === "mr" ? "या device वर सेव्ह केलेले report filters सापडले." : "Saved hotel report filters found on this device.", "success");
       }
 
       saveFiltersButton.addEventListener("click", () => {
         hotelReportsCommon.persistFilters(null, hotelIdInput, fromDateInput, toDateInput);
         updateBackLink();
-        hotelReportsCommon.setMessage(statusBox, "Hotel report filters saved on this device.", "success");
+        hotelReportsCommon.setMessage(statusBox, hotelAdminCommon.getLanguage() === "mr" ? "या device वर hotel report filters सेव्ह झाले." : "Hotel report filters saved on this device.", "success");
       });
     </script>
   </body>
