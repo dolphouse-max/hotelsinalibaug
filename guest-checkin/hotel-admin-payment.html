@@ -28,8 +28,8 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <div class="flex items-center justify-between text-sm">
-        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
-        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Payment</span>
+        <a id="paymentBackLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span id="paymentBadge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Payment</span>
       </div>
       <script>
         document.write(hotelAdminCommon.quickNav("payment"));
@@ -37,12 +37,12 @@
 
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Pay Subscription</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Scan this QR code from any UPI-enabled phone to pay your hotel subscription.</p>
+          <h1 id="paymentHeroTitle" class="text-2xl font-semibold">Pay Subscription</h1>
+          <p id="paymentHeroBody" class="mt-2 text-sm leading-6 text-white/80">Scan this QR code from any UPI-enabled phone to pay your hotel subscription.</p>
         </div>
 
         <div class="p-5">
-          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <div id="paymentIntro" class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
             After payment, keep the transaction reference ready and share it with superadmin if needed for renewal confirmation.
           </div>
 
@@ -50,15 +50,56 @@
             <div class="rounded-[1.5rem] bg-shell p-4">
               <img src="/akshy-qr.webp" alt="Subscription payment QR code" class="mx-auto w-full max-w-[320px] rounded-[1.25rem] bg-white object-contain p-2">
             </div>
-            <p class="mt-4 text-center text-base font-semibold text-ocean">Pay subscription with this QR code</p>
-            <p class="mt-2 text-center text-sm leading-6 text-slate-600">Open any UPI app, scan the QR image, and complete the payment for your active hotel subscription.</p>
+            <p id="paymentQrTitle" class="mt-4 text-center text-base font-semibold text-ocean">Pay subscription with this QR code</p>
+            <p id="paymentQrBody" class="mt-2 text-center text-sm leading-6 text-slate-600">Open any UPI app, scan the QR image, and complete the payment for your active hotel subscription.</p>
           </div>
 
-          <a href="/hotel-admin-renewal.html" class="mt-5 inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
+          <a id="renewalLink" href="/hotel-admin-renewal.html" class="mt-5 inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-4 font-semibold text-white shadow-lg shadow-ocean/15">
             Open Renewal Tracker
           </a>
         </div>
       </section>
     </main>
+    <script>
+      const paymentTranslations = {
+        en: {
+          title: "Pay Subscription | Hotels In Alibaug",
+          back: "Back to Home",
+          badge: "Payment",
+          heroTitle: "Pay Subscription",
+          heroBody: "Scan this QR code from any UPI-enabled phone to pay your hotel subscription.",
+          intro: "After payment, keep the transaction reference ready and share it with superadmin if needed for renewal confirmation.",
+          qrTitle: "Pay subscription with this QR code",
+          qrBody: "Open any UPI app, scan the QR image, and complete the payment for your active hotel subscription.",
+          renewal: "Open Renewal Tracker",
+        },
+        mr: {
+          title: "सदस्यता भरा | Hotels In Alibaug",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "पेमेंट",
+          heroTitle: "सदस्यता भरा",
+          heroBody: "आपल्या हॉटेलची सदस्यता भरण्यासाठी कोणत्याही यूपीआय-सक्षम फोनवरून हा क्यूआर स्कॅन करा.",
+          intro: "पेमेंट झाल्यावर व्यवहार संदर्भ क्रमांक तयार ठेवा आणि नूतनीकरण खात्रीसाठी गरज असल्यास तो सुपरअॅडमिनला कळवा.",
+          qrTitle: "या क्यूआर कोडने सदस्यता भरा",
+          qrBody: "कोणतेही यूपीआय अॅप उघडा, क्यूआर प्रतिमा स्कॅन करा आणि आपल्या सक्रिय हॉटेल सदस्यतेचे पेमेंट पूर्ण करा.",
+          renewal: "नूतनीकरण ट्रॅकर उघडा",
+        },
+      };
+
+      function applyPaymentLanguage() {
+        const text = paymentTranslations[hotelAdminCommon.getLanguage()] || paymentTranslations.en;
+        document.title = text.title;
+        document.getElementById("paymentBackLink").textContent = text.back;
+        document.getElementById("paymentBadge").textContent = text.badge;
+        document.getElementById("paymentHeroTitle").textContent = text.heroTitle;
+        document.getElementById("paymentHeroBody").textContent = text.heroBody;
+        document.getElementById("paymentIntro").textContent = text.intro;
+        document.getElementById("paymentQrTitle").textContent = text.qrTitle;
+        document.getElementById("paymentQrBody").textContent = text.qrBody;
+        document.getElementById("renewalLink").textContent = text.renewal;
+      }
+
+      applyPaymentLanguage();
+    </script>
   </body>
 </html>
