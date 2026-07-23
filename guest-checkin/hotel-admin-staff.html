@@ -71,8 +71,90 @@
       const refreshButton = document.getElementById("refreshButton");
       const staffListState = document.getElementById("staffListState");
       const staffList = document.getElementById("staffList");
+      const staffTranslations = {
+        en: {
+          title: "Hotel Staff Register",
+          back: "Back to Home",
+          badge: "Staff",
+          heroTitle: "Hotel Staff Register",
+          heroBody: "See all staff added for this hotel, edit any record, delete old records, or add a new staff member.",
+          intro: "This is page 1 for hotel staff work. Use the list below to review records first, then open page 2 only when you want to add or edit one staff member.",
+          hotelId: "Hotel ID",
+          addNew: "Add New Staff",
+          refresh: "Refresh Staff List",
+          loadingList: "Loading staff list...",
+          noRecords: "No staff records found for this hotel yet.",
+          recordsFound: (count) => `${count} staff record${count === 1 ? "" : "s"} found.`,
+          staffRecord: "Staff record",
+          active: "Active",
+          inactive: "Inactive",
+          phone: "Phone",
+          whatsapp: "WhatsApp",
+          email: "Email",
+          notSet: "Not set",
+          edit: "Edit",
+          delete: "Delete",
+          deleteConfirm: (name) => `Delete ${name} from this hotel staff register?`,
+          deleted: (name) => `${name} was deleted successfully.`,
+          deleteError: "Unable to delete staff member",
+          enterHotel: "Enter or load a Hotel ID first.",
+          loadError: "Unable to load staff list",
+          opening: "Opening staff registration page for a new staff member.",
+          refreshed: "Staff list refreshed successfully.",
+        },
+        mr: {
+          title: "हॉटेल स्टाफ रजिस्टर",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "स्टाफ",
+          heroTitle: "हॉटेल स्टाफ रजिस्टर",
+          heroBody: "या हॉटेलसाठी जोडलेला सर्व स्टाफ पाहा, कोणतीही नोंद संपादित करा, जुनी नोंद हटवा किंवा नवीन स्टाफ सदस्य जोडा.",
+          intro: "हे हॉटेल स्टाफ कामासाठी पहिले पान आहे. आधी खालील यादीत नोंदी तपासा, आणि एखाद्या स्टाफ सदस्याला जोडायचे किंवा संपादित करायचे असेल तरच दुसरे पान उघडा.",
+          hotelId: "हॉटेल आयडी",
+          addNew: "नवीन स्टाफ जोडा",
+          refresh: "स्टाफ यादी ताजी करा",
+          loadingList: "स्टाफ यादी लोड होत आहे...",
+          noRecords: "या हॉटेलसाठी अद्याप कोणतीही स्टाफ नोंद सापडली नाही.",
+          recordsFound: (count) => `${count} स्टाफ नोंद ${count === 1 ? "सापडली." : "सापडल्या."}`,
+          staffRecord: "स्टाफ नोंद",
+          active: "सक्रिय",
+          inactive: "निष्क्रिय",
+          phone: "फोन",
+          whatsapp: "व्हॉट्सअॅप",
+          email: "ईमेल",
+          notSet: "सेट नाही",
+          edit: "संपादित करा",
+          delete: "हटवा",
+          deleteConfirm: (name) => `${name} यांना या हॉटेलच्या स्टाफ रजिस्टरमधून हटवायचे का?`,
+          deleted: (name) => `${name} यांची नोंद यशस्वीरीत्या हटवली.`,
+          deleteError: "स्टाफ सदस्य हटवता आला नाही",
+          enterHotel: "सर्वप्रथम हॉटेल आयडी टाका किंवा लोड करा.",
+          loadError: "स्टाफ यादी लोड करता आली नाही",
+          opening: "नवीन स्टाफ सदस्यासाठी स्टाफ नोंदणी पान उघडत आहे.",
+          refreshed: "स्टाफ यादी यशस्वीरीत्या ताजी झाली.",
+        },
+      };
+
+      function getStaffText() {
+        return staffTranslations[hotelAdminCommon.getLanguage()] || staffTranslations.en;
+      }
+
+      function applyStaffLanguage() {
+        const text = getStaffText();
+        document.title = text.title;
+        document.querySelector("a[href='/hotel-admin-home.html']").textContent = text.back;
+        document.querySelector(".rounded-full.bg-white").textContent = text.badge;
+        document.querySelector("h1.text-2xl").textContent = text.heroTitle;
+        document.querySelector("h1.text-2xl + p").textContent = text.heroBody;
+        document.querySelector(".rounded-\\[1\\.5rem\\].border.border-slate-200.bg-slate-50").textContent = text.intro;
+        document.querySelector("label[for='hotelId']").textContent = text.hotelId;
+        hotelIdInput.placeholder = hotelAdminCommon.getLanguage() === "mr" ? "उदा. hotelalibaug0001" : "hotelalibaug0001";
+        openStaffConsoleLink.textContent = text.addNew;
+        refreshButton.textContent = text.refresh;
+        staffListState.textContent = text.loadingList;
+      }
 
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
+      applyStaffLanguage();
 
       function syncLink() {
         const hotelId = hotelIdInput.value.trim();
@@ -86,14 +168,15 @@
       }
 
       function renderStaffList(staffMembers) {
+        const text = getStaffText();
         staffList.innerHTML = "";
 
         if (!staffMembers.length) {
-          staffListState.textContent = "No staff records found for this hotel yet.";
+          staffListState.textContent = text.noRecords;
           return;
         }
 
-        staffListState.textContent = `${staffMembers.length} staff record${staffMembers.length === 1 ? "" : "s"} found.`;
+        staffListState.textContent = text.recordsFound(staffMembers.length);
 
         for (const staff of staffMembers) {
           const card = document.createElement("article");
@@ -105,20 +188,20 @@
             <div class="flex flex-col gap-4">
               <div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="text-lg font-semibold text-ocean">${staff.full_name || "Staff record"}</h3>
-                  <span class="rounded-full px-3 py-1 text-xs font-semibold ${badgeTone}">${staff.is_active === 1 ? "Active" : "Inactive"}</span>
+                  <h3 class="text-lg font-semibold text-ocean">${staff.full_name || text.staffRecord}</h3>
+                  <span class="rounded-full px-3 py-1 text-xs font-semibold ${badgeTone}">${staff.is_active === 1 ? text.active : text.inactive}</span>
                   <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-harbor">${staff.role || "staff"}</span>
                 </div>
-                <p class="mt-2 text-sm text-slate-500">Phone: <span class="font-medium text-slate-700">${staff.phone || "Not set"}</span></p>
-                <p class="mt-1 text-sm text-slate-500">WhatsApp: <span class="font-medium text-slate-700">${staff.whatsapp_phone || "Not set"}</span></p>
-                <p class="mt-1 text-sm text-slate-500">Email: <span class="font-medium text-slate-700">${staff.email || "Not set"}</span></p>
+                <p class="mt-2 text-sm text-slate-500">${text.phone}: <span class="font-medium text-slate-700">${staff.phone || text.notSet}</span></p>
+                <p class="mt-1 text-sm text-slate-500">${text.whatsapp}: <span class="font-medium text-slate-700">${staff.whatsapp_phone || text.notSet}</span></p>
+                <p class="mt-1 text-sm text-slate-500">${text.email}: <span class="font-medium text-slate-700">${staff.email || text.notSet}</span></p>
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
                 <a href="#" data-edit-staff="${staff.id}" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
-                  Edit
+                  ${text.edit}
                 </a>
                 <button type="button" data-delete-staff="${staff.id}" class="inline-flex items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 ${canDelete ? "" : "opacity-50 cursor-not-allowed"}" ${canDelete ? "" : "disabled aria-disabled=\"true\""}>
-                  Delete
+                  ${text.delete}
                 </button>
               </div>
             </div>
@@ -135,7 +218,7 @@
           const deleteButton = card.querySelector("[data-delete-staff]");
           if (canDelete) {
             deleteButton.addEventListener("click", async () => {
-              const confirmed = window.confirm(`Delete ${staff.full_name} from this hotel staff register?`);
+              const confirmed = window.confirm(text.deleteConfirm(staff.full_name || text.staffRecord));
               if (!confirmed) {
                 return;
               }
@@ -148,12 +231,12 @@
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                  throw new Error(data.error || "Unable to delete staff member");
+                  throw new Error(data.error || text.deleteError);
                 }
-                hotelAdminCommon.setMessage(pageMessage, `${staff.full_name} was deleted successfully.`, "success");
+                hotelAdminCommon.setMessage(pageMessage, text.deleted(staff.full_name || text.staffRecord), "success");
                 await loadStaff();
               } catch (error) {
-                hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to delete staff member", "error");
+                hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : text.deleteError, "error");
               }
             });
           }
@@ -163,22 +246,23 @@
       }
 
       async function loadStaff() {
+        const text = getStaffText();
         const hotelId = hotelIdInput.value.trim().toLowerCase();
         staffList.innerHTML = "";
 
         if (!hotelId) {
-          staffListState.textContent = "Enter or load a Hotel ID first.";
+          staffListState.textContent = text.enterHotel;
           return;
         }
 
         hotelAdminCommon.persistContext("", hotelId);
-        staffListState.textContent = "Loading staff list...";
+        staffListState.textContent = text.loadingList;
 
         const response = await fetch(`/api/hotel-admin/staff?hotel_id=${encodeURIComponent(hotelId)}`);
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.error || "Unable to load staff list");
+          throw new Error(data.error || text.loadError);
         }
 
         renderStaffList(data.staff || []);
@@ -190,21 +274,21 @@
       });
       openStaffConsoleLink.addEventListener("click", () => {
         syncLink();
-        hotelAdminCommon.setMessage(pageMessage, "Opening staff registration page for a new staff member.", "success");
+        hotelAdminCommon.setMessage(pageMessage, getStaffText().opening, "success");
       });
       refreshButton.addEventListener("click", async () => {
         try {
           await loadStaff();
-          hotelAdminCommon.setMessage(pageMessage, "Staff list refreshed successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, getStaffText().refreshed, "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load staff list", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getStaffText().loadError, "error");
         }
       });
 
       syncLink();
       loadStaff().catch((error) => {
-        hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load staff list", "error");
-        staffListState.textContent = "Unable to load staff list.";
+        hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getStaffText().loadError, "error");
+        staffListState.textContent = getStaffText().loadError;
       });
     </script>
   </body>
