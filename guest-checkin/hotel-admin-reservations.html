@@ -220,8 +220,221 @@
       let filterMode = "arrivals";
       let selectedCalendarDate = "";
       let reservations = [];
+      const reservationsTranslations = {
+        en: {
+          title: "Bookings & Reservations",
+          back: "Back to Home",
+          badge: "Bookings",
+          heroTitle: "Bookings & Reservations",
+          heroBody: "Save walk-ins and future bookings so reception can track arrivals, departures, and advance payments before check-in starts.",
+          hotelId: "Hotel ID",
+          hotelIdPlaceholder: "Hotel ID for this device",
+          intro: "This booking register keeps an offline copy on this device and also syncs to the hotel database when internet is available.",
+          today: "Today",
+          future: "Future",
+          arrivals: "Arrivals",
+          departures: "Departures",
+          bookings: "Bookings",
+          addReservation: "Add Reservation",
+          walkinFuture: "Walk-in or Future",
+          bookingType: "Booking Type",
+          bookingTypeWalkin: "Walk-In",
+          bookingTypeFuture: "Future Reservation",
+          source: "Source",
+          sourceDirect: "Direct",
+          sourcePhone: "Phone",
+          sourceWalkin: "Walk-In Desk",
+          sourceAgent: "Agent",
+          guestName: "Guest Name",
+          phone: "Phone",
+          guests: "Guests",
+          rooms: "Rooms",
+          checkinDate: "Check-In Date",
+          checkoutDate: "Check-Out Date",
+          roomPlan: "Room / Plan",
+          roomPlanPlaceholder: "Deluxe / 101 / AC",
+          advancePayment: "Advance Payment",
+          note: "Note",
+          notePlaceholder: "Early arrival, extra mattress, family booking, etc.",
+          saveReservation: "Save Reservation",
+          backupTransfer: "Backup & Transfer",
+          exportCsv: "Export CSV",
+          importCsv: "Import CSV",
+          backupDrive: "Backup To Google Drive",
+          restoreDrive: "Restore Latest Drive Backup",
+          backupIntro: "CSV export/import works on this device. Google Drive backup and restore uses the hotel Drive connection from the Drive page.",
+          futureCalendar: "Future Reservation Calendar",
+          showAll: "Show All",
+          calendarInitial: "Calendar loads after you save or load reservations.",
+          arrivalDeparture: "Arrival / Departure List",
+          todayArrivals: "Today Arrivals",
+          todayDepartures: "Today Departures",
+          searchPlaceholder: "Search guest, phone, room, or note",
+          reservationsInitial: "No reservations loaded yet.",
+          loadingList: "Loading reservations...",
+          noHotelId: "Enter a hotel ID first.",
+          noResults: "No reservations found for the current filters.",
+          roomNotAssigned: "Room not assigned",
+          delete: "Delete",
+          deleteConfirm: (name) => `Delete reservation for ${name}?`,
+          deleted: (name) => `Reservation deleted for ${name}.`,
+          saveLoading: "Saving...",
+          checkoutAfter: "Check-out date must be after check-in date.",
+          guestRequired: "Guest name is required.",
+          saved: "Reservation saved and synced.",
+          calendarFiltered: (date) => `Showing reservations staying on ${date}. Tap the selected day again to clear the filter.`,
+          calendarReady: "Tap any date tile to filter reservations for that day.",
+          syncLoadError: "Unable to load reservations from server.",
+          syncSaveError: "Unable to sync reservations.",
+          loadError: "Unable to load reservations.",
+          backupLoading: "Backing up...",
+          restoreLoading: "Restoring...",
+          activeTypeWalkin: "Walk-In",
+          activeTypeFuture: "Future Reservation",
+          notSet: "Not set",
+        },
+        mr: {
+          title: "बुकिंग आणि आरक्षणे",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "बुकिंग",
+          heroTitle: "बुकिंग आणि आरक्षणे",
+          heroBody: "वॉक-इन आणि भविष्यातील बुकिंग जतन करा, म्हणजे रिसेप्शनला चेक-इन सुरू होण्यापूर्वी आगमन, निर्गमन आणि आगाऊ देयके लक्षात ठेवता येतील.",
+          hotelId: "हॉटेल आयडी",
+          hotelIdPlaceholder: "या उपकरणासाठी हॉटेल आयडी",
+          intro: "ही बुकिंग नोंद या उपकरणावर ऑफलाइन प्रत ठेवते आणि इंटरनेट उपलब्ध असल्यास हॉटेल डेटाबेसशी जुळवते.",
+          today: "आज",
+          future: "भविष्य",
+          arrivals: "आगमन",
+          departures: "निर्गमन",
+          bookings: "बुकिंग",
+          addReservation: "आरक्षण जोडा",
+          walkinFuture: "वॉक-इन किंवा भविष्य",
+          bookingType: "बुकिंग प्रकार",
+          bookingTypeWalkin: "वॉक-इन",
+          bookingTypeFuture: "भविष्यातील आरक्षण",
+          source: "स्रोत",
+          sourceDirect: "थेट",
+          sourcePhone: "फोन",
+          sourceWalkin: "वॉक-इन डेस्क",
+          sourceAgent: "एजंट",
+          guestName: "पाहुण्याचे नाव",
+          phone: "फोन",
+          guests: "पाहुणे",
+          rooms: "रूम",
+          checkinDate: "चेक-इन तारीख",
+          checkoutDate: "चेक-आउट तारीख",
+          roomPlan: "रूम / योजना",
+          roomPlanPlaceholder: "डिलक्स / 101 / एसी",
+          advancePayment: "आगाऊ देयक",
+          note: "नोंद",
+          notePlaceholder: "लवकर आगमन, अतिरिक्त गादी, कौटुंबिक बुकिंग इ.",
+          saveReservation: "आरक्षण जतन करा",
+          backupTransfer: "बॅकअप आणि हस्तांतरण",
+          exportCsv: "सीएसव्ही निर्यात",
+          importCsv: "सीएसव्ही आयात",
+          backupDrive: "गूगल ड्राइव्हवर बॅकअप घ्या",
+          restoreDrive: "ड्राइव्हवरील शेवटचा बॅकअप परत घ्या",
+          backupIntro: "सीएसव्ही निर्यात/आयात या उपकरणावर काम करते. गूगल ड्राइव्ह बॅकअप आणि रिस्टोर ड्राइव्ह पानावरील हॉटेल ड्राइव्ह जोडणी वापरते.",
+          futureCalendar: "भविष्यातील आरक्षण कॅलेंडर",
+          showAll: "सर्व दाखवा",
+          calendarInitial: "आरक्षणे जतन किंवा लोड केल्यावर कॅलेंडर दिसेल.",
+          arrivalDeparture: "आगमन / निर्गमन यादी",
+          todayArrivals: "आजचे आगमन",
+          todayDepartures: "आजचे निर्गमन",
+          searchPlaceholder: "पाहुणे, फोन, रूम किंवा नोंद शोधा",
+          reservationsInitial: "अद्याप कोणतीही आरक्षणे लोड झालेली नाहीत.",
+          loadingList: "आरक्षणे लोड होत आहेत...",
+          noHotelId: "सर्वप्रथम हॉटेल आयडी टाका.",
+          noResults: "सध्याच्या फिल्टर्ससाठी कोणतीही आरक्षणे सापडली नाहीत.",
+          roomNotAssigned: "रूम दिलेली नाही",
+          delete: "हटवा",
+          deleteConfirm: (name) => `${name} यांचे आरक्षण हटवायचे का?`,
+          deleted: (name) => `${name} यांचे आरक्षण हटवले गेले.`,
+          saveLoading: "जतन होत आहे...",
+          checkoutAfter: "चेक-आउट तारीख चेक-इन तारखेच्या नंतरची असावी.",
+          guestRequired: "पाहुण्याचे नाव आवश्यक आहे.",
+          saved: "आरक्षण जतन झाले आणि जुळवले गेले.",
+          calendarFiltered: (date) => `${date} रोजी राहणारी आरक्षणे दाखवत आहे. फिल्टर काढण्यासाठी तोच दिवस पुन्हा दाबा.`,
+          calendarReady: "त्या दिवसाची आरक्षणे पाहण्यासाठी कोणत्याही तारखेवर टॅप करा.",
+          syncLoadError: "सर्व्हरवरून आरक्षणे लोड करता आली नाहीत.",
+          syncSaveError: "आरक्षणे जुळवता आली नाहीत.",
+          loadError: "आरक्षणे लोड करता आली नाहीत.",
+          backupLoading: "बॅकअप घेत आहे...",
+          restoreLoading: "रिस्टोर करत आहे...",
+          activeTypeWalkin: "वॉक-इन",
+          activeTypeFuture: "भविष्यातील आरक्षण",
+          notSet: "सेट नाही",
+        },
+      };
+
+      function getReservationsText() {
+        return reservationsTranslations[hotelAdminCommon.getLanguage()] || reservationsTranslations.en;
+      }
+
+      function applyReservationsLanguage() {
+        const text = getReservationsText();
+        document.title = text.title;
+        document.querySelector("a[href='/hotel-admin-home.html']").textContent = text.back;
+        document.querySelector(".rounded-full.bg-white").textContent = text.badge;
+        document.querySelector("h1.text-2xl").textContent = text.heroTitle;
+        document.querySelector("h1.text-2xl + p").textContent = text.heroBody;
+        document.querySelector("label[for='hotelId']").textContent = text.hotelId;
+        hotelIdInput.placeholder = text.hotelIdPlaceholder;
+        document.querySelector(".rounded-\\[1\\.5rem\\].border.border-sky-200").textContent = text.intro;
+        const statCards = document.querySelectorAll(".mt-5.grid.grid-cols-3.gap-3 .rounded-2xl");
+        if (statCards[0]) {
+          statCards[0].querySelector(".text-xs.uppercase").textContent = text.today;
+          statCards[0].querySelector(".mt-1.text-xs").textContent = text.arrivals;
+        }
+        if (statCards[1]) {
+          statCards[1].querySelector(".text-xs.uppercase").textContent = text.today;
+          statCards[1].querySelector(".mt-1.text-xs").textContent = text.departures;
+        }
+        if (statCards[2]) {
+          statCards[2].querySelector(".text-xs.uppercase").textContent = text.future;
+          statCards[2].querySelector(".mt-1.text-xs").textContent = text.bookings;
+        }
+        const headings = document.querySelectorAll("h2.text-lg.font-semibold.text-ocean");
+        headings[0].textContent = text.addReservation;
+        headings[1].textContent = text.backupTransfer;
+        headings[2].textContent = text.futureCalendar;
+        headings[3].textContent = text.arrivalDeparture;
+        document.querySelector("section:nth-of-type(2) .rounded-full.bg-shell").textContent = text.walkinFuture;
+        document.querySelector("label[for='bookingType']").textContent = text.bookingType;
+        document.querySelector("#bookingType option[value='walkin']").textContent = text.bookingTypeWalkin;
+        document.querySelector("#bookingType option[value='future']").textContent = text.bookingTypeFuture;
+        document.querySelector("label[for='bookingSource']").textContent = text.source;
+        document.querySelector("#bookingSource option[value='direct']").textContent = text.sourceDirect;
+        document.querySelector("#bookingSource option[value='phone']").textContent = text.sourcePhone;
+        document.querySelector("#bookingSource option[value='walkin']").textContent = text.sourceWalkin;
+        document.querySelector("#bookingSource option[value='agent']").textContent = text.sourceAgent;
+        document.querySelector("label[for='guestName']").textContent = text.guestName;
+        document.querySelector("label[for='guestPhone']").textContent = text.phone;
+        document.querySelector("label[for='totalGuests']").textContent = text.guests;
+        document.querySelector("label[for='roomCount']").textContent = text.rooms;
+        document.querySelector("label[for='checkInDate']").textContent = text.checkinDate;
+        document.querySelector("label[for='checkOutDate']").textContent = text.checkoutDate;
+        document.querySelector("label[for='roomPlan']").textContent = text.roomPlan;
+        document.getElementById("roomPlan").placeholder = text.roomPlanPlaceholder;
+        document.querySelector("label[for='advancePayment']").textContent = text.advancePayment;
+        document.querySelector("label[for='bookingNote']").textContent = text.note;
+        document.getElementById("bookingNote").placeholder = text.notePlaceholder;
+        saveReservationButton.textContent = text.saveReservation;
+        exportCsvButton.textContent = text.exportCsv;
+        document.querySelector("label[for='importCsvInput']").childNodes[0].textContent = text.importCsv;
+        backupDriveButton.textContent = text.backupDrive;
+        restoreDriveButton.textContent = text.restoreDrive;
+        document.querySelector("section:nth-of-type(3) .rounded-\\[1\\.5rem\\].border.border-slate-200").textContent = text.backupIntro;
+        document.getElementById("resetCalendarButton").textContent = text.showAll;
+        calendarState.textContent = text.calendarInitial;
+        document.getElementById("showArrivalsButton").textContent = text.todayArrivals;
+        document.getElementById("showDeparturesButton").textContent = text.todayDepartures;
+        document.getElementById("reservationSearch").placeholder = text.searchPlaceholder;
+        reservationsState.textContent = text.reservationsInitial;
+      }
 
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
+      applyReservationsLanguage();
 
       function reservationStorageKey() {
         const hotelId = hotelIdInput.value.trim();
@@ -280,7 +493,7 @@
         });
         const data = await hotelAdminCommon.readJson(response);
         if (!response.ok) {
-          throw new Error(data.error || "Unable to load reservations from server.");
+          throw new Error(data.error || getReservationsText().syncLoadError);
         }
 
         const serverReservations = Array.isArray(data.reservations) ? data.reservations : [];
@@ -305,7 +518,7 @@
         });
         const data = await hotelAdminCommon.readJson(response);
         if (!response.ok) {
-          throw new Error(data.error || "Unable to sync reservations.");
+          throw new Error(data.error || getReservationsText().syncSaveError);
         }
 
         reservations = Array.isArray(data.reservations) ? data.reservations : [];
@@ -321,7 +534,7 @@
       function exportReservationsCsv() {
         const hotelId = hotelIdInput.value.trim();
         if (!hotelId) {
-          throw new Error("Enter a hotel ID first.");
+          throw new Error(getReservationsText().noHotelId);
         }
 
         const items = readReservations();
@@ -397,7 +610,7 @@
       function importReservationsCsv(text) {
         const lines = text.split(/\r?\n/).filter(Boolean);
         if (lines.length < 2) {
-          throw new Error("CSV file is empty.");
+          throw new Error(getReservationsText().csvEmpty);
         }
 
         const headers = parseCsvLine(lines[0]);
@@ -475,7 +688,7 @@
         calendarGrid.innerHTML = "";
         const futureItems = items.filter((item) => item.check_in_date >= todayIso);
         if (!futureItems.length) {
-          calendarState.textContent = "No future reservations saved on this device yet.";
+          calendarState.textContent = getReservationsText().noFutureReservations;
           return;
         }
 
@@ -501,7 +714,7 @@
           button.className = `rounded-2xl border px-2 py-3 text-center text-xs ${selectedCalendarDate === iso ? "border-ocean bg-ocean text-white" : "border-slate-200 bg-slate-50 text-slate-700"}`;
           button.innerHTML = `
             <div class="font-semibold">${date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", timeZone: "UTC" })}</div>
-            <div class="mt-1">${counts.get(iso) || 0} room${(counts.get(iso) || 0) === 1 ? "" : "s"}</div>
+            <div class="mt-1">${getReservationsText().roomCountText(counts.get(iso) || 0)}</div>
           `;
           button.addEventListener("click", () => {
             selectedCalendarDate = selectedCalendarDate === iso ? "" : iso;
@@ -511,8 +724,8 @@
         }
 
         calendarState.textContent = selectedCalendarDate
-          ? `Showing reservations staying on ${selectedCalendarDate}. Tap the selected day again to clear the filter.`
-          : "Tap a future date to filter reservations staying on that date.";
+          ? getReservationsText().calendarFiltered(selectedCalendarDate)
+          : getReservationsText().calendarReady;
       }
 
       function reservationMatchesSearch(item, query) {
@@ -558,15 +771,15 @@
 
         if (!filtered.length) {
           const emptyText = filterMode === "departures"
-            ? "No departures matched today."
+            ? getReservationsText().noDeparturesToday
             : filterMode === "arrivals"
-              ? "No arrivals matched today."
-              : "No future reservations matched this filter.";
+              ? getReservationsText().noArrivalsToday
+              : getReservationsText().noFutureMatched;
           reservationsState.textContent = emptyText;
           return;
         }
 
-        reservationsState.textContent = `${filtered.length} reservation${filtered.length === 1 ? "" : "s"} shown.`;
+        reservationsState.textContent = getReservationsText().shownCount(filtered.length);
         for (const item of filtered) {
           const card = document.createElement("article");
           card.className = "rounded-2xl border border-slate-200 bg-slate-50 p-4";
@@ -574,20 +787,20 @@
             <div class="flex items-start justify-between gap-3">
               <div>
                 <p class="font-semibold text-slate-900">${item.guest_name}</p>
-                <p class="mt-1 text-sm text-slate-600">${item.guest_phone || "No phone"} • ${item.total_guests} guest${Number(item.total_guests) === 1 ? "" : "s"} • ${Number(item.room_count || 1)} room${Number(item.room_count || 1) === 1 ? "" : "s"}</p>
-                <p class="mt-1 text-sm text-slate-600">${item.check_in_date} to ${item.check_out_date}</p>
-                <p class="mt-1 text-sm text-slate-600">${item.room_plan || "Room not assigned"} • ${item.booking_type === "walkin" ? "Walk-In" : "Future Reservation"}</p>
-                <p class="mt-1 text-sm text-slate-600">Advance: INR ${Number(item.advance_payment || 0).toFixed(2)}</p>
-                <p class="mt-1 text-sm text-slate-600">Source: ${item.booking_source}</p>
+                <p class="mt-1 text-sm text-slate-600">${item.guest_phone || getReservationsText().noPhone} • ${getReservationsText().guestCount(Number(item.total_guests) || 1)} • ${getReservationsText().roomCountText(Number(item.room_count || 1))}</p>
+                <p class="mt-1 text-sm text-slate-600">${getReservationsText().fromTo(item.check_in_date, item.check_out_date)}</p>
+                <p class="mt-1 text-sm text-slate-600">${item.room_plan || getReservationsText().roomNotAssigned} • ${item.booking_type === "walkin" ? getReservationsText().activeTypeWalkin : getReservationsText().activeTypeFuture}</p>
+                <p class="mt-1 text-sm text-slate-600">${getReservationsText().advance}: INR ${Number(item.advance_payment || 0).toFixed(2)}</p>
+                <p class="mt-1 text-sm text-slate-600">${getReservationsText().sourceLabel}: ${item.booking_source}</p>
                 ${item.booking_note ? `<p class="mt-2 text-sm leading-6 text-slate-600">${item.booking_note}</p>` : ""}
               </div>
               <button type="button" class="delete-reservation-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700" data-id="${item.id}">
-                Delete
+                ${getReservationsText().delete}
               </button>
             </div>
           `;
           card.querySelector(".delete-reservation-button").addEventListener("click", () => {
-            const confirmed = window.confirm(`Delete reservation for ${item.guest_name}?`);
+            const confirmed = window.confirm(getReservationsText().deleteConfirm(item.guest_name));
             if (!confirmed) {
               return;
             }
@@ -604,9 +817,9 @@
           writeReservations(reservations);
           await syncReservationsToServer();
           renderAll();
-          hotelAdminCommon.setMessage(pageMessage, `Reservation deleted for ${guestName}.`, "success");
+          hotelAdminCommon.setMessage(pageMessage, getReservationsText().deleted(guestName), "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to delete reservation", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().deleteReservationError, "error");
           renderAll();
         }
       }
@@ -621,12 +834,12 @@
       async function saveReservation(event) {
         event.preventDefault();
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(saveReservationButton, true, "Saving...");
+        hotelAdminCommon.setButtonLoading(saveReservationButton, true, getReservationsText().saveLoading);
 
         try {
           const hotelId = hotelIdInput.value.trim().toLowerCase();
           if (!hotelId) {
-            throw new Error("Enter a hotel ID first.");
+            throw new Error(getReservationsText().noHotelId);
           }
 
           hotelAdminCommon.persistContext("__app_session__", hotelId);
@@ -634,7 +847,7 @@
           const checkInDate = document.getElementById("checkInDate").value;
           const checkOutDate = document.getElementById("checkOutDate").value;
           if (!checkInDate || !checkOutDate || checkOutDate <= checkInDate) {
-            throw new Error("Check-out date must be after check-in date.");
+            throw new Error(getReservationsText().checkoutAfter);
           }
 
           const newReservation = {
@@ -654,7 +867,7 @@
           };
 
           if (!newReservation.guest_name) {
-            throw new Error("Guest name is required.");
+            throw new Error(getReservationsText().guestRequired);
           }
 
           reservations = readReservations();
@@ -665,9 +878,9 @@
           setDefaultDates();
           selectedCalendarDate = "";
           renderAll();
-          hotelAdminCommon.setMessage(pageMessage, "Reservation saved and synced.", "success");
+          hotelAdminCommon.setMessage(pageMessage, getReservationsText().saved, "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to save reservation", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().saveReservationError, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(saveReservationButton, false);
         }
@@ -697,7 +910,7 @@
           renderAll();
         } catch (error) {
           renderAll();
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load reservations", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().loadError, "error");
         }
       });
 
@@ -707,9 +920,9 @@
         hotelAdminCommon.clearMessage(pageMessage);
         try {
           exportReservationsCsv();
-          hotelAdminCommon.setMessage(pageMessage, "CSV exported successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, getReservationsText().exportSuccess, "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to export CSV", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().exportError, "error");
         }
       });
 
@@ -726,9 +939,9 @@
           await syncReservationsToServer();
           selectedCalendarDate = "";
           renderAll();
-          hotelAdminCommon.setMessage(pageMessage, "CSV imported and synced successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, getReservationsText().importSuccess, "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to import CSV", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().importError, "error");
         } finally {
           importCsvInput.value = "";
         }
@@ -736,11 +949,11 @@
 
       backupDriveButton.addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(backupDriveButton, true, "Backing up...");
+        hotelAdminCommon.setButtonLoading(backupDriveButton, true, getReservationsText().backupLoading);
         try {
           const hotelId = hotelIdInput.value.trim();
           if (!hotelId) {
-            throw new Error("Enter a hotel ID first.");
+            throw new Error(getReservationsText().noHotelId);
           }
 
           const response = await fetch("/api/hotel-admin/reservations-backup", {
@@ -753,12 +966,12 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to backup reservations to Google Drive");
+            throw new Error(data.error || getReservationsText().backupDriveApiError);
           }
 
-          hotelAdminCommon.setMessage(pageMessage, `Drive backup created: ${data.backup?.name || "reservation backup"}.`, "success");
+          hotelAdminCommon.setMessage(pageMessage, getReservationsText().backupCreated(data.backup?.name || getReservationsText().backupDefaultName), "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to backup reservations", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().backupDriveError, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(backupDriveButton, false);
         }
@@ -766,11 +979,11 @@
 
       restoreDriveButton.addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(restoreDriveButton, true, "Restoring...");
+        hotelAdminCommon.setButtonLoading(restoreDriveButton, true, getReservationsText().restoreLoading);
         try {
           const hotelId = hotelIdInput.value.trim();
           if (!hotelId) {
-            throw new Error("Enter a hotel ID first.");
+            throw new Error(getReservationsText().noHotelId);
           }
 
           const listResponse = await fetch(`/api/hotel-admin/reservations-backup?hotel_id=${encodeURIComponent(hotelId)}`, {
@@ -778,12 +991,12 @@
           });
           const listData = await hotelAdminCommon.readJson(listResponse);
           if (!listResponse.ok) {
-            throw new Error(listData.error || "Unable to load Drive backups");
+            throw new Error(listData.error || getReservationsText().driveListError);
           }
 
           const latest = (listData.backups || [])[0];
           if (!latest) {
-            throw new Error("No reservation backup file found in Google Drive.");
+            throw new Error(getReservationsText().noDriveBackup);
           }
 
           const restoreResponse = await fetch(`/api/hotel-admin/reservations-backup?hotel_id=${encodeURIComponent(hotelId)}&file_id=${encodeURIComponent(latest.id)}`, {
@@ -791,7 +1004,7 @@
           });
           const restoreData = await hotelAdminCommon.readJson(restoreResponse);
           if (!restoreResponse.ok) {
-            throw new Error(restoreData.error || "Unable to restore reservation backup");
+            throw new Error(restoreData.error || getReservationsText().restoreDriveApiError);
           }
 
           reservations = Array.isArray(restoreData.records) ? restoreData.records : [];
@@ -799,9 +1012,9 @@
           await syncReservationsToServer();
           selectedCalendarDate = "";
           renderAll();
-          hotelAdminCommon.setMessage(pageMessage, `Latest Drive backup restored from ${latest.name} and synced.`, "success");
+          hotelAdminCommon.setMessage(pageMessage, getReservationsText().restoredLatest(latest.name), "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to restore reservations", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().restoreDriveError, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(restoreDriveButton, false);
         }
@@ -814,7 +1027,7 @@
             await loadReservationsFromServer();
           }
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load reservations", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getReservationsText().loadError, "error");
         }
         renderAll();
       }
