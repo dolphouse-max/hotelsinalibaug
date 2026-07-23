@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Guest QR</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="hotel-admin-common.js?v=20260718-1"></script>
+    <script src="hotel-admin-common.js?v=20260723-1"></script>
     <script src="qrcode.js"></script>
     <script>
       tailwind.config = {
@@ -23,20 +23,20 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <div class="flex items-center justify-between text-sm">
-        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
-        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Check-In</span>
+        <a id="checkinBackLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span id="checkinBadge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Check-In</span>
       </div>
       <script>
         document.write(hotelAdminCommon.quickNav("checkin"));
       </script>
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Guest QR & Link</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Generate one hotel-specific check-in link that guests can open on their own device by scanning the QR code.</p>
+          <h1 id="checkinHeroTitle" class="text-2xl font-semibold">Guest QR & Link</h1>
+          <p id="checkinHeroBody" class="mt-2 text-sm leading-6 text-white/80">Generate one hotel-specific check-in link that guests can open on their own device by scanning the QR code.</p>
         </div>
 
         <div class="p-5">
-          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <div id="checkinIntro" class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
             Each generated QR stays valid for 4 hours only. If you generate a new QR, the previous one stops working immediately.
           </div>
           <div class="space-y-4">
@@ -86,6 +86,49 @@
       const expiryNotice = document.getElementById("expiryNotice");
       const generateButton = document.getElementById("generateButton");
       let checkinUrl = "";
+      const checkinTranslations = {
+        en: {
+          title: "Guest QR",
+          back: "Back to Home",
+          badge: "Check-In",
+          heroTitle: "Guest QR & Link",
+          heroBody: "Generate one hotel-specific check-in link that guests can open on their own device by scanning the QR code.",
+          intro: "Each generated QR stays valid for 4 hours only. If you generate a new QR, the previous one stops working immediately.",
+          generate: "Generate",
+          generating: "Generating...",
+          generated: "Guest check-in QR generated successfully.",
+          copy: "Check-in link copied.",
+          freshTip: "Generate a fresh reception QR whenever you want a new 4-hour guest link.",
+          createError: "Unable to create check-in link",
+        },
+        mr: {
+          title: "गेस्ट QR",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "चेक-इन",
+          heroTitle: "गेस्ट QR आणि लिंक",
+          heroBody: "हॉटेलसाठी खास चेक-इन लिंक तयार करा, जी पाहुणे QR कोड स्कॅन करून त्यांच्या स्वतःच्या उपकरणावर उघडू शकतात.",
+          intro: "तयार केलेला प्रत्येक QR फक्त ४ तास वैध राहतो. नवीन QR तयार केल्यास जुना QR लगेच बंद होतो.",
+          generate: "तयार करा",
+          generating: "तयार होत आहे...",
+          generated: "गेस्ट चेक-इन QR यशस्वीरीत्या तयार झाला.",
+          copy: "चेक-इन लिंक कॉपी झाली.",
+          freshTip: "नवीन ४ तासांची गेस्ट लिंक हवी असल्यास reception साठी नवीन QR तयार करा.",
+          createError: "चेक-इन लिंक तयार करता आली नाही.",
+        },
+      };
+
+      function applyCheckinLanguage() {
+        const text = checkinTranslations[hotelAdminCommon.getLanguage()] || checkinTranslations.en;
+        document.title = text.title;
+        document.getElementById("checkinBackLink").textContent = text.back;
+        document.getElementById("checkinBadge").textContent = text.badge;
+        document.getElementById("checkinHeroTitle").textContent = text.heroTitle;
+        document.getElementById("checkinHeroBody").textContent = text.heroBody;
+        document.getElementById("checkinIntro").textContent = text.intro;
+        generateButton.textContent = text.generate;
+      }
+
+      applyCheckinLanguage();
 
       function formatExpiry(value) {
         const date = new Date(value);
@@ -109,7 +152,8 @@
 
       document.getElementById("generateButton").addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(generateButton, true, "Generating...");
+        const text = checkinTranslations[hotelAdminCommon.getLanguage()] || checkinTranslations.en;
+        hotelAdminCommon.setButtonLoading(generateButton, true, text.generating);
         try {
           hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
           const response = await fetch(`/api/hotel-admin/checkin-link?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`, {
@@ -117,7 +161,7 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to create check-in link");
+            throw new Error(data.error || text.createError);
           }
 
           checkinUrl = data.checkinUrl;
@@ -129,7 +173,7 @@
           document.getElementById("openButton").disabled = false;
           expiryNotice.textContent = `This reception QR will expire on ${formatExpiry(data.expiresAt)}. If you generate a fresh QR before that, the older QR will stop working immediately.`;
           expiryNotice.classList.remove("hidden");
-          hotelAdminCommon.setMessage(pageMessage, "Guest check-in QR generated successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, text.generated, "success");
         } catch (error) {
           expiryNotice.classList.add("hidden");
           expiryNotice.textContent = "";
@@ -142,7 +186,8 @@
       document.getElementById("copyButton").addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(checkinUrl);
-          hotelAdminCommon.setMessage(pageMessage, "Check-in link copied.", "success");
+          const text = checkinTranslations[hotelAdminCommon.getLanguage()] || checkinTranslations.en;
+          hotelAdminCommon.setMessage(pageMessage, text.copy, "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         }
@@ -155,7 +200,8 @@
       });
 
       if (hotelIdInput.value.trim()) {
-        hotelAdminCommon.setMessage(pageMessage, "Generate a fresh reception QR whenever you want a new 4-hour guest link.", "success");
+        const text = checkinTranslations[hotelAdminCommon.getLanguage()] || checkinTranslations.en;
+        hotelAdminCommon.setMessage(pageMessage, text.freshTip, "success");
       }
     </script>
   </body>

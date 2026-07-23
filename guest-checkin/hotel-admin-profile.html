@@ -25,20 +25,20 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <div class="flex items-center justify-between text-sm">
-        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
-        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Profile</span>
+        <a id="profileBackLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span id="profileBadge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Profile</span>
       </div>
       <script>
         document.write(hotelAdminCommon.quickNav("profile"));
       </script>
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Profile & Subscription</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Review your hotel account, keep contact details current, and make sure room counts stay accurate.</p>
+          <h1 id="profileHeroTitle" class="text-2xl font-semibold">Profile & Subscription</h1>
+          <p id="profileHeroBody" class="mt-2 text-sm leading-6 text-white/80">Review your hotel account, keep contact details current, and make sure room counts stay accurate.</p>
         </div>
 
         <div class="p-5">
-          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <div id="profileIntro" class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
             Use this page only for hotel details, room counts, and checking the current paid-through date.
           </div>
           <div class="space-y-4">
@@ -129,7 +129,50 @@
       const loadButton = document.getElementById("loadButton");
       const saveButton = document.getElementById("saveButton");
 
-      hotelAdminCommon.applyPageTranslations("/hotel-admin-profile.html");
+      const profileTranslations = {
+        en: {
+          title: "Hotel Profile",
+          back: "Back to Home",
+          badge: "Profile",
+          heroTitle: "Profile & Subscription",
+          heroBody: "Review your hotel account, keep contact details current, and make sure room counts stay accurate.",
+          intro: "Use this page only for hotel details, room counts, and checking the current paid-through date.",
+          notSet: "Not set",
+          active: "Active",
+          inactive: "Inactive",
+          loadSaving: "Loading...",
+          saveSaving: "Saving...",
+          saved: "Hotel profile updated successfully.",
+          saveError: "Unable to save profile",
+        },
+        mr: {
+          title: "हॉटेल प्रोफाइल",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "प्रोफाइल",
+          heroTitle: "प्रोफाइल आणि सदस्यता",
+          heroBody: "आपले हॉटेल खाते तपासा, संपर्क माहिती अद्ययावत ठेवा आणि रूम संख्या अचूक आहे याची खात्री करा.",
+          intro: "हे पान फक्त हॉटेलची माहिती, रूम संख्या आणि सध्याची सशुल्क अंतिम तारीख तपासण्यासाठी वापरा.",
+          notSet: "सेट नाही",
+          active: "सक्रिय",
+          inactive: "निष्क्रिय",
+          loadSaving: "लोड होत आहे...",
+          saveSaving: "जतन होत आहे...",
+          saved: "हॉटेल प्रोफाइल यशस्वीरीत्या अद्ययावत झाले.",
+          saveError: "प्रोफाइल जतन करता आले नाही.",
+        },
+      };
+
+      function applyProfileLanguage() {
+        const text = profileTranslations[hotelAdminCommon.getLanguage()] || profileTranslations.en;
+        document.title = text.title;
+        document.getElementById("profileBackLink").textContent = text.back;
+        document.getElementById("profileBadge").textContent = text.badge;
+        document.getElementById("profileHeroTitle").textContent = text.heroTitle;
+        document.getElementById("profileHeroBody").textContent = text.heroBody;
+        document.getElementById("profileIntro").textContent = text.intro;
+      }
+
+      applyProfileLanguage();
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
       hotelIdInput.addEventListener("input", () => {
         hotelIdInput.value = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
@@ -184,6 +227,7 @@
 
       function fill(hotel) {
         const language = hotelAdminCommon.getLanguage();
+        const text = profileTranslations[hotelAdminCommon.getLanguage()] || profileTranslations.en;
         const address = parseStructuredAddress(hotel.address);
         hotelIdInput.value = hotel.id || hotelIdInput.value;
         document.getElementById("hotelName").value = hotel.name || "";
@@ -196,10 +240,8 @@
         document.getElementById("addressPincode").value = address.pincode;
         document.getElementById("totalRooms").value = hotel.total_rooms ?? 0;
         document.getElementById("occupiedRooms").value = hotel.occupied_rooms ?? 0;
-        document.getElementById("accountStatus").textContent = hotel.is_active === 1
-          ? (language === "mr" ? "सक्रिय" : "Active")
-          : (language === "mr" ? "निष्क्रिय" : "Inactive");
-        document.getElementById("paidThrough").textContent = hotel.subscription_end_date || (language === "mr" ? "सेट नाही" : "Not set");
+        document.getElementById("accountStatus").textContent = hotel.is_active === 1 ? text.active : text.inactive;
+        document.getElementById("paidThrough").textContent = hotel.subscription_end_date || text.notSet;
       }
 
       async function loadHotel() {
@@ -210,7 +252,8 @@
       }
 
       document.getElementById("loadButton").addEventListener("click", async () => {
-        hotelAdminCommon.setButtonLoading(loadButton, true, hotelAdminCommon.getLanguage() === "mr" ? "लोड होत आहे..." : "Loading...");
+        const text = profileTranslations[hotelAdminCommon.getLanguage()] || profileTranslations.en;
+        hotelAdminCommon.setButtonLoading(loadButton, true, text.loadSaving);
         try {
           await loadHotel();
         } catch (error) {
@@ -223,7 +266,8 @@
       document.getElementById("profileForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(saveButton, true, hotelAdminCommon.getLanguage() === "mr" ? "सेव्ह होत आहे..." : "Saving...");
+        const text = profileTranslations[hotelAdminCommon.getLanguage()] || profileTranslations.en;
+        hotelAdminCommon.setButtonLoading(saveButton, true, text.saveSaving);
         try {
           const response = await fetch("/api/hotel-admin/profile", {
             method: "PUT",
@@ -244,11 +288,11 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || (hotelAdminCommon.getLanguage() === "mr" ? "प्रोफाइल सेव्ह करता आले नाही." : "Unable to save profile"));
+            throw new Error(data.error || text.saveError);
           }
           fill(data.hotel);
           hotelAdminCommon.persistContext(tokenInput.value.trim(), hotelIdInput.value.trim());
-          hotelAdminCommon.setMessage(pageMessage, hotelAdminCommon.getLanguage() === "mr" ? "हॉटेल प्रोफाइल यशस्वीरीत्या अपडेट झाले." : "Hotel profile updated successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, text.saved, "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {

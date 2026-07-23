@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Google Drive</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="hotel-admin-common.js?v=20260718-1"></script>
+    <script src="hotel-admin-common.js?v=20260723-1"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -22,20 +22,20 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <div class="flex items-center justify-between text-sm">
-        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
-        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Drive</span>
+        <a id="driveBackLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span id="driveBadge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Drive</span>
       </div>
       <script>
         document.write(hotelAdminCommon.quickNav("drive"));
       </script>
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Google Drive</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Connect the hotel Google Drive once so guest and staff document images stay in the hotel’s own account under hotel ownership.</p>
+          <h1 id="driveHeroTitle" class="text-2xl font-semibold">Google Drive</h1>
+          <p id="driveHeroBody" class="mt-2 text-sm leading-6 text-white/80">Connect the hotel Google Drive once so guest and staff document images stay in the hotel’s own account under hotel ownership.</p>
         </div>
 
         <div class="p-5">
-          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <div id="driveIntro" class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
             Use this page only for hotel Drive connection and proof-storage setup so records stay hotel-owned from the start.
           </div>
           <div class="space-y-4">
@@ -85,17 +85,81 @@
       const disconnectButton = document.getElementById("disconnectButton");
       let driveState = null;
 
+      const driveTranslations = {
+        en: {
+          title: "Google Drive",
+          back: "Back to Home",
+          badge: "Drive",
+          heroTitle: "Google Drive",
+          heroBody: "Connect the hotel Google Drive once so guest and staff document images stay in the hotel’s own account under hotel ownership.",
+          intro: "Use this page only for hotel Drive connection and proof-storage setup so records stay hotel-owned from the start.",
+          connected: "Connected",
+          notConnected: "Not connected",
+          adminMissing: "Admin Gmail not available",
+          folderMissing: "Folder ID not available",
+          connectWith: "Connect with this Gmail",
+          connectButton: "Connect Google Drive",
+          connectedButton: "Connected",
+          disconnectButton: "Disconnect Google Drive",
+          loading: "Loading...",
+          preparing: "Preparing...",
+          disconnecting: "Disconnecting...",
+          already: "Google Drive is already connected for this hotel.",
+          disconnected: "Google Drive disconnected successfully.",
+          loadError: "Unable to load Google Drive status",
+          disconnectError: "Unable to disconnect Google Drive",
+          connectError: "Unable to connect Google Drive",
+        },
+        mr: {
+          title: "गूगल ड्राइव्ह",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "ड्राइव्ह",
+          heroTitle: "गूगल ड्राइव्ह",
+          heroBody: "हॉटेलचा गूगल ड्राइव्ह एकदाच जोडा, म्हणजे गेस्ट आणि स्टाफ कागदपत्रांच्या प्रतिमा हॉटेलच्या स्वतःच्या खात्यात राहतील.",
+          intro: "हे पान फक्त हॉटेल ड्राइव्ह जोडणी आणि पुरावा-साठवण सेटअपसाठी वापरा, म्हणजे नोंदी सुरुवातीपासून हॉटेलच्या मालकीच्या राहतील.",
+          connected: "जोडलेले",
+          notConnected: "जोडलेले नाही",
+          adminMissing: "अॅडमिन Gmail उपलब्ध नाही",
+          folderMissing: "फोल्डर आयडी उपलब्ध नाही",
+          connectWith: "या Gmail ने जोडा",
+          connectButton: "गूगल ड्राइव्ह जोडा",
+          connectedButton: "जोडलेले",
+          disconnectButton: "गूगल ड्राइव्ह वेगळा करा",
+          loading: "लोड होत आहे...",
+          preparing: "तयारी होत आहे...",
+          disconnecting: "वेगळे करत आहे...",
+          already: "या हॉटेलसाठी गूगल ड्राइव्ह आधीच जोडलेला आहे.",
+          disconnected: "गूगल ड्राइव्ह यशस्वीरीत्या वेगळा केला.",
+          loadError: "गूगल ड्राइव्ह स्थिती लोड करता आली नाही.",
+          disconnectError: "गूगल ड्राइव्ह वेगळा करता आला नाही.",
+          connectError: "गूगल ड्राइव्ह जोडता आला नाही.",
+        },
+      };
+
+      function applyDriveLanguage() {
+        const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
+        document.title = text.title;
+        document.getElementById("driveBackLink").textContent = text.back;
+        document.getElementById("driveBadge").textContent = text.badge;
+        document.getElementById("driveHeroTitle").textContent = text.heroTitle;
+        document.getElementById("driveHeroBody").textContent = text.heroBody;
+        document.getElementById("driveIntro").textContent = text.intro;
+        disconnectButton.textContent = text.disconnectButton;
+      }
+
+      applyDriveLanguage();
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
 
       function render(data) {
+        const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
         driveState = data;
-        document.getElementById("driveStatus").textContent = data.googleDriveConnected ? "Connected" : "Not connected";
+        document.getElementById("driveStatus").textContent = data.googleDriveConnected ? text.connected : text.notConnected;
         document.getElementById("adminEmail").textContent = data.adminEmail
-          ? `Connect with this Gmail: ${data.adminEmail}`
-          : "Admin Gmail not available";
-        document.getElementById("folderId").textContent = data.googleDriveFolderId || "Folder ID not available";
+          ? `${text.connectWith}: ${data.adminEmail}`
+          : text.adminMissing;
+        document.getElementById("folderId").textContent = data.googleDriveFolderId || text.folderMissing;
         connectButton.disabled = Boolean(data.googleDriveConnected);
-        connectButton.textContent = data.googleDriveConnected ? "Connected" : "Connect Google Drive";
+        connectButton.textContent = data.googleDriveConnected ? text.connectedButton : text.connectButton;
         connectButton.classList.toggle("opacity-60", Boolean(data.googleDriveConnected));
         connectButton.classList.toggle("cursor-not-allowed", Boolean(data.googleDriveConnected));
         document.getElementById("disconnectButton").disabled = !data.googleDriveConnected;
@@ -108,14 +172,16 @@
         });
         const data = await hotelAdminCommon.readJson(response);
         if (!response.ok) {
-          throw new Error(data.error || "Unable to load Google Drive status");
+          const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
+          throw new Error(data.error || text.loadError);
         }
         render(data);
       }
 
       document.getElementById("loadButton").addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
+        hotelAdminCommon.setButtonLoading(loadButton, true, text.loading);
         try {
           await loadStatus();
         } catch (error) {
@@ -128,10 +194,12 @@
       document.getElementById("connectButton").addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
         if (driveState?.googleDriveConnected) {
-          hotelAdminCommon.setMessage(pageMessage, "Google Drive is already connected for this hotel.", "success");
+          const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
+          hotelAdminCommon.setMessage(pageMessage, text.already, "success");
           return;
         }
-        hotelAdminCommon.setButtonLoading(connectButton, true, "Preparing...");
+        const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
+        hotelAdminCommon.setButtonLoading(connectButton, true, text.preparing);
         try {
           if (!driveState) {
             await loadStatus();
@@ -146,7 +214,8 @@
 
       document.getElementById("disconnectButton").addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(disconnectButton, true, "Disconnecting...");
+        const text = driveTranslations[hotelAdminCommon.getLanguage()] || driveTranslations.en;
+        hotelAdminCommon.setButtonLoading(disconnectButton, true, text.disconnecting);
         try {
           const response = await fetch(`/api/hotel-admin/google-drive?hotel_id=${encodeURIComponent(hotelIdInput.value.trim())}`, {
             method: "DELETE",
@@ -154,12 +223,12 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to disconnect Google Drive");
+            throw new Error(data.error || text.disconnectError);
           }
           await loadStatus();
-          hotelAdminCommon.setMessage(pageMessage, "Google Drive disconnected successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, text.disconnected, "success");
           connectButton.disabled = false;
-          connectButton.textContent = "Connect Google Drive";
+          connectButton.textContent = text.connectButton;
           connectButton.classList.remove("opacity-60", "cursor-not-allowed");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");

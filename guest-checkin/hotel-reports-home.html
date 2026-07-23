@@ -31,16 +31,16 @@
       <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
           <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
-          <h1 class="mt-2 text-2xl font-semibold">Hotel Reports</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Save report filters once, then open one focused report page at a time on mobile.</p>
+          <h1 id="reportsHeroTitle" class="mt-2 text-2xl font-semibold">Hotel Reports</h1>
+          <p id="reportsHeroBody" class="mt-2 text-sm leading-6 text-white/80">Save report filters once, then open one focused report page at a time on mobile.</p>
         </div>
         <div class="p-5">
-          <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <div id="reportsIntro" class="mb-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
             Use one report page per task: snapshot, check-ins, current guests, check-outs, guest register, or staff register.
           </div>
           <div class="space-y-4">
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <label id="reportsHotelIdLabel" for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -96,7 +96,43 @@
       const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
       const launcherLinks = Array.from(document.querySelectorAll(".launcher-link"));
 
-      hotelAdminCommon.applyPageTranslations("/hotel-reports-home.html");
+      const reportsTranslations = {
+        en: {
+          title: "Hotel Reports Home",
+          back: "Go Back To Hotel Home",
+          heroTitle: "Hotel Reports",
+          heroBody: "Save report filters once, then open one focused report page at a time on mobile.",
+          intro: "Use one report page per task: snapshot, check-ins, current guests, check-outs, guest register, or staff register.",
+          hotelIdLabel: "Hotel ID",
+          saveButton: "Save Report Filters",
+          savedFound: "Saved hotel report filters found on this device.",
+          savedNow: "Hotel report filters saved on this device.",
+        },
+        mr: {
+          title: "हॉटेल रिपोर्ट्स मुख्यपृष्ठ",
+          back: "हॉटेल मुख्यपृष्ठावर परत जा",
+          heroTitle: "हॉटेल रिपोर्ट्स",
+          heroBody: "रिपोर्ट फिल्टर्स एकदाच जतन करा आणि मग मोबाइलवर एकावेळी एक रिपोर्ट पान उघडा.",
+          intro: "प्रत्येक कामासाठी वेगळे रिपोर्ट पान वापरा: स्नॅपशॉट, चेक-इन, सध्याचे गेस्ट, चेक-आउट, गेस्ट रजिस्टर किंवा स्टाफ रजिस्टर.",
+          hotelIdLabel: "हॉटेल आयडी",
+          saveButton: "रिपोर्ट फिल्टर्स जतन करा",
+          savedFound: "या उपकरणावर जतन केलेले रिपोर्ट फिल्टर्स सापडले.",
+          savedNow: "या उपकरणावर रिपोर्ट फिल्टर्स जतन झाले.",
+        },
+      };
+
+      function applyReportsLanguage() {
+        const text = reportsTranslations[hotelAdminCommon.getLanguage()] || reportsTranslations.en;
+        document.title = text.title;
+        backToHotelHomeLink.textContent = text.back;
+        document.getElementById("reportsHeroTitle").textContent = text.heroTitle;
+        document.getElementById("reportsHeroBody").textContent = text.heroBody;
+        document.getElementById("reportsIntro").textContent = text.intro;
+        document.getElementById("reportsHotelIdLabel").textContent = text.hotelIdLabel;
+        saveFiltersButton.textContent = text.saveButton;
+      }
+
+      applyReportsLanguage();
       hotelReportsCommon.hydrateFilters(null, hotelIdInput, fromDateInput, toDateInput);
 
       function updateBackLink() {
@@ -128,13 +164,15 @@
       }
 
       if (hotelIdInput.value.trim()) {
-        hotelReportsCommon.setMessage(statusBox, hotelAdminCommon.getLanguage() === "mr" ? "या device वर सेव्ह केलेले report filters सापडले." : "Saved hotel report filters found on this device.", "success");
+        const text = reportsTranslations[hotelAdminCommon.getLanguage()] || reportsTranslations.en;
+        hotelReportsCommon.setMessage(statusBox, text.savedFound, "success");
       }
 
       saveFiltersButton.addEventListener("click", () => {
         hotelReportsCommon.persistFilters(null, hotelIdInput, fromDateInput, toDateInput);
         updateBackLink();
-        hotelReportsCommon.setMessage(statusBox, hotelAdminCommon.getLanguage() === "mr" ? "या device वर hotel report filters सेव्ह झाले." : "Hotel report filters saved on this device.", "success");
+        const text = reportsTranslations[hotelAdminCommon.getLanguage()] || reportsTranslations.en;
+        hotelReportsCommon.setMessage(statusBox, text.savedNow, "success");
       });
     </script>
   </body>
