@@ -383,6 +383,43 @@
           openSuggested: "Open Suggested Map",
           structured: "Structured Website Data",
           photos: "Website Photos",
+          session: "Session",
+          hotelId: "Hotel ID",
+          publicTitle: "Public Title",
+          metaTitle: "Meta Title",
+          metaDescription: "Meta Description",
+          heroHeading: "Hero Heading",
+          heroSubheading: "Hero Subheading",
+          shortDescription: "Short Description",
+          fullDescription: "Full Description",
+          contactPerson: "Contact Person Name",
+          addressLine1: "Address: House No. / Street",
+          village: "Village",
+          taluka: "Taluka",
+          district: "District",
+          pincode: "Pincode",
+          primaryPhone: "Primary Phone",
+          secondaryPhone: "Secondary Phone",
+          whatsapp: "WhatsApp Number",
+          inquiryEmail: "Inquiry Email",
+          googleMapsLink: "Google Maps Location Link",
+          latitude: "Latitude",
+          longitude: "Longitude",
+          checkinTime: "Check-in Time",
+          checkoutTime: "Check-out Time",
+          roomCount: "Room Count for Website",
+          beachDistance: "Distance from Beach",
+          localBus: "Distance from Local Bus Stop",
+          alibaugBus: "Distance from Alibaug Bus Stand",
+          mandwaJetty: "Distance from Mandwa Jetty",
+          roomTypes: "Select Room Types",
+          extraRoomTypes: "Extra Room Types",
+          amenities: "Select Amenities",
+          extraAmenities: "Extra Amenities",
+          faq: "FAQ (one per line as Question | Answer)",
+          nearby: "Nearby Places (one per line as Name | Distance | Note)",
+          policies: "Policies (one per line)",
+          refreshPhotos: "Refresh Photos",
           saveDetails: "Save Text And Details",
           uploadPhotos: "Upload Selected Photos",
           enterHotel: "Enter hotel ID first.",
@@ -488,6 +525,7 @@
         document.querySelector(".border-amber-200 p.mt-2").textContent = text.photoPrepOrder;
         document.querySelector("label[for='hotelAdminToken']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.session : "Session";
         document.querySelector("label[for='hotelId']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.hotelId : "Hotel ID";
+        document.getElementById("hotelId").placeholder = hotelAdminCommon.getLanguage() === "mr" ? text.hotelId : "Hotel ID";
         loadButton.textContent = text.loadButton;
         document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[0].textContent = text.category;
         document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[1].textContent = text.slug;
@@ -520,6 +558,12 @@
         document.querySelector("label[for='longitude']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.longitude : "Longitude";
         document.querySelector("label[for='checkInTime']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.checkinTime : "Check-in Time";
         document.querySelector("label[for='checkOutTime']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.checkoutTime : "Check-out Time";
+        if (checkInTimeInput.options[0]) {
+          checkInTimeInput.options[0].textContent = hotelAdminCommon.getLanguage() === "mr" ? "चेक-इन वेळ निवडा" : "Select check-in time";
+        }
+        if (checkOutTimeInput.options[0]) {
+          checkOutTimeInput.options[0].textContent = hotelAdminCommon.getLanguage() === "mr" ? "चेक-आउट वेळ निवडा" : "Select check-out time";
+        }
         document.querySelectorAll("h2.text-lg.font-semibold.text-ocean")[2].textContent = text.structured;
         document.querySelector("label[for='roomCountDisplay']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.roomCount : "Room Count for Website";
         document.querySelector("label[for='distanceFromBeach']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.beachDistance : "Distance from Beach";
@@ -535,6 +579,13 @@
         document.querySelector("label[for='policiesLines']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.policies : "Policies (one per line)";
         document.querySelectorAll("h2.text-lg.font-semibold.text-ocean")[3].textContent = text.photos;
         document.getElementById("loadPhotoSectionButton").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.refreshPhotos : "Refresh Photos";
+        document.getElementById("publicTitle").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "उदा. डॉल्फिन हाऊस बीच रिसॉर्ट" : "";
+        document.getElementById("contactPersonName").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "उदा. श्री. गिरीश पाटील" : "Mr. Girish Patil";
+        document.getElementById("addressLine1").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "घर क्रमांक, रस्ता, परिसर" : "House number, street, area";
+        document.getElementById("addressVillage").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "उदा. नागाव" : "Nagaon";
+        document.getElementById("addressTaluka").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "उदा. अलिबाग" : "Alibaug";
+        document.getElementById("addressDistrict").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "उदा. रायगड" : "Raigad";
+        document.getElementById("googleMapsPlaceUrl").placeholder = hotelAdminCommon.getLanguage() === "mr" ? "हॉटेलची गूगल मॅप्स शेअर लिंक पेस्ट करा" : "Paste Google Maps share link of the hotel";
         saveContentButton.textContent = text.saveDetails;
         savePhotosButton.textContent = text.uploadPhotos;
       }
