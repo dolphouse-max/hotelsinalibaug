@@ -164,12 +164,31 @@
 
       function applyProfileLanguage() {
         const text = profileTranslations[hotelAdminCommon.getLanguage()] || profileTranslations.en;
+        const shared = hotelAdminCommon.getPageTranslations
+          ? (hotelAdminCommon.getPageTranslations("/hotel-admin-profile.html", hotelAdminCommon.getLanguage()) || {})
+          : {};
         document.title = text.title;
         document.getElementById("profileBackLink").textContent = text.back;
         document.getElementById("profileBadge").textContent = text.badge;
         document.getElementById("profileHeroTitle").textContent = text.heroTitle;
         document.getElementById("profileHeroBody").textContent = text.heroBody;
         document.getElementById("profileIntro").textContent = text.intro;
+        document.querySelector("label[for='hotelAdminToken']").textContent = shared.sessionLabel || "Session";
+        document.querySelector("label[for='hotelId']").textContent = shared.hotelIdLabel || "Hotel ID";
+        document.getElementById("loadButton").textContent = shared.loadButton || "Load Hotel";
+        document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[0].textContent = shared.accountStatusLabel || "Account Status";
+        document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[1].textContent = shared.paidThroughLabel || "Paid Through";
+        document.querySelector("label[for='hotelName']").textContent = shared.hotelNameLabel || "Hotel Name";
+        document.querySelector("label[for='contact']").textContent = shared.contactLabel || "Mobile Number";
+        document.querySelector("label[for='adminEmail']").textContent = shared.adminEmailLabel || "Hotel Admin Gmail";
+        document.querySelector("label[for='addressHouseStreet']").textContent = shared.addressHouseStreetLabel || "Address: House No. / Street";
+        document.querySelector("label[for='addressVillage']").textContent = shared.addressVillageLabel || "Village";
+        document.querySelector("label[for='addressTaluka']").textContent = shared.addressTalukaLabel || "Taluka";
+        document.querySelector("label[for='addressDistrict']").textContent = shared.addressDistrictLabel || "District";
+        document.querySelector("label[for='addressPincode']").textContent = shared.addressPincodeLabel || "Pincode";
+        document.querySelector("label[for='totalRooms']").textContent = shared.totalRoomsLabel || "Total Rooms";
+        document.querySelector("label[for='occupiedRooms']").textContent = shared.occupiedRoomsLabel || "Occupied Rooms";
+        document.getElementById("saveButton").textContent = shared.saveButton || "Save Profile";
       }
 
       applyProfileLanguage();

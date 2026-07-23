@@ -739,6 +739,11 @@
     }
   }
 
+  function getPageTranslations(pageKey, language = getLanguage()) {
+    const selected = language === "mr" ? "mr" : "en";
+    return HOTEL_PAGE_TRANSLATIONS[pageKey]?.[selected] || HOTEL_PAGE_TRANSLATIONS[pageKey]?.en || null;
+  }
+
   if (typeof document !== "undefined") {
     document.addEventListener("DOMContentLoaded", () => {
       setLanguage(getLanguage());
@@ -771,5 +776,6 @@
     mountLanguageSwitcher,
     mountLegalFooter,
     applyPageTranslations,
+    getPageTranslations,
   };
 })();
