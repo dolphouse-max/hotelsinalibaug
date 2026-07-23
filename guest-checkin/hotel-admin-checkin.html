@@ -94,10 +94,19 @@
           heroTitle: "Guest QR & Link",
           heroBody: "Generate one hotel-specific check-in link that guests can open on their own device by scanning the QR code.",
           intro: "Each generated QR stays valid for 4 hours only. If you generate a new QR, the previous one stops working immediately.",
+          session: "Session",
+          hotelId: "Hotel ID",
           generate: "Generate",
           generating: "Generating...",
           generated: "Guest check-in QR generated successfully.",
           copy: "Check-in link copied.",
+          copyButton: "Copy Link",
+          openButton: "Open Link",
+          tipTitle: "Reception tip",
+          tipBody: "Open this page on the reception phone, generate the QR, and let the guest scan it from their own phone. Always use the latest QR because generating a fresh one disables the older one.",
+          linkPlaceholder: "No check-in link generated yet.",
+          qrPlaceholder: "Generate a hotel-specific link and the QR code will appear here.",
+          expiryNotice: (expiry) => `This reception QR will expire on ${expiry}. If you generate a fresh QR before that, the older QR will stop working immediately.`,
           freshTip: "Generate a fresh reception QR whenever you want a new 4-hour guest link.",
           createError: "Unable to create check-in link",
         },
@@ -108,10 +117,19 @@
           heroTitle: "गेस्ट क्यूआर आणि लिंक",
           heroBody: "हॉटेलसाठी खास चेक-इन लिंक तयार करा, जी पाहुणे क्यूआर कोड स्कॅन करून त्यांच्या स्वतःच्या उपकरणावर उघडू शकतात.",
           intro: "तयार केलेला प्रत्येक क्यूआर फक्त ४ तास वैध राहतो. नवीन क्यूआर तयार केल्यास जुना क्यूआर लगेच बंद होतो.",
+          session: "सेशन",
+          hotelId: "हॉटेल आयडी",
           generate: "तयार करा",
           generating: "तयार होत आहे...",
           generated: "गेस्ट चेक-इन क्यूआर यशस्वीरीत्या तयार झाला.",
           copy: "चेक-इन लिंक कॉपी झाली.",
+          copyButton: "लिंक कॉपी करा",
+          openButton: "लिंक उघडा",
+          tipTitle: "रिसेप्शनसाठी सूचना",
+          tipBody: "हे पान रिसेप्शनच्या फोनवर उघडा, क्यूआर तयार करा आणि पाहुण्याला त्याच्या स्वतःच्या फोनवरून स्कॅन करू द्या. नेहमी ताजाच क्यूआर वापरा, कारण नवीन क्यूआर तयार केल्यावर जुना लगेच बंद होतो.",
+          linkPlaceholder: "अद्याप कोणतीही चेक-इन लिंक तयार झालेली नाही.",
+          qrPlaceholder: "हॉटेलसाठी खास लिंक तयार करा आणि क्यूआर कोड येथे दिसेल.",
+          expiryNotice: (expiry) => `हा रिसेप्शन क्यूआर ${expiry} पर्यंत वैध राहील. त्यापूर्वी नवीन क्यूआर तयार केला तर जुना क्यूआर लगेच बंद होईल.`,
           freshTip: "नवीन ४ तासांची गेस्ट लिंक हवी असल्यास रिसेप्शनसाठी नवीन क्यूआर तयार करा.",
           createError: "चेक-इन लिंक तयार करता आली नाही.",
         },
@@ -125,7 +143,16 @@
         document.getElementById("checkinHeroTitle").textContent = text.heroTitle;
         document.getElementById("checkinHeroBody").textContent = text.heroBody;
         document.getElementById("checkinIntro").textContent = text.intro;
+        document.querySelector("label[for='hotelAdminToken']").textContent = text.session;
+        document.querySelector("label[for='hotelId']").textContent = text.hotelId;
+        document.getElementById("hotelId").placeholder = text.hotelId;
         generateButton.textContent = text.generate;
+        document.querySelector(".mt-5.rounded-\\[1\\.5rem\\].border.border-slate-200.bg-slate-50.p-4 .text-sm.font-semibold.text-ocean").textContent = text.tipTitle;
+        document.querySelector(".mt-5.rounded-\\[1\\.5rem\\].border.border-slate-200.bg-slate-50.p-4 .mt-1").textContent = text.tipBody;
+        document.getElementById("checkinLinkOutput").value = checkinUrl || text.linkPlaceholder;
+        document.getElementById("copyButton").textContent = text.copyButton;
+        document.getElementById("openButton").textContent = text.openButton;
+        document.getElementById("checkinQrPlaceholder").textContent = text.qrPlaceholder;
       }
 
       applyCheckinLanguage();
@@ -171,7 +198,7 @@
           document.getElementById("checkinQrPlaceholder").classList.add("hidden");
           document.getElementById("copyButton").disabled = false;
           document.getElementById("openButton").disabled = false;
-          expiryNotice.textContent = `This reception QR will expire on ${formatExpiry(data.expiresAt)}. If you generate a fresh QR before that, the older QR will stop working immediately.`;
+          expiryNotice.textContent = text.expiryNotice(formatExpiry(data.expiresAt));
           expiryNotice.classList.remove("hidden");
           hotelAdminCommon.setMessage(pageMessage, text.generated, "success");
         } catch (error) {
