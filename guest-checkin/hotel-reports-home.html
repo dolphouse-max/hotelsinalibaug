@@ -57,32 +57,32 @@
 
       <section class="mt-5 grid gap-3">
         <a data-target="hotel-help.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-shell p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Help</p>
-          <p class="mt-1 text-sm text-slate-600">Read English and Marathi guidance for setup, reports, guest register, staff, payments, and renewals.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Help</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">Read English and Marathi guidance for setup, reports, guest register, staff, payments, and renewals.</p>
         </a>
         <a data-target="hotel-report-snapshot.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Hotel Snapshot</p>
-          <p class="mt-1 text-sm text-slate-600">Summary metrics, room occupancy, report range, and trial status.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Hotel Snapshot</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">Summary metrics, room occupancy, report range, and trial status.</p>
         </a>
         <a data-target="hotel-report-checkins.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Today's Check-Ins</p>
-          <p class="mt-1 text-sm text-slate-600">Guests checked in today for the selected hotel.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Today's Check-Ins</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">Guests checked in today for the selected hotel.</p>
         </a>
         <a data-target="hotel-report-current-guests.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Current Guests</p>
-          <p class="mt-1 text-sm text-slate-600">All currently in-house guests for front desk review.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Current Guests</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">All currently in-house guests for front desk review.</p>
         </a>
         <a data-target="hotel-report-checkouts.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Today's Check-Outs</p>
-          <p class="mt-1 text-sm text-slate-600">Guests checked out today.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Today's Check-Outs</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">Guests checked out today.</p>
         </a>
         <a data-target="hotel-report-guest-register.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Guest Register</p>
-          <p class="mt-1 text-sm text-slate-600">Guest history with search and CSV export.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Guest Register</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">Guest history with search and CSV export.</p>
         </a>
         <a data-target="hotel-report-staff-register.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-          <p class="text-lg font-semibold text-ocean">Staff Register</p>
-          <p class="mt-1 text-sm text-slate-600">Staff list with search and CSV export.</p>
+          <p class="launcher-title text-lg font-semibold text-ocean">Staff Register</p>
+          <p class="launcher-body mt-1 text-sm text-slate-600">Staff list with search and CSV export.</p>
         </a>
       </section>
     </main>
@@ -95,6 +95,64 @@
       const statusBox = document.getElementById("statusBox");
       const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
       const launcherLinks = Array.from(document.querySelectorAll(".launcher-link"));
+      const launcherCards = [
+        {
+          titleEl: launcherLinks[0]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[0]?.querySelector(".launcher-body"),
+          titleEn: "Help",
+          titleMr: "मदत",
+          bodyEn: "Read English and Marathi guidance for setup, reports, guest register, staff, payments, and renewals.",
+          bodyMr: "सेटअप, रिपोर्ट्स, गेस्ट रजिस्टर, स्टाफ, पेमेंट आणि नूतनीकरणासाठी इंग्रजी व मराठी मार्गदर्शन वाचा.",
+        },
+        {
+          titleEl: launcherLinks[1]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[1]?.querySelector(".launcher-body"),
+          titleEn: "Hotel Snapshot",
+          titleMr: "हॉटेल स्नॅपशॉट",
+          bodyEn: "Summary metrics, room occupancy, report range, and trial status.",
+          bodyMr: "एकूण मोजणी, भरलेल्या रूम, रिपोर्ट कालावधी आणि चाचणी स्थिती.",
+        },
+        {
+          titleEl: launcherLinks[2]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[2]?.querySelector(".launcher-body"),
+          titleEn: "Today's Check-Ins",
+          titleMr: "आजचे चेक-इन",
+          bodyEn: "Guests checked in today for the selected hotel.",
+          bodyMr: "निवडलेल्या हॉटेलचे आज चेक-इन झालेले गेस्ट.",
+        },
+        {
+          titleEl: launcherLinks[3]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[3]?.querySelector(".launcher-body"),
+          titleEn: "Current Guests",
+          titleMr: "सध्याचे गेस्ट",
+          bodyEn: "All currently in-house guests for front desk review.",
+          bodyMr: "फ्रंट डेस्क पाहणीसाठी सध्या राहणारे सर्व गेस्ट.",
+        },
+        {
+          titleEl: launcherLinks[4]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[4]?.querySelector(".launcher-body"),
+          titleEn: "Today's Check-Outs",
+          titleMr: "आजचे चेक-आउट",
+          bodyEn: "Guests checked out today.",
+          bodyMr: "आज चेक-आउट झालेले गेस्ट.",
+        },
+        {
+          titleEl: launcherLinks[5]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[5]?.querySelector(".launcher-body"),
+          titleEn: "Guest Register",
+          titleMr: "गेस्ट रजिस्टर",
+          bodyEn: "Guest history with search and CSV export.",
+          bodyMr: "शोध आणि सीएसव्ही निर्यातसह गेस्ट इतिहास.",
+        },
+        {
+          titleEl: launcherLinks[6]?.querySelector(".launcher-title"),
+          bodyEl: launcherLinks[6]?.querySelector(".launcher-body"),
+          titleEn: "Staff Register",
+          titleMr: "स्टाफ रजिस्टर",
+          bodyEn: "Staff list with search and CSV export.",
+          bodyMr: "शोध आणि सीएसव्ही निर्यातसह स्टाफ यादी.",
+        },
+      ];
 
       const reportsTranslations = {
         en: {
@@ -122,7 +180,8 @@
       };
 
       function applyReportsLanguage() {
-        const text = reportsTranslations[hotelAdminCommon.getLanguage()] || reportsTranslations.en;
+        const language = hotelAdminCommon.getLanguage();
+        const text = reportsTranslations[language] || reportsTranslations.en;
         document.title = text.title;
         backToHotelHomeLink.textContent = text.back;
         document.getElementById("reportsHeroTitle").textContent = text.heroTitle;
@@ -130,6 +189,14 @@
         document.getElementById("reportsIntro").textContent = text.intro;
         document.getElementById("reportsHotelIdLabel").textContent = text.hotelIdLabel;
         saveFiltersButton.textContent = text.saveButton;
+        for (const card of launcherCards) {
+          if (card.titleEl) {
+            card.titleEl.textContent = language === "mr" ? card.titleMr : card.titleEn;
+          }
+          if (card.bodyEl) {
+            card.bodyEl.textContent = language === "mr" ? card.bodyMr : card.bodyEn;
+          }
+        }
       }
 
       applyReportsLanguage();
@@ -173,6 +240,14 @@
         updateBackLink();
         const text = reportsTranslations[hotelAdminCommon.getLanguage()] || reportsTranslations.en;
         hotelReportsCommon.setMessage(statusBox, text.savedNow, "success");
+      });
+
+      document.addEventListener("click", (event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".hotel-language-button")) {
+          window.setTimeout(() => {
+            applyReportsLanguage();
+          }, 0);
+        }
       });
     </script>
   </body>
