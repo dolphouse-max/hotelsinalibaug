@@ -156,13 +156,13 @@
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg font-semibold text-ocean">Backup & Transfer</h2>
-          <span class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-ocean">Version 2</span>
+          <span id="backupVersionBadge" class="rounded-full bg-shell px-3 py-1 text-xs font-semibold text-ocean">Version 2</span>
         </div>
         <div class="mt-4 grid gap-3">
           <button id="exportCsvButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
             Export CSV
           </button>
-          <label class="inline-flex w-full cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
+          <label id="importCsvLabel" class="inline-flex w-full cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
             Import CSV
             <input id="importCsvInput" type="file" accept=".csv,text/csv" class="hidden">
           </label>
@@ -172,7 +172,7 @@
           <button id="restoreDriveButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700">
             Restore Latest Drive Backup
           </button>
-          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">
+          <div id="backupIntroBox" class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">
             CSV export/import works on this device. Google Drive backup and restore uses the hotel Drive connection from the Drive page.
           </div>
         </div>
@@ -258,6 +258,7 @@
           notePlaceholder: "Early arrival, extra mattress, family booking, etc.",
           saveReservation: "Save Reservation",
           backupTransfer: "Backup & Transfer",
+          backupVersion: "Version 2",
           exportCsv: "Export CSV",
           importCsv: "Import CSV",
           backupDrive: "Backup To Google Drive",
@@ -330,6 +331,7 @@
           notePlaceholder: "लवकर आगमन, अतिरिक्त गादी, कौटुंबिक बुकिंग इ.",
           saveReservation: "आरक्षण जतन करा",
           backupTransfer: "बॅकअप आणि हस्तांतरण",
+          backupVersion: "आवृत्ती 2",
           exportCsv: "सीएसव्ही निर्यात",
           importCsv: "सीएसव्ही आयात",
           backupDrive: "गूगल ड्राइव्हवर बॅकअप घ्या",
@@ -421,10 +423,11 @@
         document.getElementById("bookingNote").placeholder = text.notePlaceholder;
         saveReservationButton.textContent = text.saveReservation;
         exportCsvButton.textContent = text.exportCsv;
-        document.querySelector("label[for='importCsvInput']").childNodes[0].textContent = text.importCsv;
+        document.getElementById("importCsvLabel").childNodes[0].textContent = text.importCsv;
         backupDriveButton.textContent = text.backupDrive;
         restoreDriveButton.textContent = text.restoreDrive;
-        document.querySelector("section:nth-of-type(3) .rounded-\\[1\\.5rem\\].border.border-slate-200").textContent = text.backupIntro;
+        document.getElementById("backupVersionBadge").textContent = text.backupVersion;
+        document.getElementById("backupIntroBox").textContent = text.backupIntro;
         document.getElementById("resetCalendarButton").textContent = text.showAll;
         calendarState.textContent = text.calendarInitial;
         document.getElementById("showArrivalsButton").textContent = text.todayArrivals;
