@@ -61,9 +61,83 @@
       const inquiriesList = document.getElementById("inquiriesList");
       let allInquiries = [];
 
+      const inquiryTranslations = {
+        en: {
+          title: "Website Inquiries",
+          back: "Back to Home",
+          badge: "Inquiries",
+          heroTitle: "Website Inquiries",
+          heroBody: "Review every inquiry received from your public hotel webpage and contact guests directly from here.",
+          sessionLabel: "Session",
+          hotelIdLabel: "Hotel ID",
+          searchLabel: "Search Guest Name, Mobile, or Message",
+          searchPlaceholder: "Search inquiries",
+          loadButton: "Load Inquiries",
+          initialState: "Load your website inquiries.",
+          noMatch: "No inquiries match this search.",
+          noData: "No website inquiries yet.",
+          shown: (count) => `${count} inquir${count === 1 ? "y" : "ies"} shown.`,
+          callGuest: "Call Guest",
+          checkin: "Check-in",
+          checkout: "Check-out",
+          persons: "Persons",
+          roomType: "Room Type",
+          page: "Page",
+          enterHotel: "Enter hotel ID first.",
+          loadError: "Unable to load inquiries.",
+          loading: "Loading...",
+        },
+        mr: {
+          title: "वेबसाइट चौकशी",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "चौकशी",
+          heroTitle: "वेबसाइट चौकशी",
+          heroBody: "आपल्या सार्वजनिक हॉटेल वेबपानावरून आलेली प्रत्येक चौकशी येथे पाहा आणि पाहुण्यांशी थेट संपर्क साधा.",
+          sessionLabel: "सेशन",
+          hotelIdLabel: "हॉटेल आयडी",
+          searchLabel: "पाहुण्याचे नाव, मोबाइल किंवा संदेश शोधा",
+          searchPlaceholder: "चौकशी शोधा",
+          loadButton: "चौकशी लोड करा",
+          initialState: "आपल्या वेबसाइट चौकशा लोड करा.",
+          noMatch: "या शोधासाठी कोणतीही चौकशी मिळाली नाही.",
+          noData: "अद्याप कोणतीही वेबसाइट चौकशी नाही.",
+          shown: (count) => `${count} चौकशी दाखवली आहे.`,
+          callGuest: "पाहुण्याला कॉल करा",
+          checkin: "चेक-इन",
+          checkout: "चेक-आउट",
+          persons: "व्यक्ती",
+          roomType: "रूम प्रकार",
+          page: "पान",
+          enterHotel: "सर्वप्रथम हॉटेल आयडी टाका.",
+          loadError: "चौकशी लोड करता आली नाही.",
+          loading: "लोड होत आहे...",
+        },
+      };
+
+      function getInquiryText() {
+        return inquiryTranslations[hotelAdminCommon.getLanguage()] || inquiryTranslations.en;
+      }
+
+      function applyInquiryLanguage() {
+        const text = getInquiryText();
+        document.title = text.title;
+        document.querySelector("a[href='/hotel-admin-home.html']").textContent = text.back;
+        document.querySelector(".rounded-full.bg-white").textContent = text.badge;
+        document.querySelector("h1.text-2xl").textContent = text.heroTitle;
+        document.querySelector("h1.text-2xl + p").textContent = text.heroBody;
+        document.querySelector("label[for='hotelAdminToken']").textContent = text.sessionLabel;
+        document.querySelector("label[for='hotelId']").textContent = text.hotelIdLabel;
+        document.querySelector("label[for='searchInput']").textContent = text.searchLabel;
+        searchInput.placeholder = text.searchPlaceholder;
+        loadButton.textContent = text.loadButton;
+        inquiriesState.textContent = text.initialState;
+      }
+
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+      applyInquiryLanguage();
 
       function renderInquiries() {
+        const text = getInquiryText();
         const query = searchInput.value.trim().toLowerCase();
         const filtered = !query
           ? allInquiries
@@ -75,11 +149,11 @@
 
         inquiriesList.innerHTML = "";
         if (!filtered.length) {
-          inquiriesState.textContent = allInquiries.length ? "No inquiries match this search." : "No website inquiries yet.";
+          inquiriesState.textContent = allInquiries.length ? text.noMatch : text.noData;
           return;
         }
 
-        inquiriesState.textContent = `${filtered.length} inquir${filtered.length === 1 ? "y" : "ies"} shown.`;
+        inquiriesState.textContent = text.shown(filtered.length);
         for (const inquiry of filtered) {
           const card = document.createElement("article");
           card.className = "rounded-2xl border border-slate-200 bg-slate-50 p-4";
@@ -89,16 +163,16 @@
                 <p class="font-semibold text-slate-900">${inquiry.guest_name}</p>
                 <p class="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">${inquiry.guest_phone}</p>
               </div>
-              <a href="tel:${inquiry.guest_phone}" class="rounded-2xl bg-ocean px-4 py-2 text-sm font-semibold text-white">Call Guest</a>
+              <a href="tel:${inquiry.guest_phone}" class="rounded-2xl bg-ocean px-4 py-2 text-sm font-semibold text-white">${text.callGuest}</a>
             </div>
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500">
-              <p><strong>Check-in:</strong> ${inquiry.check_in_date || "-"}</p>
-              <p><strong>Check-out:</strong> ${inquiry.check_out_date || "-"}</p>
-              <p><strong>Persons:</strong> ${inquiry.total_persons || "-"}</p>
-              <p><strong>Room Type:</strong> ${inquiry.requested_room_type || "-"}</p>
+              <p><strong>${text.checkin}:</strong> ${inquiry.check_in_date || "-"}</p>
+              <p><strong>${text.checkout}:</strong> ${inquiry.check_out_date || "-"}</p>
+              <p><strong>${text.persons}:</strong> ${inquiry.total_persons || "-"}</p>
+              <p><strong>${text.roomType}:</strong> ${inquiry.requested_room_type || "-"}</p>
             </div>
             <p class="mt-3 text-sm text-slate-700">${inquiry.guest_message}</p>
-            <p class="mt-3 text-xs text-slate-500">Page: ${inquiry.page_title_snapshot || inquiry.public_page_slug || "-"} • ${inquiry.created_at}</p>
+            <p class="mt-3 text-xs text-slate-500">${text.page}: ${inquiry.page_title_snapshot || inquiry.public_page_slug || "-"} • ${inquiry.created_at}</p>
           `;
           inquiriesList.appendChild(card);
         }
@@ -107,7 +181,7 @@
       async function loadInquiries() {
         const hotelId = hotelAdminCommon.safeHotelId(hotelIdInput);
         if (!hotelId) {
-          throw new Error("Enter hotel ID first.");
+          throw new Error(getInquiryText().enterHotel);
         }
 
         const url = new URL("/api/hotel-admin/inquiries", window.location.origin);
@@ -121,7 +195,7 @@
         });
         const data = await hotelAdminCommon.readJson(response);
         if (!response.ok) {
-          throw new Error(data.error || "Unable to load inquiries.");
+          throw new Error(data.error || getInquiryText().loadError);
         }
         allInquiries = data.inquiries || [];
         renderInquiries();
@@ -129,11 +203,11 @@
 
       loadButton.addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(pageMessage);
-        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        hotelAdminCommon.setButtonLoading(loadButton, true, getInquiryText().loading);
         try {
           await loadInquiries();
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error.message || "Unable to load inquiries.", "error");
+          hotelAdminCommon.setMessage(pageMessage, error.message || getInquiryText().loadError, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(loadButton, false);
         }

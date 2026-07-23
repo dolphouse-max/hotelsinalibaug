@@ -358,6 +358,186 @@
       const nearbyPlacesLinesInput = document.getElementById("nearbyPlacesLines");
       const policiesLinesInput = document.getElementById("policiesLines");
       const photoSlots = document.getElementById("photoSlots");
+      const websiteTranslations = {
+        en: {
+          title: "Website Page",
+          back: "Back to Home",
+          badge: "Website",
+          heroTitle: "Website Content Editor",
+          heroBody: "Update your public hotel page content and replace website photos. Slug, category, and publish status remain controlled by superadmin.",
+          intro: "Superadmin must first create the website page for this hotel. After that, you can keep the content and up to 20 photo slots updated from here.",
+          photoPrepTitle: "Before uploading website photos",
+          photoPrepOrder: "Recommended order: 1. Save Text And Details 2. Choose photo files 3. Upload Selected Photos",
+          loadButton: "Load Website Page",
+          category: "Category",
+          slug: "Slug",
+          publishStatus: "Publish Status",
+          notLoaded: "Not loaded",
+          published: "Published",
+          draft: "Draft",
+          contactAddress: "Contact And Address",
+          mapSection: "Map And Contact Handling",
+          mapPreview: "Map Preview",
+          findOnMap: "Find On Map",
+          useSuggested: "Use Suggested Location",
+          openSuggested: "Open Suggested Map",
+          structured: "Structured Website Data",
+          photos: "Website Photos",
+          saveDetails: "Save Text And Details",
+          uploadPhotos: "Upload Selected Photos",
+          enterHotel: "Enter hotel ID first.",
+          loading: "Loading...",
+          saving: "Saving...",
+          uploading: "Uploading...",
+          loadError: "Unable to load website page.",
+          notCreated: "Superadmin has not yet created the public website page for this hotel.",
+          loaded: "Website page loaded successfully.",
+          saveError: "Unable to save website page.",
+          photosSaved: "Photos uploaded successfully. The saved filenames are shown in each slot.",
+          detailsSaved: "Website text and details saved successfully. Selected photo files are kept until you click Upload Selected Photos.",
+        },
+        mr: {
+          title: "वेबसाइट पान",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "वेबसाइट",
+          heroTitle: "वेबसाइट मजकूर संपादक",
+          heroBody: "आपल्या सार्वजनिक हॉटेल वेबपानातील मजकूर बदला आणि वेबसाइट फोटो अद्ययावत करा. स्लग, श्रेणी आणि प्रकाशित स्थितीचा ताबा सुपरअॅडमिनकडे राहील.",
+          intro: "या हॉटेलसाठी वेबसाइट पान प्रथम सुपरअॅडमिनने तयार केलेले असणे आवश्यक आहे. त्यानंतर तुम्ही येथून मजकूर आणि जास्तीत जास्त 20 फोटो स्लॉट अद्ययावत ठेवू शकता.",
+          photoPrepTitle: "वेबसाइट फोटो अपलोड करण्यापूर्वी",
+          photoPrepOrder: "शिफारसीचा क्रम: 1. मजकूर आणि तपशील जतन करा 2. फोटो फाइल्स निवडा 3. निवडलेले फोटो अपलोड करा",
+          loadButton: "वेबसाइट पान लोड करा",
+          category: "श्रेणी",
+          slug: "स्लग",
+          publishStatus: "प्रकाशित स्थिती",
+          notLoaded: "लोड झालेले नाही",
+          published: "प्रकाशित",
+          draft: "मसुदा",
+          contactAddress: "संपर्क आणि पत्ता",
+          mapSection: "नकाशा आणि संपर्क हाताळणी",
+          mapPreview: "नकाशा पूर्वदृश्य",
+          findOnMap: "नकाशावर शोधा",
+          useSuggested: "सुचवलेले स्थान वापरा",
+          openSuggested: "सुचवलेला नकाशा उघडा",
+          structured: "संरचित वेबसाइट माहिती",
+          photos: "वेबसाइट फोटो",
+          session: "सेशन",
+          hotelId: "हॉटेल आयडी",
+          publicTitle: "सार्वजनिक शीर्षक",
+          metaTitle: "मेटा शीर्षक",
+          metaDescription: "मेटा वर्णन",
+          heroHeading: "मुख्य मथळा",
+          heroSubheading: "मुख्य उपमथळा",
+          shortDescription: "लघु वर्णन",
+          fullDescription: "सविस्तर वर्णन",
+          contactPerson: "संपर्क व्यक्तीचे नाव",
+          addressLine1: "पत्ता: घर क्रमांक / रस्ता",
+          village: "गाव",
+          taluka: "तालुका",
+          district: "जिल्हा",
+          pincode: "पिनकोड",
+          primaryPhone: "मुख्य फोन",
+          secondaryPhone: "दुय्यम फोन",
+          whatsapp: "व्हॉट्सअॅप नंबर",
+          inquiryEmail: "चौकशी ईमेल",
+          googleMapsLink: "गूगल मॅप्स स्थान लिंक",
+          latitude: "अक्षांश",
+          longitude: "रेखांश",
+          checkinTime: "चेक-इन वेळ",
+          checkoutTime: "चेक-आउट वेळ",
+          roomCount: "वेबसाइटवरील रूम संख्या",
+          beachDistance: "समुद्रकिनाऱ्यापासून अंतर",
+          localBus: "स्थानिक बस थांब्यापासून अंतर",
+          alibaugBus: "अलिबाग बस स्थानकापासून अंतर",
+          mandwaJetty: "मांडवा जेट्टीपासून अंतर",
+          roomTypes: "रूम प्रकार निवडा",
+          extraRoomTypes: "अतिरिक्त रूम प्रकार",
+          amenities: "सुविधा निवडा",
+          extraAmenities: "अतिरिक्त सुविधा",
+          faq: "सामान्य प्रश्न (प्रत्येक ओळीत प्रश्न | उत्तर)",
+          nearby: "जवळची ठिकाणे (प्रत्येक ओळीत नाव | अंतर | नोंद)",
+          policies: "धोरणे (प्रत्येक ओळीत एक)",
+          refreshPhotos: "फोटो पुन्हा लोड करा",
+          saveDetails: "मजकूर आणि तपशील जतन करा",
+          uploadPhotos: "निवडलेले फोटो अपलोड करा",
+          enterHotel: "सर्वप्रथम हॉटेल आयडी टाका.",
+          loading: "लोड होत आहे...",
+          saving: "जतन होत आहे...",
+          uploading: "अपलोड होत आहे...",
+          loadError: "वेबसाइट पान लोड करता आले नाही.",
+          notCreated: "या हॉटेलसाठी सार्वजनिक वेबसाइट पान अजून सुपरअॅडमिनने तयार केलेले नाही.",
+          loaded: "वेबसाइट पान यशस्वीरीत्या लोड झाले.",
+          saveError: "वेबसाइट पान जतन करता आले नाही.",
+          photosSaved: "फोटो यशस्वीरीत्या अपलोड झाले. जतन केलेली फाइल नावे प्रत्येक स्लॉटमध्ये दिसतील.",
+          detailsSaved: "वेबसाइट मजकूर आणि तपशील यशस्वीरीत्या जतन झाले. निवडलेल्या फोटो फाइल्स तुम्ही 'निवडलेले फोटो अपलोड करा' वर क्लिक करेपर्यंत तशाच राहतील.",
+        },
+      };
+
+      function getWebsiteText() {
+        return websiteTranslations[hotelAdminCommon.getLanguage()] || websiteTranslations.en;
+      }
+
+      function applyWebsiteLanguage() {
+        const text = getWebsiteText();
+        document.title = text.title;
+        document.querySelector("a[href='/hotel-admin-home.html']").textContent = text.back;
+        document.querySelector(".rounded-full.bg-white").textContent = text.badge;
+        document.querySelector("h1.text-2xl").textContent = text.heroTitle;
+        document.querySelector("h1.text-2xl + p").textContent = text.heroBody;
+        document.querySelector(".rounded-\\[1\\.5rem\\].border.border-slate-200.bg-slate-50.px-4.py-4.text-sm.text-slate-600").textContent = text.intro;
+        document.querySelector(".border-amber-200 .font-semibold").textContent = text.photoPrepTitle;
+        document.querySelector(".border-amber-200 p.mt-2").textContent = text.photoPrepOrder;
+        document.querySelector("label[for='hotelAdminToken']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.session : "Session";
+        document.querySelector("label[for='hotelId']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.hotelId : "Hotel ID";
+        loadButton.textContent = text.loadButton;
+        document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[0].textContent = text.category;
+        document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[1].textContent = text.slug;
+        document.querySelectorAll(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500")[2].textContent = text.publishStatus;
+        document.querySelector("label[for='publicTitle']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.publicTitle : "Public Title";
+        document.querySelector("label[for='metaTitle']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.metaTitle : "Meta Title";
+        document.querySelector("label[for='metaDescription']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.metaDescription : "Meta Description";
+        document.querySelector("label[for='heroHeading']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.heroHeading : "Hero Heading";
+        document.querySelector("label[for='heroSubheading']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.heroSubheading : "Hero Subheading";
+        document.querySelector("label[for='shortDescription']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.shortDescription : "Short Description";
+        document.querySelector("label[for='fullDescription']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.fullDescription : "Full Description";
+        document.querySelector("h2.text-lg.font-semibold.text-ocean").textContent = text.contactAddress;
+        document.querySelector("label[for='contactPersonName']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.contactPerson : "Contact Person Name";
+        document.querySelector("label[for='addressLine1']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.addressLine1 : "Address: House No. / Street";
+        document.querySelector("label[for='addressVillage']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.village : "Village";
+        document.querySelector("label[for='addressTaluka']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.taluka : "Taluka";
+        document.querySelector("label[for='addressDistrict']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.district : "District";
+        document.querySelector("label[for='addressPincode']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.pincode : "Pincode";
+        document.querySelector("label[for='primaryPhone']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.primaryPhone : "Primary Phone";
+        document.querySelector("label[for='secondaryPhone']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.secondaryPhone : "Secondary Phone";
+        document.querySelector("label[for='whatsappNumber']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.whatsapp : "WhatsApp Number";
+        document.querySelector("label[for='inquiryEmail']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.inquiryEmail : "Inquiry Email";
+        document.querySelectorAll("h2.text-lg.font-semibold.text-ocean")[1].textContent = text.mapSection;
+        document.querySelector("label[for='googleMapsPlaceUrl']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.googleMapsLink : "Google Maps Location Link";
+        document.getElementById("findSuggestedMapButton").textContent = text.findOnMap;
+        document.getElementById("useSuggestedMapButton").textContent = text.useSuggested;
+        document.getElementById("mapSearchLink").textContent = text.openSuggested;
+        document.querySelector("h3.text-sm.font-semibold.text-ocean").textContent = text.mapPreview;
+        document.querySelector("label[for='latitude']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.latitude : "Latitude";
+        document.querySelector("label[for='longitude']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.longitude : "Longitude";
+        document.querySelector("label[for='checkInTime']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.checkinTime : "Check-in Time";
+        document.querySelector("label[for='checkOutTime']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.checkoutTime : "Check-out Time";
+        document.querySelectorAll("h2.text-lg.font-semibold.text-ocean")[2].textContent = text.structured;
+        document.querySelector("label[for='roomCountDisplay']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.roomCount : "Room Count for Website";
+        document.querySelector("label[for='distanceFromBeach']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.beachDistance : "Distance from Beach";
+        document.querySelector("label[for='distanceFromLocalBusStop']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.localBus : "Distance from Local Bus Stop";
+        document.querySelector("label[for='distanceFromAlibaugBusStand']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.alibaugBus : "Distance from Alibaug Bus Stand";
+        document.querySelector("label[for='distanceFromMandwaJetty']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.mandwaJetty : "Distance from Mandwa Jetty";
+        document.querySelectorAll("label.mb-2.block.text-sm.font-medium.text-slate-700")[20].textContent = hotelAdminCommon.getLanguage() === "mr" ? text.roomTypes : "Select Room Types";
+        document.querySelector("label[for='roomTypesLines']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.extraRoomTypes : "Extra Room Types";
+        document.querySelectorAll("label.mb-2.block.text-sm.font-medium.text-slate-700")[22].textContent = hotelAdminCommon.getLanguage() === "mr" ? text.amenities : "Select Amenities";
+        document.querySelector("label[for='amenitiesLines']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.extraAmenities : "Extra Amenities";
+        document.querySelector("label[for='faqLines']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.faq : "FAQ (one per line as Question | Answer)";
+        document.querySelector("label[for='nearbyPlacesLines']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.nearby : "Nearby Places (one per line as Name | Distance | Note)";
+        document.querySelector("label[for='policiesLines']").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.policies : "Policies (one per line)";
+        document.querySelectorAll("h2.text-lg.font-semibold.text-ocean")[3].textContent = text.photos;
+        document.getElementById("loadPhotoSectionButton").textContent = hotelAdminCommon.getLanguage() === "mr" ? text.refreshPhotos : "Refresh Photos";
+        saveContentButton.textContent = text.saveDetails;
+        savePhotosButton.textContent = text.uploadPhotos;
+      }
       const saveContentButton = document.getElementById("saveContentButton");
       const savePhotosButton = document.getElementById("savePhotosButton");
       const loadPhotoSectionButton = document.getElementById("loadPhotoSectionButton");
@@ -770,39 +950,42 @@
         }
       }
 
+      applyWebsiteLanguage();
+
       function updateStaticDisplays(page) {
+        const text = getWebsiteText();
         currentPage = page;
-        categoryDisplay.textContent = page?.category || "Not loaded";
-        slugDisplay.textContent = page?.slug || "Not loaded";
-        publishDisplay.textContent = Number(page?.is_published || 0) === 1 ? "Published" : "Draft";
+        categoryDisplay.textContent = page?.category || text.notLoaded;
+        slugDisplay.textContent = page?.slug || text.notLoaded;
+        publishDisplay.textContent = Number(page?.is_published || 0) === 1 ? text.published : text.draft;
       }
 
       async function loadPage() {
         hotelAdminCommon.clearMessage(pageMessage);
         const hotelId = hotelAdminCommon.safeHotelId(hotelIdInput);
         if (!hotelId) {
-          hotelAdminCommon.setMessage(pageMessage, "Enter hotel ID first.", "error");
+          hotelAdminCommon.setMessage(pageMessage, getWebsiteText().enterHotel, "error");
           return;
         }
 
-        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        hotelAdminCommon.setButtonLoading(loadButton, true, getWebsiteText().loading);
         try {
           const response = await fetch(`/api/hotel-admin/public-page?hotel_id=${encodeURIComponent(hotelId)}`, {
             headers: hotelAdminCommon.authHeaders(tokenInput, false),
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to load website page.");
+            throw new Error(data.error || getWebsiteText().loadError);
           }
           if (!data.page) {
-            throw new Error("Superadmin has not yet created the public website page for this hotel.");
+            throw new Error(getWebsiteText().notCreated);
           }
           fillPage(data.page);
-          hotelAdminCommon.setMessage(pageMessage, "Website page loaded successfully.", "success");
+          hotelAdminCommon.setMessage(pageMessage, getWebsiteText().loaded, "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to load website page.", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getWebsiteText().loadError, "error");
         } finally {
-          hotelAdminCommon.setButtonLoading(loadButton, false, "Loading...");
+          hotelAdminCommon.setButtonLoading(loadButton, false, getWebsiteText().loading);
         }
       }
 
@@ -874,7 +1057,7 @@
         hotelAdminCommon.clearMessage(pageMessage);
         const hotelId = hotelAdminCommon.safeHotelId(hotelIdInput);
         if (!hotelId) {
-          hotelAdminCommon.setMessage(pageMessage, "Enter hotel ID first.", "error");
+          hotelAdminCommon.setMessage(pageMessage, getWebsiteText().enterHotel, "error");
           return;
         }
         hotelAdminCommon.setButtonLoading(button, true, loadingText);
@@ -888,17 +1071,17 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to save website page.");
+            throw new Error(data.error || getWebsiteText().saveError);
           }
           if (includePhotos) {
             fillPage(data.page);
-            hotelAdminCommon.setMessage(pageMessage, "Photos uploaded successfully. The saved filenames are shown in each slot.", "success");
+            hotelAdminCommon.setMessage(pageMessage, getWebsiteText().photosSaved, "success");
           } else {
             updateStaticDisplays(data.page);
-            hotelAdminCommon.setMessage(pageMessage, "Website text and details saved successfully. Selected photo files are kept until you click Upload Selected Photos.", "success");
+            hotelAdminCommon.setMessage(pageMessage, getWebsiteText().detailsSaved, "success");
           }
         } catch (error) {
-          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : "Unable to save website page.", "error");
+          hotelAdminCommon.setMessage(pageMessage, error instanceof Error ? error.message : getWebsiteText().saveError, "error");
         } finally {
           hotelAdminCommon.setButtonLoading(button, false, loadingText);
         }
@@ -906,8 +1089,8 @@
 
       loadButton.addEventListener("click", loadPage);
       loadPhotoSectionButton.addEventListener("click", loadPage);
-      saveContentButton.addEventListener("click", () => save(false, saveContentButton, "Saving..."));
-      savePhotosButton.addEventListener("click", () => save(true, savePhotosButton, "Uploading..."));
+      saveContentButton.addEventListener("click", () => save(false, saveContentButton, getWebsiteText().saving));
+      savePhotosButton.addEventListener("click", () => save(true, savePhotosButton, getWebsiteText().uploading));
       buildHourOptions(checkInTimeInput, "Select check-in time");
       buildHourOptions(checkOutTimeInput, "Select check-out time");
       publicTitleInput.addEventListener("input", updateMapSearchLink);

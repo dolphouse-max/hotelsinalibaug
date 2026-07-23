@@ -220,9 +220,9 @@
         mr: {
           title: "हॉटेल अॅडमिन मुख्यपृष्ठ",
           heroTitle: "हॉटेल अॅडमिन मुख्यपृष्ठ",
-          heroBody: "फ्रंट डेस्कचा वापर सोपा ठेवा. हॉटेल एकदा सेव्ह करा आणि मग प्रत्येक कामासाठी वेगळा page उघडा.",
+          heroBody: "फ्रंट डेस्कचा वापर सोपा ठेवा. हॉटेल एकदा जतन करा आणि मग प्रत्येक कामासाठी वेगळे पान उघडा.",
           loginTitle: "हॉटेल अॅडमिन लॉगिन",
-          loginBody: "Superadmin ने Firebase मध्ये तयार केलेल्या hotel admin email आणि password ने लॉगिन करा.",
+          loginBody: "सुपरअॅडमिनने फायरबेसमध्ये तयार केलेल्या हॉटेल अॅडमिन ईमेल आणि पासवर्डने लॉगिन करा.",
           emailLabel: "हॉटेल अॅडमिन ईमेल",
           hotelIdLabel: "हॉटेल आयडी",
           passwordLabel: "पासवर्ड",
@@ -230,11 +230,11 @@
           changePasswordButton: "पासवर्ड बदला",
           forgotPasswordButton: "पासवर्ड रीसेट ईमेल पाठवा",
           logoutButton: "लॉगआउट",
-          taskTitle: "कामाचे पेज",
+          taskTitle: "कामाची पाने",
           taskBadge: "मोबाइलसाठी",
-          taskIntro: "मोबाइलवर एकावेळी एकच task page उघडा, म्हणजे reception चे काम सोपे आणि जलद राहील.",
+          taskIntro: "मोबाइलवर एकावेळी एकच कामाचे पान उघडा, म्हणजे रिसेप्शनचे काम सोपे आणि जलद राहील.",
           helpTitle: "मदत",
-          helpBody: "सेटअप, प्रत्येक hotel page, reports, guest register आणि subscription साठी English आणि Marathi मदत उघडा.",
+          helpBody: "सेटअप, प्रत्येक हॉटेल पान, रिपोर्ट्स, गेस्ट रजिस्टर आणि सदस्यतेसाठी इंग्रजी व मराठी मदत उघडा.",
           installTitle: "अॅप इन्स्टॉल करा",
           installBody: "हे अॅप या उपकरणावर इन्स्टॉल करा, म्हणजे पूर्ण-स्क्रीन वापर आणि रोजचे काम अधिक सोपे होईल.",
           installButton: "अॅप इन्स्टॉल करा",
@@ -246,10 +246,10 @@
           inquiriesBody: "आपल्या सार्वजनिक हॉटेल वेबपानावरून आलेल्या सर्व चौकशा पाहा आणि पाहुण्यांना लगेच संपर्क करा.",
           driveTitle: "गूगल ड्राइव्ह",
           driveBody: "गेस्ट आणि स्टाफ पुरावा-प्रतिमांसाठी वापरला जाणारा हॉटेल ड्राइव्ह फोल्डर जोडा.",
-          checkinTitle: "गेस्ट QR आणि लिंक",
-          checkinBody: "रिसेप्शनसाठी गेस्ट स्वयं-चेक-इन लिंक आणि QR तयार करा.",
+          checkinTitle: "गेस्ट क्यूआर आणि लिंक",
+          checkinBody: "रिसेप्शनसाठी गेस्ट स्वयं-चेक-इन लिंक आणि क्यूआर तयार करा.",
           paymentTitle: "सदस्यता भरा",
-          paymentBody: "पेमेंट QR पान उघडा आणि कोणत्याही फोनवरून सदस्यता भरा.",
+          paymentBody: "पेमेंट क्यूआर पान उघडा आणि कोणत्याही फोनवरून सदस्यता भरा.",
           reservationsTitle: "बुकिंग आणि आरक्षणे",
           reservationsBody: "वॉक-इन, भविष्यातील आरक्षणे, आगाऊ देयके आणि येणे-जाण्याचे नियोजन या उपकरणावर जतन करा.",
           notificationsTitle: "सूचना",
@@ -339,11 +339,11 @@
           if (deferredInstallPrompt) {
             await deferredInstallPrompt.prompt();
             deferredInstallPrompt = null;
-            hotelAdminCommon.setMessage(actionMessage, hotelAdminCommon.getLanguage() === "mr" ? "या device वर app install prompt उघडला." : "App install prompt opened on this device.", "success");
+            hotelAdminCommon.setMessage(actionMessage, hotelAdminCommon.getLanguage() === "mr" ? "या उपकरणावर अॅप इन्स्टॉलची विनंती उघडली." : "App install prompt opened on this device.", "success");
             return;
           }
 
-          hotelAdminCommon.setMessage(actionMessage, hotelAdminCommon.getLanguage() === "mr" ? "Install popup दिसला नाही तर browser menu मधून Add to Home Screen किंवा Install App वापरा." : "If no install popup appears, use the browser menu and choose Add to Home Screen or Install App.", "success");
+          hotelAdminCommon.setMessage(actionMessage, hotelAdminCommon.getLanguage() === "mr" ? "इन्स्टॉलची खिडकी दिसली नाही तर ब्राउझर मेनूमधून Add to Home Screen किंवा Install App वापरा." : "If no install popup appears, use the browser menu and choose Add to Home Screen or Install App.", "success");
         } catch (error) {
           hotelAdminCommon.setMessage(actionMessage, error instanceof Error ? error.message : (hotelAdminCommon.getLanguage() === "mr" ? "Install prompt उघडता आला नाही." : "Unable to open install prompt."), "error");
         }
@@ -390,7 +390,7 @@
       loginButton.addEventListener("click", async () => {
         const email = emailInput.value.trim().toLowerCase();
         if (!email) {
-          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "लॉगिनपूर्वी hotel admin email टाका." : "Enter hotel admin email before login.", "error");
+          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "लॉगिनपूर्वी हॉटेल अॅडमिन ईमेल टाका." : "Enter hotel admin email before login.", "error");
           return;
         }
 
@@ -431,7 +431,7 @@
       forgotPasswordButton.addEventListener("click", async () => {
         const email = emailInput.value.trim().toLowerCase();
         if (!email) {
-          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "सर्वप्रथम hotel admin email टाका." : "Enter hotel admin email first.", "error");
+          hotelAdminCommon.setMessage(contextMessage, hotelAdminCommon.getLanguage() === "mr" ? "सर्वप्रथम हॉटेल अॅडमिन ईमेल टाका." : "Enter hotel admin email first.", "error");
           return;
         }
 

@@ -119,9 +119,9 @@
           intro: "हे पान फक्त हॉटेल ड्राइव्ह जोडणी आणि पुरावा-साठवण सेटअपसाठी वापरा, म्हणजे नोंदी सुरुवातीपासून हॉटेलच्या मालकीच्या राहतील.",
           connected: "जोडलेले",
           notConnected: "जोडलेले नाही",
-          adminMissing: "अॅडमिन Gmail उपलब्ध नाही",
+          adminMissing: "अॅडमिन जीमेल उपलब्ध नाही",
           folderMissing: "फोल्डर आयडी उपलब्ध नाही",
-          connectWith: "या Gmail ने जोडा",
+          connectWith: "या जीमेलने जोडा",
           connectButton: "गूगल ड्राइव्ह जोडा",
           connectedButton: "जोडलेले",
           disconnectButton: "गूगल ड्राइव्ह वेगळा करा",
@@ -144,6 +144,12 @@
         document.getElementById("driveHeroTitle").textContent = text.heroTitle;
         document.getElementById("driveHeroBody").textContent = text.heroBody;
         document.getElementById("driveIntro").textContent = text.intro;
+        document.querySelector("label[for='hotelId']").textContent = hotelAdminCommon.getLanguage() === "mr" ? "हॉटेल आयडी" : "Hotel ID";
+        document.getElementById("loadButton").textContent = hotelAdminCommon.getLanguage() === "mr" ? "स्थिती लोड करा" : "Load Status";
+        document.querySelector(".rounded-2xl.border.border-slate-200.bg-slate-50.p-4 .text-sm.text-slate-500").textContent = hotelAdminCommon.getLanguage() === "mr" ? "स्थिती" : "Status";
+        document.querySelector(".mt-5.rounded-\\[1\\.5rem\\].border.border-amber-200.bg-amber-50").innerHTML = hotelAdminCommon.getLanguage() === "mr"
+          ? "ही जोडणी फक्त हॉटेलच्या स्वतःच्या गूगल खात्याशीच ठेवा. पोलीस आणि सुपरअॅडमिन पुरावे फक्त नियंत्रित अॅप प्रवेशातून पाहू शकतात, हॉटेल ड्राइव्ह थेट उघडून नाही."
+          : "Keep this connected only to the hotel’s own Google account. Police and superadmin can view proofs only through controlled in-app access, not by browsing the hotel Drive directly.";
         disconnectButton.textContent = text.disconnectButton;
       }
 
