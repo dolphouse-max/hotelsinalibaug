@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="mr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Help Marathi</title>
+    <script>
+      (function () {
+        const url = new URL("/hotel-help.html", window.location.origin);
+        const current = new URL(window.location.href);
+        current.searchParams.forEach((value, key) => {
+          url.searchParams.set(key, value);
+        });
+        url.searchParams.set("lang", "mr");
+        window.location.replace(url.toString());
+      })();
+    </script>
+  </head>
+  <body>
+    Redirecting to Marathi hotel help...
+  </body>
+</html>

@@ -77,11 +77,15 @@
           </div>
 
           <div class="mt-5">
-            <label for="languageSelect" class="mb-2 block text-sm font-medium text-slate-700">Language</label>
-            <select id="languageSelect" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-              <option value="en">English</option>
-              <option value="mr">Marathi</option>
-            </select>
+            <p class="mb-2 block text-sm font-medium text-slate-700">Language</p>
+            <div class="grid grid-cols-2 gap-3">
+              <a id="englishHelpLink" href="/hotel-help.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-harbor hover:text-harbor">
+                English
+              </a>
+              <a id="marathiHelpLink" href="/hotel-help-marathi.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-harbor hover:text-harbor">
+                Marathi
+              </a>
+            </div>
           </div>
 
           <div id="contentEn" class="mt-6 space-y-5">
@@ -488,11 +492,18 @@
     <script>
       const hotelIdInput = { value: "" };
       const backToHotelHomeLink = document.getElementById("backToHotelHomeLink");
-      const languageSelect = document.getElementById("languageSelect");
+      const englishHelpLink = document.getElementById("englishHelpLink");
+      const marathiHelpLink = document.getElementById("marathiHelpLink");
       const contentEn = document.getElementById("contentEn");
       const contentMr = document.getElementById("contentMr");
 
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
+
+      function selectedLanguageFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const requested = params.get("lang");
+        return requested === "mr" ? "mr" : "en";
+      }
 
       function updateBackLink() {
         const hotelId = hotelAdminCommon.normalizeHotelId(hotelIdInput.value);
@@ -501,6 +512,15 @@
           backUrl.searchParams.set("hotel_id", hotelId);
         }
         backToHotelHomeLink.href = backUrl.toString();
+
+        const englishUrl = new URL("/hotel-help.html", window.location.origin);
+        const marathiUrl = new URL("/hotel-help-marathi.html", window.location.origin);
+        if (hotelId) {
+          englishUrl.searchParams.set("hotel_id", hotelId);
+          marathiUrl.searchParams.set("hotel_id", hotelId);
+        }
+        englishHelpLink.href = englishUrl.toString();
+        marathiHelpLink.href = marathiUrl.toString();
       }
 
       function applyLanguage(language) {
@@ -508,13 +528,18 @@
         localStorage.setItem("hotel_help_language", selected);
         contentEn.classList.toggle("hidden", selected !== "en");
         contentMr.classList.toggle("hidden", selected !== "mr");
+        englishHelpLink.classList.toggle("border-harbor", selected === "en");
+        englishHelpLink.classList.toggle("bg-harbor", selected === "en");
+        englishHelpLink.classList.toggle("text-white", selected === "en");
+        englishHelpLink.classList.toggle("text-slate-700", selected !== "en");
+        marathiHelpLink.classList.toggle("border-harbor", selected === "mr");
+        marathiHelpLink.classList.toggle("bg-harbor", selected === "mr");
+        marathiHelpLink.classList.toggle("text-white", selected === "mr");
+        marathiHelpLink.classList.toggle("text-slate-700", selected !== "mr");
       }
 
-      languageSelect.value = localStorage.getItem("hotel_help_language") || "en";
-      languageSelect.addEventListener("change", () => applyLanguage(languageSelect.value));
-
       updateBackLink();
-      applyLanguage(languageSelect.value);
+      applyLanguage(selectedLanguageFromUrl());
     </script>
   </body>
 </html>
