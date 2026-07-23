@@ -33,27 +33,27 @@
       <section class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
           <p class="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Hotels In Alibaug</p>
-          <h1 class="mt-2 text-2xl font-semibold">Hotel Admin Home</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Keep the front desk flow simple. Save the hotel once, then open one focused page per task.</p>
+          <h1 id="homeHeroTitle" class="mt-2 text-2xl font-semibold">Hotel Admin Home</h1>
+          <p id="homeHeroBody" class="mt-2 text-sm leading-6 text-white/80">Keep the front desk flow simple. Save the hotel once, then open one focused page per task.</p>
         </div>
 
         <div class="p-5">
           <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p class="text-sm font-semibold text-ocean">Hotel admin login</p>
-            <p class="mt-1 text-sm leading-6 text-slate-600">Log in with the hotel admin email and password created by superadmin in Firebase.</p>
+            <p id="homeLoginTitle" class="text-sm font-semibold text-ocean">Hotel admin login</p>
+            <p id="homeLoginBody" class="mt-1 text-sm leading-6 text-slate-600">Log in with the hotel admin email and password created by superadmin in Firebase.</p>
           </div>
 
           <div class="mt-5 space-y-4">
             <div>
-              <label for="hotelAdminEmail" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Email</label>
+              <label id="hotelAdminEmailLabel" for="hotelAdminEmail" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Email</label>
               <input id="hotelAdminEmail" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="booking@gmail.com">
             </div>
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <label id="hotelIdLabel" for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10" placeholder="Auto-filled after login">
             </div>
             <div>
-              <label for="hotelPassword" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
+              <label id="hotelPasswordLabel" for="hotelPassword" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
               <input id="hotelPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <button id="loginButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15 transition active:scale-[0.98] disabled:cursor-not-allowed">
@@ -75,20 +75,20 @@
 
       <section class="mt-5">
         <div class="mb-3 flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-ocean">Task Pages</h2>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Mobile First</p>
+          <h2 id="taskPagesTitle" class="text-lg font-semibold text-ocean">Task Pages</h2>
+          <p id="taskPagesBadge" class="text-xs uppercase tracking-[0.2em] text-slate-500">Mobile First</p>
         </div>
-        <div class="mb-4 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-lg shadow-slate-200/40">
+        <div id="taskPagesIntro" class="mb-4 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-lg shadow-slate-200/40">
           Open only one task page at a time on mobile so reception work stays simple and fast.
         </div>
         <div class="grid gap-3">
           <a data-target="hotel-help.html" class="launcher-link rounded-[1.75rem] border border-slate-200 bg-shell p-5 shadow-lg shadow-slate-200/50 transition hover:-translate-y-0.5 hover:border-slate-300">
-            <p class="text-lg font-semibold text-ocean">Help</p>
-            <p class="mt-1 text-sm text-slate-600">Open English and Marathi help for setup, each hotel page, reports, guest register, and subscription steps.</p>
+            <p id="cardHelpTitle" class="text-lg font-semibold text-ocean">Help</p>
+            <p id="cardHelpBody" class="mt-1 text-sm text-slate-600">Open English and Marathi help for setup, each hotel page, reports, guest register, and subscription steps.</p>
           </a>
           <article class="rounded-[1.75rem] border border-slate-200 bg-shell p-5 shadow-lg shadow-slate-200/50">
-            <p class="text-lg font-semibold text-ocean">Install App</p>
-            <p class="mt-1 text-sm text-slate-600">Install the hotel app on this device for a cleaner full-screen experience and faster daily use.</p>
+            <p id="cardInstallTitle" class="text-lg font-semibold text-ocean">Install App</p>
+            <p id="cardInstallBody" class="mt-1 text-sm text-slate-600">Install the hotel app on this device for a cleaner full-screen experience and faster daily use.</p>
             <button id="installAppButton" type="button" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white shadow-lg shadow-ocean/15 transition active:scale-[0.98] disabled:cursor-not-allowed">
               Install App
             </button>
@@ -165,7 +165,85 @@
       const actionMessage = document.getElementById("actionMessage");
       let deferredInstallPrompt = null;
 
-      hotelAdminCommon.applyPageTranslations("/hotel-admin-home.html");
+      const homeTranslations = {
+        en: {
+          title: "Hotel Admin Home",
+          heroTitle: "Hotel Admin Home",
+          heroBody: "Keep the front desk flow simple. Save the hotel once, then open one focused page per task.",
+          loginTitle: "Hotel admin login",
+          loginBody: "Log in with the hotel admin email and password created by superadmin in Firebase.",
+          emailLabel: "Hotel Admin Email",
+          hotelIdLabel: "Hotel ID",
+          passwordLabel: "Password",
+          loginButton: "Login",
+          changePasswordButton: "Change Password",
+          forgotPasswordButton: "Send Password Reset Email",
+          logoutButton: "Logout",
+          taskTitle: "Task Pages",
+          taskBadge: "Mobile First",
+          taskIntro: "Open only one task page at a time on mobile so reception work stays simple and fast.",
+          helpTitle: "Help",
+          helpBody: "Open English and Marathi help for setup, each hotel page, reports, guest register, and subscription steps.",
+          installTitle: "Install App",
+          installBody: "Install the hotel app on this device for a cleaner full-screen experience and faster daily use.",
+          installButton: "Install App",
+          contextLoggedInPrefix: "Logged in for",
+          promptCurrentPassword: "Enter current password",
+          promptNewPassword: "Enter new password (minimum 8 characters)",
+        },
+        mr: {
+          title: "हॉटेल अॅडमिन मुख्यपृष्ठ",
+          heroTitle: "हॉटेल अॅडमिन मुख्यपृष्ठ",
+          heroBody: "फ्रंट डेस्कचा वापर सोपा ठेवा. हॉटेल एकदा सेव्ह करा आणि मग प्रत्येक कामासाठी वेगळा page उघडा.",
+          loginTitle: "हॉटेल अॅडमिन लॉगिन",
+          loginBody: "Superadmin ने Firebase मध्ये तयार केलेल्या hotel admin email आणि password ने लॉगिन करा.",
+          emailLabel: "हॉटेल अॅडमिन ईमेल",
+          hotelIdLabel: "हॉटेल आयडी",
+          passwordLabel: "पासवर्ड",
+          loginButton: "लॉगिन",
+          changePasswordButton: "पासवर्ड बदला",
+          forgotPasswordButton: "पासवर्ड रीसेट ईमेल पाठवा",
+          logoutButton: "लॉगआउट",
+          taskTitle: "कामाचे पेज",
+          taskBadge: "मोबाइलसाठी",
+          taskIntro: "मोबाइलवर एकावेळी एकच task page उघडा, म्हणजे reception चे काम सोपे आणि जलद राहील.",
+          helpTitle: "मदत",
+          helpBody: "सेटअप, प्रत्येक hotel page, reports, guest register आणि subscription साठी English आणि Marathi मदत उघडा.",
+          installTitle: "अॅप इन्स्टॉल करा",
+          installBody: "या device वर hotel app इन्स्टॉल करा, म्हणजे full-screen वापर आणि रोजचे काम अधिक सोपे होईल.",
+          installButton: "अॅप इन्स्टॉल करा",
+          contextLoggedInPrefix: "लॉगिन झाले",
+          promptCurrentPassword: "सध्याचा पासवर्ड टाका",
+          promptNewPassword: "नवीन पासवर्ड टाका (किमान 8 अक्षरे)",
+        },
+      };
+
+      function applyHomeLanguage() {
+        const language = hotelAdminCommon.getLanguage();
+        const text = homeTranslations[language] || homeTranslations.en;
+        document.title = text.title;
+        document.getElementById("homeHeroTitle").textContent = text.heroTitle;
+        document.getElementById("homeHeroBody").textContent = text.heroBody;
+        document.getElementById("homeLoginTitle").textContent = text.loginTitle;
+        document.getElementById("homeLoginBody").textContent = text.loginBody;
+        document.getElementById("hotelAdminEmailLabel").textContent = text.emailLabel;
+        document.getElementById("hotelIdLabel").textContent = text.hotelIdLabel;
+        document.getElementById("hotelPasswordLabel").textContent = text.passwordLabel;
+        loginButton.textContent = text.loginButton;
+        changePasswordButton.textContent = text.changePasswordButton;
+        forgotPasswordButton.textContent = text.forgotPasswordButton;
+        logoutButton.textContent = text.logoutButton;
+        document.getElementById("taskPagesTitle").textContent = text.taskTitle;
+        document.getElementById("taskPagesBadge").textContent = text.taskBadge;
+        document.getElementById("taskPagesIntro").textContent = text.taskIntro;
+        document.getElementById("cardHelpTitle").textContent = text.helpTitle;
+        document.getElementById("cardHelpBody").textContent = text.helpBody;
+        document.getElementById("cardInstallTitle").textContent = text.installTitle;
+        document.getElementById("cardInstallBody").textContent = text.installBody;
+        installAppButton.textContent = text.installButton;
+      }
+
+      applyHomeLanguage();
       hotelAdminCommon.hydrateContext(null, hotelIdInput);
 
       if ("serviceWorker" in navigator) {
@@ -220,7 +298,7 @@
             emailInput.value = session.email || emailInput.value;
             hotelIdInput.value = session.hotel_id || hotelIdInput.value;
             logoutButton.classList.remove("hidden");
-            hotelAdminCommon.setMessage(contextMessage, `${hotelAdminCommon.getLanguage() === "mr" ? "लॉगिन झाले" : "Logged in for"} ${session.hotel_id}`, "success");
+            hotelAdminCommon.setMessage(contextMessage, `${homeTranslations[hotelAdminCommon.getLanguage()]?.contextLoggedInPrefix || homeTranslations.en.contextLoggedInPrefix} ${session.hotel_id}`, "success");
           }
         } catch (error) {
           hotelAdminCommon.setMessage(contextMessage, error.message || (hotelAdminCommon.getLanguage() === "mr" ? "हॉटेल सेशन लोड करता आले नाही." : "Unable to load hotel session."), "error");
@@ -245,7 +323,7 @@
           hotelIdInput.value = data.session.hotel_id || "";
           emailInput.value = data.session.email || email;
           hotelAdminCommon.persistContext("__app_session__", data.session.hotel_id || "");
-          hotelAdminCommon.setMessage(contextMessage, `${hotelAdminCommon.getLanguage() === "mr" ? "लॉगिन झाले" : "Logged in for"} ${data.session.hotel_id}`, "success");
+          hotelAdminCommon.setMessage(contextMessage, `${homeTranslations[hotelAdminCommon.getLanguage()]?.contextLoggedInPrefix || homeTranslations.en.contextLoggedInPrefix} ${data.session.hotel_id}`, "success");
           logoutButton.classList.remove("hidden");
           window.location.href = data.redirect;
         } catch (error) {
@@ -256,11 +334,11 @@
       });
 
       changePasswordButton.addEventListener("click", async () => {
-        const currentPassword = window.prompt(hotelAdminCommon.getLanguage() === "mr" ? "सध्याचा पासवर्ड टाका" : "Enter current password");
+        const currentPassword = window.prompt(homeTranslations[hotelAdminCommon.getLanguage()]?.promptCurrentPassword || homeTranslations.en.promptCurrentPassword);
         if (!currentPassword) {
           return;
         }
-        const newPassword = window.prompt(hotelAdminCommon.getLanguage() === "mr" ? "नवीन पासवर्ड टाका (किमान 8 अक्षरे)" : "Enter new password (minimum 8 characters)");
+        const newPassword = window.prompt(homeTranslations[hotelAdminCommon.getLanguage()]?.promptNewPassword || homeTranslations.en.promptNewPassword);
         if (!newPassword) {
           return;
         }
