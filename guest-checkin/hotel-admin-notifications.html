@@ -27,8 +27,8 @@
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
       <div class="flex items-center justify-between text-sm">
-        <a href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
-        <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Alerts</span>
+        <a id="notificationsBackLink" href="/hotel-admin-home.html" class="font-medium text-slate-600">Back to Home</a>
+        <span id="notificationsBadge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Alerts</span>
       </div>
       <script>
         document.write(hotelAdminCommon.quickNav("notifications"));
@@ -36,18 +36,18 @@
 
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
-          <h1 class="text-2xl font-semibold">Notification Centre</h1>
-          <p class="mt-2 text-sm leading-6 text-white/80">Read greetings and subscription reminders. Enable browser alerts on this device to get on-screen notices while the PWA is open.</p>
+          <h1 id="notificationsHeroTitle" class="text-2xl font-semibold">Notification Centre</h1>
+          <p id="notificationsHeroBody" class="mt-2 text-sm leading-6 text-white/80">Read greetings and subscription reminders. Enable browser alerts on this device to get on-screen notices while the PWA is open.</p>
         </div>
 
         <div class="p-5">
           <div class="grid gap-4">
             <div>
-              <label for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
+              <label id="notificationsTokenLabel" for="hotelAdminToken" class="mb-2 block text-sm font-medium text-slate-700">Hotel Admin Token</label>
               <input id="hotelAdminToken" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <div>
-              <label for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
+              <label id="notificationsHotelIdLabel" for="hotelId" class="mb-2 block text-sm font-medium text-slate-700">Hotel ID</label>
               <input id="hotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -63,11 +63,11 @@
 
           <div class="mt-5 grid grid-cols-2 gap-3">
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p class="text-sm text-slate-500">Permission</p>
+              <p id="permissionLabel" class="text-sm text-slate-500">Permission</p>
               <p id="permissionState" class="mt-1 font-semibold text-slate-900">Unknown</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p class="text-sm text-slate-500">Unseen Alerts</p>
+              <p id="unseenLabel" class="text-sm text-slate-500">Unseen Alerts</p>
               <p id="unseenCount" class="mt-1 font-semibold text-slate-900">0</p>
             </div>
           </div>
@@ -76,7 +76,7 @@
 
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-ocean">Latest Alerts</h2>
+          <h2 id="latestAlertsTitle" class="text-lg font-semibold text-ocean">Latest Alerts</h2>
           <button id="markAllSeenButton" type="button" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700">
             Mark All Seen
           </button>
@@ -96,11 +96,110 @@
       const unseenCount = document.getElementById("unseenCount");
       const permissionState = document.getElementById("permissionState");
       let activePushSubscription = null;
+      const notificationsTranslations = {
+        en: {
+          title: "Notifications | Hotel Admin",
+          back: "Back to Home",
+          badge: "Alerts",
+          heroTitle: "Notification Centre",
+          heroBody: "Read greetings and subscription reminders. Enable browser alerts on this device to get on-screen notices while the PWA is open.",
+          tokenLabel: "Hotel Admin Token",
+          hotelIdLabel: "Hotel ID",
+          enableButton: "Enable Alerts",
+          loadButton: "Load Alerts",
+          permissionLabel: "Permission",
+          permissionUnknown: "Unknown",
+          permissionUnsupported: "Not supported",
+          unseenLabel: "Unseen Alerts",
+          latestTitle: "Latest Alerts",
+          markAll: "Mark All Seen",
+          empty: "No alerts available right now.",
+          seen: "Seen",
+          new: "New",
+          from: "From",
+          sent: "Sent",
+          openPage: "Open Page",
+          markSeen: "Mark Seen",
+          noBrowserSupport: "This device does not support browser notifications.",
+          permissionDenied: "Notification permission was not granted.",
+          enabled: "Background push alerts enabled on this device.",
+          enableError: "Unable to enable push alerts.",
+          loadError: "Unable to load alerts",
+          loading: "Loading...",
+          saving: "Saving...",
+          noNewAlerts: "There are no new alerts to mark as seen.",
+          updateError: "Unable to update alerts",
+          allSeen: "All current alerts marked as seen.",
+          pushUnsupported: "This device does not support background push notifications.",
+          pushConfigError: "Unable to load push configuration",
+          pushSaveError: "Unable to save device push subscription",
+        },
+        mr: {
+          title: "सूचना | हॉटेल अॅडमिन",
+          back: "मुख्यपृष्ठावर परत",
+          badge: "सूचना",
+          heroTitle: "सूचना केंद्र",
+          heroBody: "शुभेच्छा संदेश आणि सदस्यता स्मरणपत्रे येथे वाचा. या उपकरणावर स्क्रीनवरील सूचना मिळण्यासाठी ब्राउझर सूचना सुरू करा, जेव्हा पीडब्ल्यूए उघडे असेल.",
+          tokenLabel: "हॉटेल अॅडमिन टोकन",
+          hotelIdLabel: "हॉटेल आयडी",
+          enableButton: "सूचना सुरू करा",
+          loadButton: "सूचना लोड करा",
+          permissionLabel: "परवानगी",
+          permissionUnknown: "अज्ञात",
+          permissionUnsupported: "समर्थन नाही",
+          unseenLabel: "न पाहिलेल्या सूचना",
+          latestTitle: "नवीनतम सूचना",
+          markAll: "सर्व पाहिले म्हणून चिन्हांकित करा",
+          empty: "सध्या कोणतीही सूचना उपलब्ध नाही.",
+          seen: "पाहिले",
+          new: "नवीन",
+          from: "कडून",
+          sent: "पाठवले",
+          openPage: "पान उघडा",
+          markSeen: "पाहिले म्हणून चिन्हांकित करा",
+          noBrowserSupport: "या उपकरणावर ब्राउझर सूचना उपलब्ध नाहीत.",
+          permissionDenied: "सूचनेची परवानगी मंजूर झाली नाही.",
+          enabled: "या उपकरणावर पार्श्वभूमीतील सूचना यशस्वीरीत्या सुरू झाल्या.",
+          enableError: "सूचना सुरू करता आल्या नाहीत.",
+          loadError: "सूचना लोड करता आल्या नाहीत",
+          loading: "लोड होत आहे...",
+          saving: "जतन होत आहे...",
+          noNewAlerts: "पाहिले म्हणून चिन्हांकित करण्यासाठी नवीन सूचना नाहीत.",
+          updateError: "सूचना अद्ययावत करता आल्या नाहीत",
+          allSeen: "सध्याच्या सर्व सूचना पाहिल्या म्हणून चिन्हांकित केल्या.",
+          pushUnsupported: "या उपकरणावर पार्श्वभूमीतील पुश सूचना समर्थित नाहीत.",
+          pushConfigError: "पुश मांडणी लोड करता आली नाही",
+          pushSaveError: "उपकरणाची पुश सदस्यता जतन करता आली नाही",
+        },
+      };
+
+      function getNotificationsText() {
+        return notificationsTranslations[hotelAdminCommon.getLanguage()] || notificationsTranslations.en;
+      }
+
+      function applyNotificationsLanguage() {
+        const text = getNotificationsText();
+        document.title = text.title;
+        document.getElementById("notificationsBackLink").textContent = text.back;
+        document.getElementById("notificationsBadge").textContent = text.badge;
+        document.getElementById("notificationsHeroTitle").textContent = text.heroTitle;
+        document.getElementById("notificationsHeroBody").textContent = text.heroBody;
+        document.getElementById("notificationsTokenLabel").textContent = text.tokenLabel;
+        document.getElementById("notificationsHotelIdLabel").textContent = text.hotelIdLabel;
+        enableNotificationsButton.textContent = text.enableButton;
+        loadButton.textContent = text.loadButton;
+        document.getElementById("permissionLabel").textContent = text.permissionLabel;
+        document.getElementById("unseenLabel").textContent = text.unseenLabel;
+        document.getElementById("latestAlertsTitle").textContent = text.latestTitle;
+        markAllSeenButton.textContent = text.markAll;
+      }
 
       hotelAdminCommon.hydrateContext(tokenInput, hotelIdInput);
+      applyNotificationsLanguage();
 
       function updatePermissionState() {
-        permissionState.textContent = "Notification" in window ? Notification.permission : "Not supported";
+        const text = getNotificationsText();
+        permissionState.textContent = "Notification" in window ? Notification.permission : text.permissionUnsupported;
       }
 
       function localNotifiedKey(hotelId) {
@@ -177,7 +276,7 @@
         unseenCount.textContent = String(items.filter((row) => Number(row.is_seen) !== 1).length);
 
         if (!items.length) {
-          notificationsList.innerHTML = '<div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No alerts available right now.</div>';
+          notificationsList.innerHTML = `<div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">${getNotificationsText().empty}</div>`;
           return;
         }
 
@@ -193,15 +292,15 @@
                 <p class="mt-1 leading-6">${item.message}</p>
               </div>
               <span class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${Number(item.is_seen) === 1 ? "bg-white text-slate-500" : "bg-white text-amber-700"}">
-                ${Number(item.is_seen) === 1 ? "Seen" : "New"}
+                ${Number(item.is_seen) === 1 ? getNotificationsText().seen : getNotificationsText().new}
               </span>
             </div>
             <p class="mt-2 text-xs uppercase tracking-[0.16em] ${Number(item.is_seen) === 1 ? "text-slate-500" : "text-amber-700"}">${item.notification_type} • ${item.audience_type.replaceAll("_", " ")}</p>
-            <p class="mt-1 text-xs ${Number(item.is_seen) === 1 ? "text-slate-500" : "text-amber-800"}">From: ${item.created_by}</p>
-            <p class="mt-1 text-xs ${Number(item.is_seen) === 1 ? "text-slate-500" : "text-amber-800"}">Sent: ${item.created_at}</p>
+            <p class="mt-1 text-xs ${Number(item.is_seen) === 1 ? "text-slate-500" : "text-amber-800"}">${getNotificationsText().from}: ${item.created_by}</p>
+            <p class="mt-1 text-xs ${Number(item.is_seen) === 1 ? "text-slate-500" : "text-amber-800"}">${getNotificationsText().sent}: ${item.created_at}</p>
             <div class="mt-3 flex gap-2">
-              ${item.action_url ? `<a href="${item.action_url}" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Open Page</a>` : ""}
-              ${Number(item.is_seen) === 1 ? "" : `<button type="button" class="mark-seen-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700" data-id="${item.id}">Mark Seen</button>`}
+              ${item.action_url ? `<a href="${item.action_url}" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">${getNotificationsText().openPage}</a>` : ""}
+              ${Number(item.is_seen) === 1 ? "" : `<button type="button" class="mark-seen-button rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700" data-id="${item.id}">${getNotificationsText().markSeen}</button>`}
             </div>
           `;
           notificationsList.appendChild(card);
@@ -232,7 +331,7 @@
         });
         const data = await hotelAdminCommon.readJson(response);
         if (!response.ok) {
-          throw new Error(data.error || "Unable to load alerts");
+          throw new Error(data.error || getNotificationsText().loadError);
         }
         renderNotifications(data.notifications || []);
         await maybeNotifyUnseen(data.notifications || []);
@@ -240,7 +339,7 @@
 
       async function enableRealPushSubscription() {
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-          throw new Error("This device does not support background push notifications.");
+          throw new Error(getNotificationsText().pushUnsupported);
         }
 
         const response = await fetch("/api/hotel-admin/push-subscription", {
@@ -248,7 +347,7 @@
         });
         const data = await hotelAdminCommon.readJson(response);
         if (!response.ok) {
-          throw new Error(data.error || "Unable to load push configuration");
+          throw new Error(data.error || getNotificationsText().pushConfigError);
         }
 
         const registration = await navigator.serviceWorker.ready;
@@ -277,13 +376,13 @@
         });
         const saveData = await hotelAdminCommon.readJson(saveResponse);
         if (!saveResponse.ok) {
-          throw new Error(saveData.error || "Unable to save device push subscription");
+          throw new Error(saveData.error || getNotificationsText().pushSaveError);
         }
       }
 
       enableNotificationsButton.addEventListener("click", async () => {
         if (!("Notification" in window)) {
-          hotelAdminCommon.setMessage(statusBox, "This device does not support browser notifications.", "error");
+          hotelAdminCommon.setMessage(statusBox, getNotificationsText().noBrowserSupport, "error");
           updatePermissionState();
           return;
         }
@@ -292,20 +391,20 @@
           const result = await Notification.requestPermission();
           updatePermissionState();
           if (result !== "granted") {
-            hotelAdminCommon.setMessage(statusBox, "Notification permission was not granted.", "error");
+            hotelAdminCommon.setMessage(statusBox, getNotificationsText().permissionDenied, "error");
             return;
           }
 
           await enableRealPushSubscription();
-          hotelAdminCommon.setMessage(statusBox, "Background push alerts enabled on this device.", "success");
+          hotelAdminCommon.setMessage(statusBox, getNotificationsText().enabled, "success");
         } catch (error) {
-          hotelAdminCommon.setMessage(statusBox, error instanceof Error ? error.message : "Unable to enable push alerts.", "error");
+          hotelAdminCommon.setMessage(statusBox, error instanceof Error ? error.message : getNotificationsText().enableError, "error");
         }
       });
 
       loadButton.addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(statusBox);
-        hotelAdminCommon.setButtonLoading(loadButton, true, "Loading...");
+        hotelAdminCommon.setButtonLoading(loadButton, true, getNotificationsText().loading);
         try {
           await loadNotifications();
         } catch (error) {
@@ -317,11 +416,11 @@
 
       markAllSeenButton.addEventListener("click", async () => {
         hotelAdminCommon.clearMessage(statusBox);
-        hotelAdminCommon.setButtonLoading(markAllSeenButton, true, "Saving...");
+        hotelAdminCommon.setButtonLoading(markAllSeenButton, true, getNotificationsText().saving);
         try {
           const cards = Array.from(notificationsList.querySelectorAll(".mark-seen-button")).map((button) => button.dataset.id).filter(Boolean);
           if (!cards.length) {
-            hotelAdminCommon.setMessage(statusBox, "There are no new alerts to mark as seen.", "success");
+            hotelAdminCommon.setMessage(statusBox, getNotificationsText().noNewAlerts, "success");
             return;
           }
 
@@ -336,10 +435,10 @@
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
-            throw new Error(data.error || "Unable to update alerts");
+            throw new Error(data.error || getNotificationsText().updateError);
           }
 
-          hotelAdminCommon.setMessage(statusBox, "All current alerts marked as seen.", "success");
+          hotelAdminCommon.setMessage(statusBox, getNotificationsText().allSeen, "success");
           await loadNotifications();
         } catch (error) {
           hotelAdminCommon.setMessage(statusBox, error.message, "error");
