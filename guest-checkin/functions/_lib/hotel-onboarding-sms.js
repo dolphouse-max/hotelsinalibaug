@@ -1,8 +1,5 @@
 const MSG91_SMS_URL = "https://control.msg91.com/api/v5/flow";
 const DEFAULT_FLOW_TEMPLATE_ID = "6a630e0d1bd01cb6df050c32";
-const DEFAULT_SENDER_ID = "DLHNOS";
-const DEFAULT_DLT_TEMPLATE_ID = "1177178444554181486";
-const DEFAULT_SUPPORT_PHONE = "7208993899";
 
 function text(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -17,13 +14,7 @@ function normalizeIndianMobile(value) {
   return digits;
 }
 
-function buildPasswordUrl(origin, hotelId) {
-  const url = new URL("/hotel-admin-home.html", origin);
-  url.searchParams.set("hotel_id", hotelId);
-  return url.toString();
-}
-
-export async function sendHotelOnboardingSms(env, hotel, origin) {
+export async function sendHotelOnboardingSms(env, hotel) {
   const authKey = text(env.MSG91_SMS_AUTH_KEY || env.MSG91_AUTH_KEY || env.MSG91_EMAIL_AUTH_KEY);
   const templateId = text(env.MSG91_SMS_FLOW_TEMPLATE_ID || DEFAULT_FLOW_TEMPLATE_ID);
   const hotelName = text(hotel?.name);
@@ -32,19 +23,19 @@ export async function sendHotelOnboardingSms(env, hotel, origin) {
   const mobile = normalizeIndianMobile(hotel?.admin_phone || hotel?.contact);
 
   if (!authKey) throw new Error("MSG91 SMS auth key is not configured in Cloudflare Pages secrets.");
-  if (!hotelName || !loginId || !hotelId || !text(origin)) {
-    throw new Error("Hotel name, ID, admin email, and origin are required for onboarding SMS.");
+  if (!hotelName || !loginId || !hotelId) {
+    throw new Error("Hotel name, ID, and admin email are required for onboarding SMS.");
   }
 
   const payload = {
     template_id: templateId,
-    short_url: "1",
     recipients: [{
       mobiles: mobile,
-      hotel_name: hotelName,
-      login_id: loginId,
-      password_url: buildPasswordUrl(origin, hotelId),
-      support_phone: text(env.MSG91_SMS_SUPPORT_PHONE || DEFAULT_SUPPORT_PHONE),
+      // Configure the new MSG91 Flow variables in this exact order.
+      VAR1: hotelName,
+      VAR2: hotelId,
+      VAR3: loginId,
+      VAR4: hotelId,
     }],
   };
 
@@ -61,8 +52,6 @@ export async function sendHotelOnboardingSms(env, hotel, origin) {
     status: response.status,
     ok: response.ok,
     template_id: templateId,
-    sender_id: text(env.MSG91_SMS_SENDER_ID || DEFAULT_SENDER_ID),
-    dlt_template_id: text(env.MSG91_SMS_DLT_TEMPLATE_ID || DEFAULT_DLT_TEMPLATE_ID),
     hotel_id: hotelId,
   });
 

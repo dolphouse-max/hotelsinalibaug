@@ -17,7 +17,7 @@ export async function onRequestPost(context) {
     if (!payload?.hotel || typeof payload.hotel !== "object") {
       return json({ error: "hotel payload is required" }, { status: 400 });
     }
-    return json(await sendHotelOnboardingSms(context.env, payload.hotel, new URL(context.request.url).origin));
+    return json(await sendHotelOnboardingSms(context.env, payload.hotel));
   } catch (error) {
     return json({ error: error instanceof Error ? error.message : "Unable to send hotel onboarding SMS" }, { status: 400 });
   }

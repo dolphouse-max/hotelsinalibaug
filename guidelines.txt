@@ -27,3 +27,55 @@ msg91 auth key
 alibaug-police-402201@gmail.com ... alibaug-police001
 
 bxdf qxzo jpsm ezrt
+
+
+
+Template ID:
+1107176123434997840
+Telemarketer :
+--
+Entity :
+Dolphin House Beach Resort
+Purpose of Registration :
+Template Type:
+Transactional
+Message Type:
+Text
+Content Category:
+Tourism and Leisure
+Header(s):
+DLHNOS
+Consent Template:
+--
+Consent Brand Name :
+--
+Scope of Consent:
+--
+Brand Name:
+Dolphin House Beach Resort
+Content Template Type:
+Custom
+Registered TSP:
+Vodafone Idea
+Status:
+Inactive
+Created By:
+Girish Jagannath Patil
+Blacklisted By:
+--
+Blacklisted On:
+--
+Line of Business:
+--
+CONTENT TEMPLATE PREVIEW
+Template Name:
+DolphinHouse_OTP
+
+Template Message:
+
+Dear Customer, your OTP for Checkin .{#var#}
+It is valid for 10 minutes. Do not share this OTP with anyone. -Dolphin House Beach Resort
+You have used 158 characters. This is only a guide, as variable fields may vary in length. Space consumed for 1 variable is 30 char and avoid double space.
+
+Sample Message:
+473324ARxQLJ59B768ecb81bP1
