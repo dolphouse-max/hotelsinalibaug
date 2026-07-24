@@ -27,9 +27,21 @@
 
   async function loadReport({ tokenInput, hotelIdInput, fromDateInput, toDateInput }) {
     const hotelId = hotelIdInput.value.trim();
+    const language = hotelAdminCommon.getLanguage();
+    const text = language === "mr"
+      ? {
+          enterHotelId: "कृपया हॉटेल आयडी टाका.",
+          unexpected: "अनपेक्षित प्रतिसाद",
+          unable: "रिपोर्ट्स लोड करता आले नाहीत",
+        }
+      : {
+          enterHotelId: "Please enter the hotel ID.",
+          unexpected: "Unexpected response",
+          unable: "Unable to load reports",
+        };
 
     if (!hotelId) {
-      throw new Error("Please enter the hotel ID.");
+      throw new Error(text.enterHotelId);
     }
 
     persistFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
@@ -46,16 +58,16 @@
     const response = await fetch(url.toString(), {
       headers: {},
     });
-    const data = await response.text().then((text) => {
+    const data = await response.text().then((bodyText) => {
       try {
-        return text ? JSON.parse(text) : {};
+        return bodyText ? JSON.parse(bodyText) : {};
       } catch {
-        return { error: "Unexpected response" };
+        return { error: text.unexpected };
       }
     });
 
     if (!response.ok) {
-      throw new Error(data.error || "Unable to load reports");
+      throw new Error(data.error || text.unable);
     }
 
     return data;
@@ -135,15 +147,16 @@
   }
 
   function quickNav(currentPage) {
+    const language = hotelAdminCommon.getLanguage();
     const pages = [
-      { id: "home", label: "Home", href: "/hotel-reports-home.html" },
-      { id: "help", label: "Help", href: "/hotel-help.html" },
-      { id: "snapshot", label: "Snapshot", href: "/hotel-report-snapshot.html" },
-      { id: "checkins", label: "Check-Ins", href: "/hotel-report-checkins.html" },
-      { id: "current", label: "Current Guests", href: "/hotel-report-current-guests.html" },
-      { id: "checkouts", label: "Check-Outs", href: "/hotel-report-checkouts.html" },
-      { id: "register", label: "Guest Register", href: "/hotel-report-guest-register.html" },
-      { id: "staff", label: "Staff", href: "/hotel-report-staff-register.html" },
+      { id: "home", label: hotelAdminCommon.t("report_nav_home", language), href: "/hotel-reports-home.html" },
+      { id: "help", label: hotelAdminCommon.t("report_nav_help", language), href: "/hotel-help.html" },
+      { id: "snapshot", label: hotelAdminCommon.t("report_nav_snapshot", language), href: "/hotel-report-snapshot.html" },
+      { id: "checkins", label: hotelAdminCommon.t("report_nav_checkins", language), href: "/hotel-report-checkins.html" },
+      { id: "current", label: hotelAdminCommon.t("report_nav_current", language), href: "/hotel-report-current-guests.html" },
+      { id: "checkouts", label: hotelAdminCommon.t("report_nav_checkouts", language), href: "/hotel-report-checkouts.html" },
+      { id: "register", label: hotelAdminCommon.t("report_nav_register", language), href: "/hotel-report-guest-register.html" },
+      { id: "staff", label: hotelAdminCommon.t("report_nav_staff", language), href: "/hotel-report-staff-register.html" },
     ];
 
     return `

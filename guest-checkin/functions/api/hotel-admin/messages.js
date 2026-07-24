@@ -29,6 +29,15 @@ async function loadDirectory(db, hotelId) {
   return result.results || [];
 }
 
+async function loadHotel(db, hotelId) {
+  return db.prepare(
+    `SELECT id, name
+     FROM hotels
+     WHERE id = ?1 AND is_active = 1
+     LIMIT 1`
+  ).bind(hotelId).first();
+}
+
 async function loadThreads(db, hotelId) {
   const result = await db.prepare(
     `SELECT
@@ -136,9 +145,10 @@ export async function onRequestGet(context) {
   try {
     await purgeExpiredHotelMessages(context.env.DB);
 
-    const [directory, threads] = await Promise.all([
+    const [directory, threads, hotel] = await Promise.all([
       loadDirectory(context.env.DB, hotelId),
       loadThreads(context.env.DB, hotelId),
+      loadHotel(context.env.DB, hotelId),
     ]);
 
     let threadDetails = null;
@@ -153,6 +163,7 @@ export async function onRequestGet(context) {
       ok: true,
       directory,
       threads,
+      hotel: hotel || null,
       thread: threadDetails?.thread || null,
       messages: threadDetails?.messages || [],
     });
@@ -175,63 +186,80 @@ export async function onRequestPost(context) {
       return unauthorized();
     }
 
-    if (action === "send_message") {
+    if (action === "send_room_request") {
       await purgeExpiredHotelMessages(context.env.DB);
 
-      const recipientHotelId = typeof payload.recipient_hotel_id === "string" ? payload.recipient_hotel_id.trim() : "";
-      const messageText = typeof payload.message_text === "string" ? payload.message_text.trim() : "";
-
-      if (!isSafeHotelId(recipientHotelId) || recipientHotelId === hotelId) {
-        return badRequest("Valid recipient_hotel_id is required");
+      const roomType = typeof payload.room_type === "string" ? payload.room_type.trim() : "";
+      const peopleCount = Number(payload.people_count);
+      if (!["room", "family_room"].includes(roomType)) {
+        return badRequest("Valid room_type is required");
+      }
+      if (!Number.isInteger(peopleCount) || peopleCount < 1 || peopleCount > 99) {
+        return badRequest("people_count must be between 1 and 99");
       }
 
-      if (!messageText) {
-        return badRequest("message_text is required");
+      const recipients = await loadDirectory(context.env.DB, hotelId);
+      const messageText = `ROOM_REQUEST|${roomType}|${peopleCount}`;
+      let sentCount = 0;
+      for (const recipient of recipients) {
+        const [hotelAId, hotelBId] = normalizeThreadPair(hotelId, recipient.id);
+        let thread = await context.env.DB.prepare(
+          `SELECT id FROM hotel_message_threads WHERE hotel_a_id = ?1 AND hotel_b_id = ?2 LIMIT 1`
+        ).bind(hotelAId, hotelBId).first();
+        if (!thread) {
+          const threadId = crypto.randomUUID().replace(/-/g, "");
+          await context.env.DB.prepare(
+            `INSERT INTO hotel_message_threads (id, hotel_a_id, hotel_b_id) VALUES (?1, ?2, ?3)`
+          ).bind(threadId, hotelAId, hotelBId).run();
+          thread = { id: threadId };
+        }
+        const messageId = crypto.randomUUID().replace(/-/g, "");
+        await context.env.DB.batch([
+          context.env.DB.prepare(
+            `INSERT INTO hotel_messages (id, thread_id, sender_hotel_id, message_text) VALUES (?1, ?2, ?3, ?4)`
+          ).bind(messageId, thread.id, hotelId, messageText),
+          context.env.DB.prepare(
+            `INSERT INTO hotel_message_reads (message_id, hotel_id) VALUES (?1, ?2)`
+          ).bind(messageId, hotelId),
+          context.env.DB.prepare(
+            `UPDATE hotel_message_threads SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?1`
+          ).bind(thread.id),
+        ]);
+        sentCount += 1;
       }
+      return json({ ok: true, sent_count: sentCount }, { status: 201 });
+    }
 
-      if (messageText.length > 1000) {
-        return badRequest("message_text must be 1000 characters or fewer");
+    if (action === "confirm_room_available") {
+      await purgeExpiredHotelMessages(context.env.DB);
+      const requestMessageId = typeof payload.request_message_id === "string" ? payload.request_message_id.trim() : "";
+      const priceValue = payload.price === "" || payload.price == null ? null : Number(payload.price);
+      if (!isSafeRowId(requestMessageId)) return badRequest("Valid request_message_id is required");
+      if (priceValue !== null && (!Number.isFinite(priceValue) || priceValue < 0 || priceValue > 10000000)) {
+        return badRequest("Price must be a valid amount");
       }
-
-      const [hotelAId, hotelBId] = normalizeThreadPair(hotelId, recipientHotelId);
-      let thread = await context.env.DB.prepare(
-        `SELECT id
-         FROM hotel_message_threads
-         WHERE hotel_a_id = ?1 AND hotel_b_id = ?2
+      const requestMessage = await context.env.DB.prepare(
+        `SELECT m.id, m.thread_id, m.sender_hotel_id, m.message_text
+         FROM hotel_messages m
+         INNER JOIN hotel_message_threads t ON t.id = m.thread_id
+         WHERE m.id = ?1 AND (t.hotel_a_id = ?2 OR t.hotel_b_id = ?2)
          LIMIT 1`
-      )
-        .bind(hotelAId, hotelBId)
-        .first();
-
-      if (!thread) {
-        const threadId = crypto.randomUUID().replace(/-/g, "");
-        await context.env.DB.prepare(
-          `INSERT INTO hotel_message_threads (id, hotel_a_id, hotel_b_id)
-           VALUES (?1, ?2, ?3)`
-        )
-          .bind(threadId, hotelAId, hotelBId)
-          .run();
-        thread = { id: threadId };
+      ).bind(requestMessageId, hotelId).first();
+      if (!requestMessage || requestMessage.sender_hotel_id === hotelId || !requestMessage.message_text.startsWith("ROOM_REQUEST|")) {
+        return badRequest("Room request not found");
       }
-
+      const existing = await context.env.DB.prepare(
+        `SELECT id FROM hotel_messages WHERE thread_id = ?1 AND sender_hotel_id = ?2 AND message_text LIKE ?3 LIMIT 1`
+      ).bind(requestMessage.thread_id, hotelId, `ROOM_AVAILABLE|${requestMessageId}|%`).first();
+      if (existing) return badRequest("You have already confirmed availability for this request");
       const messageId = crypto.randomUUID().replace(/-/g, "");
+      const messageText = `ROOM_AVAILABLE|${requestMessageId}|${priceValue === null ? "" : priceValue}`;
       await context.env.DB.batch([
-        context.env.DB.prepare(
-          `INSERT INTO hotel_messages (id, thread_id, sender_hotel_id, message_text)
-           VALUES (?1, ?2, ?3, ?4)`
-        ).bind(messageId, thread.id, hotelId, messageText),
-        context.env.DB.prepare(
-          `INSERT INTO hotel_message_reads (message_id, hotel_id)
-           VALUES (?1, ?2)`
-        ).bind(messageId, hotelId),
-        context.env.DB.prepare(
-          `UPDATE hotel_message_threads
-           SET last_message_at = CURRENT_TIMESTAMP
-           WHERE id = ?1`
-        ).bind(thread.id),
+        context.env.DB.prepare(`INSERT INTO hotel_messages (id, thread_id, sender_hotel_id, message_text) VALUES (?1, ?2, ?3, ?4)`).bind(messageId, requestMessage.thread_id, hotelId, messageText),
+        context.env.DB.prepare(`INSERT INTO hotel_message_reads (message_id, hotel_id) VALUES (?1, ?2)`).bind(messageId, hotelId),
+        context.env.DB.prepare(`UPDATE hotel_message_threads SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?1`).bind(requestMessage.thread_id),
       ]);
-
-      return json({ ok: true, thread_id: thread.id, message_id: messageId }, { status: 201 });
+      return json({ ok: true, message_id: messageId }, { status: 201 });
     }
 
     if (action === "mark_thread_read") {
@@ -271,7 +299,7 @@ export async function onRequestPost(context) {
       return json({ ok: true, marked: (unreadMessages.results || []).length });
     }
 
-    return badRequest("action must be send_message or mark_thread_read");
+    return badRequest("action must be send_room_request, confirm_room_available or mark_thread_read");
   } catch (error) {
     return badRequest(error instanceof Error ? error.message : "Unable to update messages");
   }

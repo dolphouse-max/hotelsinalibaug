@@ -11,37 +11,182 @@
   </head>
   <body class="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#edf3f8_100%)] text-slate-900">
     <main class="mx-auto max-w-md px-4 py-5 pb-10">
-      <div class="flex items-center justify-between text-sm"><a href="/hotel-reports-home.html" class="font-medium text-slate-600">Back to Reports Home</a><span class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Snapshot</span></div>
+      <div class="flex items-center justify-between text-sm">
+        <a id="backLink" href="/hotel-reports-home.html" class="font-medium text-slate-600">Back to Reports Home</a>
+        <span id="badge" class="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm">Snapshot</span>
+      </div>
       <script>document.write(hotelReportsCommon.quickNav("snapshot"));</script>
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white"><h1 class="text-2xl font-semibold">Hotel Snapshot</h1><p class="mt-2 text-sm leading-6 text-white/80">View summary metrics, occupancy, report range, and trial reminder status.</p></div>
+        <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
+          <h1 id="heroTitle" class="text-2xl font-semibold">Hotel Snapshot</h1>
+          <p id="heroBody" class="mt-2 text-sm leading-6 text-white/80">View summary metrics, occupancy, report range, and trial reminder status.</p>
+        </div>
         <div class="p-5">
           <div class="space-y-4">
             <input id="hotelId" placeholder="Hotel ID" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-            <div class="grid grid-cols-2 gap-3"><input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"><input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="fromDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+              <input id="toDate" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            </div>
             <button id="loadButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">Load Report</button>
             <input id="snapshotFilter" placeholder="Search snapshot details, room counts, or dates" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
             <div id="messageBox" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
           </div>
           <div class="mt-5 grid grid-cols-2 gap-3">
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Check-Ins In Range</p><p id="metricCheckins" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Active Staff</p><p id="metricStaff" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Current Guests</p><p id="metricGuests" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Check-Outs Today</p><p id="metricCheckouts" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p id="metricLabelCheckins" class="text-xs uppercase tracking-[0.18em] text-slate-500">Check-Ins In Range</p><p id="metricCheckins" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p id="metricLabelStaff" class="text-xs uppercase tracking-[0.18em] text-slate-500">Active Staff</p><p id="metricStaff" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p id="metricLabelGuests" class="text-xs uppercase tracking-[0.18em] text-slate-500">Current Guests</p><p id="metricGuests" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p id="metricLabelCheckouts" class="text-xs uppercase tracking-[0.18em] text-slate-500">Check-Outs Today</p><p id="metricCheckouts" class="mt-2 text-xl font-semibold text-ocean">0</p></div>
           </div>
           <div id="snapshotBox" class="mt-5"></div>
         </div>
       </section>
     </main>
     <script>
-      const tokenInput=null, hotelIdInput=document.getElementById("hotelId"), fromDateInput=document.getElementById("fromDate"), toDateInput=document.getElementById("toDate"), loadButton=document.getElementById("loadButton"), snapshotFilter=document.getElementById("snapshotFilter"), messageBox=document.getElementById("messageBox"), snapshotBox=document.getElementById("snapshotBox");
-      let lastData=null;
+      const tokenInput = null;
+      const hotelIdInput = document.getElementById("hotelId");
+      const fromDateInput = document.getElementById("fromDate");
+      const toDateInput = document.getElementById("toDate");
+      const loadButton = document.getElementById("loadButton");
+      const snapshotFilter = document.getElementById("snapshotFilter");
+      const messageBox = document.getElementById("messageBox");
+      const snapshotBox = document.getElementById("snapshotBox");
+      let lastData = null;
+
+      const pageText = {
+        en: {
+          title: "Hotel Snapshot",
+          back: "Back to Reports Home",
+          badge: "Snapshot",
+          heroTitle: "Hotel Snapshot",
+          heroBody: "View summary metrics, occupancy, report range, and trial reminder status.",
+          hotelIdPlaceholder: "Hotel ID",
+          load: "Load Report",
+          filterPlaceholder: "Search snapshot details, room counts, or dates",
+          metricCheckins: "Check-Ins In Range",
+          metricStaff: "Active Staff",
+          metricGuests: "Current Guests",
+          metricCheckouts: "Check-Outs Today",
+          hotelId: "Hotel ID",
+          roomsOccupied: "Rooms Occupied",
+          reportRange: "Report Range",
+          trialEnd: "Trial End",
+          notSet: "Not set",
+          selectedHotel: "Selected Hotel",
+          noDetail: "No snapshot detail matched this filter.",
+          to: "to",
+          loading: "Loading...",
+          loadError: "Unable to load report",
+        },
+        mr: {
+          title: "हॉटेल स्नॅपशॉट",
+          back: "रिपोर्ट्स मुख्यपृष्ठावर परत",
+          badge: "स्नॅपशॉट",
+          heroTitle: "हॉटेल स्नॅपशॉट",
+          heroBody: "एकूण मोजणी, भरलेली स्थिती, रिपोर्ट कालावधी आणि चाचणी स्मरणपत्र स्थिती पहा.",
+          hotelIdPlaceholder: "हॉटेल आयडी",
+          load: "रिपोर्ट लोड करा",
+          filterPlaceholder: "स्नॅपशॉट माहिती, रूम संख्या किंवा तारखा शोधा",
+          metricCheckins: "कालावधीतील चेक-इन",
+          metricStaff: "सक्रिय स्टाफ",
+          metricGuests: "सध्याचे गेस्ट",
+          metricCheckouts: "आजचे चेक-आउट",
+          hotelId: "हॉटेल आयडी",
+          roomsOccupied: "भरलेल्या रूम",
+          reportRange: "रिपोर्ट कालावधी",
+          trialEnd: "चाचणी समाप्ती",
+          notSet: "ठरलेले नाही",
+          selectedHotel: "निवडलेले हॉटेल",
+          noDetail: "या फिल्टरसाठी कोणतीही स्नॅपशॉट माहिती सापडली नाही.",
+          to: "ते",
+          loading: "लोड होत आहे...",
+          loadError: "रिपोर्ट लोड करता आला नाही",
+        },
+      };
+
       hotelReportsCommon.hydrateFilters(tokenInput, hotelIdInput, fromDateInput, toDateInput);
-      function renderSnapshot(data){ const q=hotelReportsCommon.normalizeFilterValue(snapshotFilter.value); const lines=[["Hotel ID",data.hotel.id],["Rooms Occupied",`${data.summary.occupied_rooms} / ${data.summary.total_rooms}`],["Report Range",`${data.filters.from} to ${data.filters.to}`],["Trial End",data.hotel.subscription_end_date || "Not set"]]; const filteredLines=!q?lines:lines.filter(([label,value])=>hotelReportsCommon.normalizeFilterValue(`${label} ${value}`).includes(q)); const hotelNameVisible=!q||hotelReportsCommon.normalizeFilterValue(data.hotel.name).includes(q); const reminderVisible=Boolean(data.hotel.payment_reminder_active) && (!q || hotelReportsCommon.normalizeFilterValue(data.hotel.payment_reminder_message).includes(q)); snapshotBox.innerHTML=`<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"><h3 class="text-lg font-semibold text-ocean">${hotelNameVisible?data.hotel.name:"Selected Hotel"}</h3>${filteredLines.length?filteredLines.map(([label,value])=>hotelReportsCommon.createLine(label,value)).join(""):'<p class="mt-3 text-sm text-slate-500">No snapshot detail matched this filter.</p>'}${reminderVisible?`<div class="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">${data.hotel.payment_reminder_message}</div>`:""}</div>`; }
-      async function loadSection(){ hotelReportsCommon.clearMessage(messageBox); const data=await hotelReportsCommon.loadReport({tokenInput,hotelIdInput,fromDateInput,toDateInput}); lastData=data; document.getElementById("metricCheckins").textContent=data.summary.total_checkins_in_range; document.getElementById("metricStaff").textContent=data.summary.active_staff; document.getElementById("metricGuests").textContent=data.summary.current_in_house_guests; document.getElementById("metricCheckouts").textContent=data.summary.checkouts_today; renderSnapshot(data); }
-      loadButton.addEventListener("click", async()=>{ hotelReportsCommon.setButtonLoading(loadButton,true,"Loading..."); try{ await loadSection(); } catch(error){ hotelReportsCommon.setMessage(messageBox,error instanceof Error?error.message:"Unable to load report","error"); } finally { hotelReportsCommon.setButtonLoading(loadButton,false);} });
-      snapshotFilter.addEventListener("input", ()=>{ if (lastData) { renderSnapshot(lastData); } });
-      if (hotelIdInput.value.trim()) { loadButton.click(); }
+
+      function getText() {
+        return pageText[hotelAdminCommon.getLanguage()] || pageText.en;
+      }
+
+      function applyLanguage() {
+        const text = getText();
+        document.title = text.title;
+        document.getElementById("backLink").textContent = text.back;
+        document.getElementById("badge").textContent = text.badge;
+        document.getElementById("heroTitle").textContent = text.heroTitle;
+        document.getElementById("heroBody").textContent = text.heroBody;
+        hotelIdInput.placeholder = text.hotelIdPlaceholder;
+        snapshotFilter.placeholder = text.filterPlaceholder;
+        document.getElementById("metricLabelCheckins").textContent = text.metricCheckins;
+        document.getElementById("metricLabelStaff").textContent = text.metricStaff;
+        document.getElementById("metricLabelGuests").textContent = text.metricGuests;
+        document.getElementById("metricLabelCheckouts").textContent = text.metricCheckouts;
+        if (!loadButton.dataset.loading) {
+          loadButton.textContent = text.load;
+        }
+      }
+
+      function renderSnapshot(data) {
+        const text = getText();
+        const q = hotelReportsCommon.normalizeFilterValue(snapshotFilter.value);
+        const lines = [
+          [text.hotelId, data.hotel.id],
+          [text.roomsOccupied, `${data.summary.occupied_rooms} / ${data.summary.total_rooms}`],
+          [text.reportRange, `${data.filters.from} ${text.to} ${data.filters.to}`],
+          [text.trialEnd, data.hotel.subscription_end_date || text.notSet],
+        ];
+        const filteredLines = !q ? lines : lines.filter(([label, value]) => hotelReportsCommon.normalizeFilterValue(`${label} ${value}`).includes(q));
+        const hotelNameVisible = !q || hotelReportsCommon.normalizeFilterValue(data.hotel.name).includes(q);
+        const reminderVisible = Boolean(data.hotel.payment_reminder_active) && (!q || hotelReportsCommon.normalizeFilterValue(data.hotel.payment_reminder_message).includes(q));
+        snapshotBox.innerHTML = `<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"><h3 class="text-lg font-semibold text-ocean">${hotelNameVisible ? data.hotel.name : text.selectedHotel}</h3>${filteredLines.length ? filteredLines.map(([label, value]) => hotelReportsCommon.createLine(label, value)).join("") : `<p class="mt-3 text-sm text-slate-500">${text.noDetail}</p>`}${reminderVisible ? `<div class="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">${data.hotel.payment_reminder_message}</div>` : ""}</div>`;
+      }
+
+      async function loadSection() {
+        hotelReportsCommon.clearMessage(messageBox);
+        const data = await hotelReportsCommon.loadReport({ tokenInput, hotelIdInput, fromDateInput, toDateInput });
+        lastData = data;
+        document.getElementById("metricCheckins").textContent = data.summary.total_checkins_in_range;
+        document.getElementById("metricStaff").textContent = data.summary.active_staff;
+        document.getElementById("metricGuests").textContent = data.summary.current_in_house_guests;
+        document.getElementById("metricCheckouts").textContent = data.summary.checkouts_today;
+        renderSnapshot(data);
+      }
+
+      loadButton.addEventListener("click", async () => {
+        hotelReportsCommon.setButtonLoading(loadButton, true, getText().loading);
+        try {
+          await loadSection();
+        } catch (error) {
+          hotelReportsCommon.setMessage(messageBox, error instanceof Error ? error.message : getText().loadError, "error");
+        } finally {
+          hotelReportsCommon.setButtonLoading(loadButton, false);
+          loadButton.textContent = getText().load;
+        }
+      });
+
+      snapshotFilter.addEventListener("input", () => {
+        if (lastData) {
+          renderSnapshot(lastData);
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        if (event.target instanceof HTMLElement && event.target.closest(".hotel-language-button")) {
+          window.setTimeout(() => {
+            applyLanguage();
+            if (lastData) {
+              renderSnapshot(lastData);
+            }
+          }, 0);
+        }
+      });
+
+      applyLanguage();
+      if (hotelIdInput.value.trim()) {
+        loadButton.click();
+      }
     </script>
   </body>
 </html>

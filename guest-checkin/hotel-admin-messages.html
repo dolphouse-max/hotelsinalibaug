@@ -25,7 +25,7 @@
       <section class="mt-3 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <div class="bg-[linear-gradient(135deg,#0b1824_0%,#17324a_68%,#244767_100%)] px-5 py-6 text-white">
           <h1 id="messagesHeroTitle" class="text-2xl font-semibold">Hotel Messages</h1>
-          <p id="messagesHeroBody" class="mt-2 text-sm leading-6 text-white/80">Send quick text-only coordination messages to other hotels about room availability, overflow guests, and basic support.</p>
+          <p id="messagesHeroBody" class="mt-2 text-sm leading-6 text-white/80">Request rooms from all active hotels at once and receive availability confirmations.</p>
         </div>
         <div class="p-5">
           <div class="space-y-4">
@@ -40,7 +40,7 @@
             <button id="loadButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">Load Messages</button>
             <div id="pageMessage" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
             <div id="messagesNote" class="rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-              Text messages only. No photos, PDFs, or documents can be sent. All messages are automatically deleted after 24 hours.
+              Only fixed room requests can be sent. No free-text messages, photos, PDFs, or documents are allowed. All messages are automatically deleted after 24 hours.
             </div>
           </div>
         </div>
@@ -49,12 +49,18 @@
       <section class="mt-5 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
         <h2 id="newConversationTitle" class="text-lg font-semibold text-ocean">Start New Conversation</h2>
         <div class="mt-4 space-y-3">
-          <input id="hotelSearch" placeholder="Search hotel by name or ID" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-          <select id="recipientHotelId" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
-            <option value="">Select hotel</option>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+            <span class="text-slate-500">Sent by:</span> <span id="senderHotelName" class="font-semibold text-slate-900">Load messages to identify your hotel</span>
+          </div>
+          <label class="block text-sm font-medium text-slate-700" for="roomType">Need room</label>
+          <select id="roomType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+            <option value="room">Room</option>
+            <option value="family_room">Family room</option>
           </select>
-          <textarea id="newMessageText" rows="4" maxlength="1000" placeholder="Example: Do you have 2 AC rooms available tonight for overflow guests?" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-          <button id="sendButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">Send Message</button>
+          <label class="block text-sm font-medium text-slate-700" for="peopleCount">For number of people</label>
+          <input id="peopleCount" type="number" min="1" max="99" value="1" inputmode="numeric" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10">
+          <p class="text-xs leading-5 text-slate-500">This request will be sent to all active hotels.</p>
+          <button id="sendButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-ocean px-5 py-3 font-semibold text-white">Send Room Request to All Hotels</button>
         </div>
       </section>
 
@@ -71,10 +77,6 @@
         </div>
         <div id="messagesState" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">Select a conversation to view messages.</div>
         <div id="messagesList" class="mt-4 grid gap-3"></div>
-        <div class="mt-4 space-y-3">
-          <textarea id="replyMessageText" rows="3" maxlength="1000" placeholder="Type a reply in this thread" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-harbor focus:ring-4 focus:ring-harbor/10"></textarea>
-          <button id="replyButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white">Send Reply</button>
-        </div>
       </section>
     </main>
 
@@ -84,9 +86,9 @@
       const pageMessage = document.getElementById("pageMessage");
       const loadButton = document.getElementById("loadButton");
       const sendButton = document.getElementById("sendButton");
-      const replyButton = document.getElementById("replyButton");
-      const recipientHotelId = document.getElementById("recipientHotelId");
-      const hotelSearch = document.getElementById("hotelSearch");
+      const roomType = document.getElementById("roomType");
+      const peopleCount = document.getElementById("peopleCount");
+      const senderHotelName = document.getElementById("senderHotelName");
       const threadsList = document.getElementById("threadsList");
       const threadsState = document.getElementById("threadsState");
       const messagesList = document.getElementById("messagesList");
@@ -98,16 +100,13 @@
           back: "Back to Home",
           badge: "Messages",
           heroTitle: "Hotel Messages",
-          heroBody: "Send quick text-only coordination messages to other hotels about room availability, overflow guests, and basic support.",
+          heroBody: "Request rooms from all active hotels at once and receive availability confirmations.",
           tokenLabel: "Session",
           hotelIdLabel: "Hotel ID",
           loadButton: "Load Messages",
-          note: "Text messages only. No photos, PDFs, or documents can be sent. All messages are automatically deleted after 24 hours.",
+          note: "Only fixed room requests can be sent. No free-text messages, photos, PDFs, or documents are allowed. All messages are automatically deleted after 24 hours.",
           newConversationTitle: "Start New Conversation",
-          searchPlaceholder: "Search hotel by name or ID",
-          selectHotel: "Select hotel",
-          newMessagePlaceholder: "Example: Do you have 2 AC rooms available tonight for overflow guests?",
-          sendButton: "Send Message",
+          sendButton: "Send Room Request to All Hotels",
           conversationsTitle: "Conversations",
           threadsInitial: "Load your conversations.",
           noConversations: "No conversations yet.",
@@ -122,32 +121,27 @@
           noMessagesInThread: "No messages yet in this conversation.",
           messagesLoaded: (count) => `${count} message${count === 1 ? "" : "s"} loaded.`,
           you: "You",
-          replyPlaceholder: "Type a reply in this thread",
-          replyButton: "Send Reply",
           loading: "Loading...",
           sending: "Sending...",
           loadError: "Unable to load messages",
           sendError: "Unable to send message",
-          replyError: "Unable to send reply",
-          messageSent: "Message sent successfully.",
-          replySent: "Reply sent successfully.",
-          openConversationFirst: "Open a conversation first.",
+          messageSent: (count) => `Room request sent to ${count} hotel${count === 1 ? "" : "s"}.`,
+          available: "Yes, I have",
+          priceOptional: "Price (optional)",
+          availableConfirmed: "Availability confirmed",
         },
         mr: {
           title: "हॉटेल संदेश",
           back: "मुख्यपृष्ठावर परत",
           badge: "संदेश",
           heroTitle: "हॉटेल संदेश",
-          heroBody: "रूम उपलब्धता, जादा पाहुणे आणि साध्या समन्वयासाठी इतर हॉटेलना पटकन फक्त मजकूर संदेश पाठवा.",
+          heroBody: "सर्व सक्रिय हॉटेलना एकाच वेळी रूमची विनंती पाठवा आणि उपलब्धतेची पुष्टी मिळवा.",
           tokenLabel: "सेशन",
           hotelIdLabel: "हॉटेल आयडी",
           loadButton: "संदेश लोड करा",
-          note: "फक्त मजकूर संदेश पाठवता येतात. फोटो, पीडीएफ किंवा कागदपत्रे पाठवता येणार नाहीत. सर्व संदेश 24 तासांनंतर आपोआप हटवले जातात.",
+          note: "फक्त ठराविक रूम विनंती पाठवता येते. मुक्त मजकूर, फोटो, पीडीएफ किंवा कागदपत्रे पाठवता येणार नाहीत. सर्व संदेश 24 तासांनंतर आपोआप हटवले जातात.",
           newConversationTitle: "नवीन संवाद सुरू करा",
-          searchPlaceholder: "हॉटेलचे नाव किंवा आयडीने शोधा",
-          selectHotel: "हॉटेल निवडा",
-          newMessagePlaceholder: "उदाहरण: आज रात्री जादा पाहुण्यांसाठी 2 एसी रूम उपलब्ध आहेत का?",
-          sendButton: "संदेश पाठवा",
+          sendButton: "सर्व हॉटेलना रूम विनंती पाठवा",
           conversationsTitle: "संवाद",
           threadsInitial: "आपले संवाद लोड करा.",
           noConversations: "अद्याप कोणताही संवाद नाही.",
@@ -162,16 +156,14 @@
           noMessagesInThread: "या संवादात अजून संदेश नाहीत.",
           messagesLoaded: (count) => `${count} संदेश लोड झाले.`,
           you: "आपण",
-          replyPlaceholder: "या संवादात उत्तर लिहा",
-          replyButton: "उत्तर पाठवा",
           loading: "लोड होत आहे...",
           sending: "पाठवत आहे...",
           loadError: "संदेश लोड करता आले नाहीत",
           sendError: "संदेश पाठवता आला नाही",
-          replyError: "उत्तर पाठवता आले नाही",
-          messageSent: "संदेश यशस्वीरीत्या पाठवला.",
-          replySent: "उत्तर यशस्वीरीत्या पाठवले.",
-          openConversationFirst: "प्रथम एक संवाद उघडा.",
+          messageSent: (count) => `${count} हॉटेलना रूम विनंती पाठवली.`,
+          available: "होय, उपलब्ध आहे",
+          priceOptional: "किंमत (ऐच्छिक)",
+          availableConfirmed: "उपलब्धता पुष्टी केली",
         },
       };
 
@@ -198,13 +190,9 @@
         document.getElementById("messagesHotelIdLabel").textContent = text.hotelIdLabel;
         document.getElementById("messagesNote").textContent = text.note;
         document.getElementById("newConversationTitle").textContent = text.newConversationTitle;
-        hotelSearch.placeholder = text.searchPlaceholder;
-        document.getElementById("newMessageText").placeholder = text.newMessagePlaceholder;
         sendButton.textContent = text.sendButton;
         document.getElementById("conversationsTitle").textContent = text.conversationsTitle;
         document.getElementById("threadViewTitle").textContent = text.threadViewTitle;
-        document.getElementById("replyMessageText").placeholder = text.replyPlaceholder;
-        replyButton.textContent = text.replyButton;
         if (!loadButton.dataset.loading) {
           loadButton.textContent = text.loadButton;
         }
@@ -215,32 +203,6 @@
         if (!threads.length) {
           threadsState.textContent = text.threadsInitial;
         }
-        fillDirectoryOptions(directory);
-      }
-
-      function fillDirectoryOptions(items) {
-        const text = getMessagesText();
-        recipientHotelId.innerHTML = "";
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.textContent = text.selectHotel;
-        recipientHotelId.appendChild(defaultOption);
-        for (const hotel of items) {
-          const option = document.createElement("option");
-          option.value = hotel.id;
-          option.textContent = `${hotel.name} (${hotel.id})`;
-          recipientHotelId.appendChild(option);
-        }
-      }
-
-      function applyHotelSearch() {
-        const query = hotelSearch.value.trim().toLowerCase();
-        const filtered = !query
-          ? directory
-          : directory.filter((hotel) =>
-              [hotel.name, hotel.id].some((value) => String(value).toLowerCase().includes(query))
-            );
-        fillDirectoryOptions(filtered);
       }
 
       function renderThreads() {
@@ -292,13 +254,37 @@
           const mine = message.sender_hotel_id === hotelIdInput.value.trim();
           const card = document.createElement("article");
           card.className = `rounded-2xl p-4 text-sm ${mine ? "border border-sky-200 bg-sky-50" : "border border-slate-200 bg-slate-50"}`;
-          card.innerHTML = `
-            <p class="font-semibold ${mine ? "text-sky-900" : "text-slate-900"}">${message.sender_hotel_name}${mine ? ` (${text.you})` : ""}</p>
-            <p class="mt-2 leading-6 ${mine ? "text-sky-900" : "text-slate-700"}">${message.message_text}</p>
-            <p class="mt-2 text-xs ${mine ? "text-sky-700" : "text-slate-500"}">${message.created_at}</p>
-          `;
+          const request = parseRoomRequest(message.message_text);
+          const availability = parseAvailability(message.message_text);
+          let content = `<p class="font-semibold ${mine ? "text-sky-900" : "text-slate-900"}">${message.sender_hotel_name}${mine ? ` (${text.you})` : ""}</p>`;
+          if (request) {
+            content += `<p class="mt-2 leading-6 ${mine ? "text-sky-900" : "text-slate-700"}">Need ${request.roomType === "family_room" ? "Family room" : "Room"} for ${request.peopleCount} ${request.peopleCount === 1 ? "person" : "people"}.</p>`;
+            const alreadyConfirmed = messages.some((item) => item.sender_hotel_id === hotelIdInput.value.trim() && parseAvailability(item.message_text)?.requestId === message.id);
+            if (!mine && !alreadyConfirmed) {
+              content += `<div class="mt-3 grid gap-2"><input data-price-for="${message.id}" type="number" min="0" step="1" inputmode="decimal" placeholder="${text.priceOptional}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none"><button type="button" data-confirm-request="${message.id}" class="rounded-xl bg-slate-900 px-3 py-2 font-semibold text-white">${text.available}</button></div>`;
+            }
+            if (!mine && alreadyConfirmed) content += `<p class="mt-3 font-semibold text-emerald-700">${text.availableConfirmed}</p>`;
+          } else if (availability) {
+            content += `<p class="mt-2 leading-6 ${mine ? "text-sky-900" : "text-slate-700"}">${text.available}${availability.price === "" ? "" : ` — ₹${availability.price}`}</p>`;
+          } else {
+            content += `<p class="mt-2 leading-6 ${mine ? "text-sky-900" : "text-slate-700"}">${message.message_text}</p>`;
+          }
+          content += `<p class="mt-2 text-xs ${mine ? "text-sky-700" : "text-slate-500"}">${message.created_at}</p>`;
+          card.innerHTML = content;
           messagesList.appendChild(card);
         }
+      }
+
+      function parseRoomRequest(value) {
+        const parts = String(value).split("|");
+        return parts[0] === "ROOM_REQUEST" && ["room", "family_room"].includes(parts[1]) && /^\d+$/.test(parts[2])
+          ? { roomType: parts[1], peopleCount: Number(parts[2]) } : null;
+      }
+
+      function parseAvailability(value) {
+        const parts = String(value).split("|");
+        return parts[0] === "ROOM_AVAILABLE" && /^[a-z0-9]{16,64}$/i.test(parts[1] || "")
+          ? { requestId: parts[1], price: parts[2] || "" } : null;
       }
 
       async function loadInbox(threadId = "") {
@@ -319,7 +305,7 @@
 
         directory = data.directory || [];
         threads = data.threads || [];
-        applyHotelSearch();
+        senderHotelName.textContent = data.hotel?.name || hotelIdInput.value.trim() || "—";
         renderThreads();
         return data;
       }
@@ -372,22 +358,18 @@
             method: "POST",
             headers: hotelAdminCommon.authHeaders(tokenInput),
             body: JSON.stringify({
-              action: "send_message",
-              hotel_id: hotelIdInput.value.trim(),
-              recipient_hotel_id: recipientHotelId.value,
-              message_text: document.getElementById("newMessageText").value.trim(),
+            action: "send_room_request",
+            hotel_id: hotelIdInput.value.trim(),
+            room_type: roomType.value,
+            people_count: Number(peopleCount.value),
             }),
           });
           const data = await hotelAdminCommon.readJson(response);
           if (!response.ok) {
             throw new Error(data.error || "Unable to send message");
           }
-          document.getElementById("newMessageText").value = "";
-          activeThreadId = data.thread_id;
-          activeRecipientHotelId = recipientHotelId.value;
-          activeRecipientHotelName = recipientHotelId.options[recipientHotelId.selectedIndex]?.textContent || "";
-          await loadMessages(data.thread_id);
-          hotelAdminCommon.setMessage(pageMessage, text.messageSent, "success");
+          await loadInbox();
+          hotelAdminCommon.setMessage(pageMessage, text.messageSent(data.sent_count || 0), "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {
@@ -396,41 +378,31 @@
         }
       });
 
-      replyButton.addEventListener("click", async () => {
+      messagesList.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-confirm-request]");
+        if (!button) return;
         const text = getMessagesText();
         hotelAdminCommon.clearMessage(pageMessage);
-        if (!activeRecipientHotelId) {
-          hotelAdminCommon.setMessage(pageMessage, text.openConversationFirst, "error");
-          return;
-        }
-        hotelAdminCommon.setButtonLoading(replyButton, true, text.sending);
+        hotelAdminCommon.setButtonLoading(button, true, text.sending);
         try {
+          const requestId = button.dataset.confirmRequest;
+          const price = messagesList.querySelector(`[data-price-for="${requestId}"]`)?.value || "";
           const response = await fetch("/api/hotel-admin/messages", {
             method: "POST",
             headers: hotelAdminCommon.authHeaders(tokenInput),
-            body: JSON.stringify({
-              action: "send_message",
-              hotel_id: hotelIdInput.value.trim(),
-              recipient_hotel_id: activeRecipientHotelId,
-              message_text: document.getElementById("replyMessageText").value.trim(),
-            }),
+            body: JSON.stringify({ action: "confirm_room_available", hotel_id: hotelIdInput.value.trim(), request_message_id: requestId, price }),
           });
           const data = await hotelAdminCommon.readJson(response);
-          if (!response.ok) {
-            throw new Error(data.error || text.replyError);
-          }
-          document.getElementById("replyMessageText").value = "";
-          await loadMessages(data.thread_id);
-          hotelAdminCommon.setMessage(pageMessage, text.replySent, "success");
+          if (!response.ok) throw new Error(data.error || text.sendError);
+          await loadMessages(activeThreadId);
+          hotelAdminCommon.setMessage(pageMessage, text.availableConfirmed, "success");
         } catch (error) {
           hotelAdminCommon.setMessage(pageMessage, error.message, "error");
         } finally {
-          hotelAdminCommon.setButtonLoading(replyButton, false);
-          replyButton.textContent = getMessagesText().replyButton;
+          hotelAdminCommon.setButtonLoading(button, false);
+          button.textContent = getMessagesText().available;
         }
       });
-
-      hotelSearch.addEventListener("input", applyHotelSearch);
       document.addEventListener("click", (event) => {
         if (event.target instanceof HTMLElement && event.target.closest(".hotel-language-button")) {
           window.setTimeout(() => {
