@@ -410,6 +410,38 @@
         return data;
       }
 
+      async function sendHotelOnboardingSms(hotel) {
+        const response = await fetch("/api/super-admin/send-hotel-onboarding-sms", {
+          method: "POST",
+          headers: superAdminCommon.authHeaders(tokenInput),
+          body: JSON.stringify({ hotel }),
+        });
+        const data = await superAdminCommon.readJson(response);
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to send hotel onboarding SMS.");
+        }
+        return data;
+      }
+
+      async function sendOnboardingMessages(hotel) {
+        const [email, sms] = await Promise.allSettled([
+          sendHotelOnboardingEmail(hotel),
+          sendHotelOnboardingSms(hotel),
+        ]);
+        const messages = [];
+        if (email.status === "fulfilled") {
+          messages.push(email.value?.skipped ? ` Email was skipped: ${email.value.reason}.` : " Onboarding email was sent.");
+        } else {
+          messages.push(` Email could not be sent: ${email.reason?.message || "Unknown error"}.`);
+        }
+        if (sms.status === "fulfilled") {
+          messages.push(" SMS was sent to the hotel mobile number.");
+        } else {
+          messages.push(` SMS could not be sent: ${sms.reason?.message || "Unknown error"}.`);
+        }
+        return messages.join("");
+      }
+
       function buildCreatePayload(skipDuplicateCheck = false) {
         const payload = {
           hotel_id: hotelIdInput.value.trim(),
@@ -523,21 +555,11 @@
             return;
           }
 
-          let emailStatusMessage = "";
-          try {
-            const emailResult = await sendHotelOnboardingEmail(data.hotel);
-            if (emailResult?.skipped) {
-              emailStatusMessage = ` Hotel onboarding email was skipped: ${emailResult.reason}`;
-            } else {
-              emailStatusMessage = " Hotel onboarding email was sent to the hotel admin Gmail.";
-            }
-          } catch (emailError) {
-            emailStatusMessage = ` Hotel created, but onboarding email could not be sent. ${emailError instanceof Error ? emailError.message : ""}`.trim();
-          }
+          const onboardingStatusMessage = await sendOnboardingMessages(data.hotel);
 
           superAdminCommon.setMessage(
             formSuccess,
-            `${data.hotel.name} created. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.${emailStatusMessage}`,
+            `${data.hotel.name} created. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.${onboardingStatusMessage} Open the prepared WhatsApp message below to send it manually.`,
             "success"
           );
           renderNextActions(data.hotel);
@@ -596,21 +618,11 @@
             return;
           }
 
-          let emailStatusMessage = "";
-          try {
-            const emailResult = await sendHotelOnboardingEmail(data.hotel);
-            if (emailResult?.skipped) {
-              emailStatusMessage = ` Hotel onboarding email was skipped: ${emailResult.reason}`;
-            } else {
-              emailStatusMessage = " Hotel onboarding email was sent to the hotel admin Gmail.";
-            }
-          } catch (emailError) {
-            emailStatusMessage = ` Hotel created, but onboarding email could not be sent. ${emailError instanceof Error ? emailError.message : ""}`.trim();
-          }
+          const onboardingStatusMessage = await sendOnboardingMessages(data.hotel);
 
           superAdminCommon.setMessage(
             formSuccess,
-            `${data.hotel.name} created after duplicate review. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.${emailStatusMessage}`,
+            `${data.hotel.name} created after duplicate review. Hotel admin login is ready with email ${data.hotel.admin_email} and temporary password ${data.hotel.id}. Trial runs until ${data.hotel.subscription_end_date}.${onboardingStatusMessage} Open the prepared WhatsApp message below to send it manually.`,
             "success"
           );
           renderNextActions(data.hotel);
