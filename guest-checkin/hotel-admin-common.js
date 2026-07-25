@@ -531,7 +531,10 @@
     footer.id = "appLegalFooter";
     footer.className = "mt-8 rounded-[1.75rem] border border-slate-200 bg-white px-4 py-5 text-sm text-slate-600 shadow-sm";
     footer.innerHTML = `
-      <p class="font-semibold text-slate-800">Hotels In Alibaug</p>
+      <div class="flex items-center gap-3">
+        <img src="/logo.webp" alt="Hotels In Alibaug" class="h-10 w-10 rounded-xl object-cover">
+        <p class="font-semibold text-slate-800">Hotels In Alibaug</p>
+      </div>
       <p class="mt-2 leading-6">${t("footer_text")}</p>
       <div class="mt-4 flex flex-wrap gap-2">
         <a href="/software-subscription-agreement.html" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">${t("footer_subscription")}</a>

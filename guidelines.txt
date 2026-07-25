@@ -79,3 +79,22 @@ You have used 158 characters. This is only a guide, as variable fields may vary 
 
 Sample Message:
 473324ARxQLJ59B768ecb81bP1
+
+=====================================================================
+C Form Registration for Hotels - Step by Step procedure
+
+1) Open the site in the  ...  http://indianfrro.gov.in/frro/FormC/menuuserreg.jsp 
+2) Click first option ... Sign Up (Registration
+3) Enter User ID, You can use ID created by Check-in app so easy to remember
+4) Fill the complete form
+5) Submit
+6) You will be taken to this page: https://indianfrro.gov.in/frro/FormC/RegistrationValidationServlet
+7) Right click here... You right click "here" and open link in new tab
+8) Download the form from there.
+
+
+1) Open the site in the  ...  http://indianfrro.gov.in/frro/FormC/
+2) Enter Login ID, Password which you created during registration 
+3) Click Sign in
+
+
