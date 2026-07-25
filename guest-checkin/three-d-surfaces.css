@@ -4,6 +4,31 @@
   --surface-3d-shadow: rgba(15, 35, 55, 0.18);
 }
 
+/* Keep the legal footer visually aligned with the dark dashboard hero. */
+#appLegalFooter {
+  border-color: rgba(148, 197, 221, 0.2) !important;
+  background: linear-gradient(135deg, #0b1824 0%, #17324a 62%, #25618d 100%) !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+#appLegalFooter > .flex p,
+#appLegalFooter p:first-child {
+  color: #ffffff !important;
+}
+
+#appLegalFooter a {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+#appLegalFooter a:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+}
+
 main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt) {
   position: relative;
   isolation: isolate;
