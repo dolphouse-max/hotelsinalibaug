@@ -17,6 +17,49 @@ main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"
   box-shadow: 0 11px 0 var(--surface-3d-edge), 0 28px 42px rgba(15, 35, 55, 0.22) !important;
 }
 
+/* Hotel home task cards: a more pronounced interactive 3D treatment. */
+#taskPagesGrid > :is(a, article) {
+  display: block;
+  overflow: hidden;
+  border-color: rgba(86, 125, 158, 0.42) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f4f9fd 100%) !important;
+  box-shadow: 0 9px 0 rgba(28, 67, 97, 0.2), 0 22px 36px rgba(15, 47, 83, 0.2) !important;
+  transform: perspective(900px) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 220ms cubic-bezier(.2, .75, .25, 1), box-shadow 220ms ease, border-color 220ms ease !important;
+}
+
+#taskPagesGrid > :is(a, article)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(137, 207, 230, 0.28) 48%, rgba(25, 91, 134, 0.08));
+  transition: opacity 220ms ease;
+}
+
+#taskPagesGrid > :is(a, article) > * {
+  position: relative;
+  z-index: 1;
+}
+
+#taskPagesGrid > :is(a, article):hover {
+  z-index: 2;
+  border-color: #2b7ca8 !important;
+  transform: perspective(900px) translateY(-10px) rotateX(2deg) rotateY(-1deg) !important;
+  box-shadow: 0 15px 0 rgba(28, 67, 97, 0.22), 0 34px 48px rgba(15, 47, 83, 0.27) !important;
+}
+
+#taskPagesGrid > :is(a, article):hover::before {
+  opacity: 1;
+}
+
+#taskPagesGrid > :is(a, article):active {
+  transform: perspective(900px) translateY(2px) !important;
+  box-shadow: 0 4px 0 rgba(28, 67, 97, 0.2), 0 10px 20px rgba(15, 47, 83, 0.18) !important;
+}
+
 main :is(a, button):focus-visible {
   outline: 3px solid rgba(31, 59, 87, 0.45);
   outline-offset: 3px;
@@ -29,5 +72,11 @@ main :is(a, button):focus-visible {
 
   main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt):hover {
     transform: translateZ(0);
+  }
+
+  #taskPagesGrid > :is(a, article),
+  #taskPagesGrid > :is(a, article):hover,
+  #taskPagesGrid > :is(a, article):active {
+    transform: translateZ(0) !important;
   }
 }
