@@ -40,6 +40,13 @@ body.directory-page{
 .directory-page .stay-card,.directory-page .panel,.directory-page .content-card{
   background:#fff;border:1px solid #d9e3e8;border-radius:18px;box-shadow:0 14px 36px rgba(23,48,66,.08);
 }
+.directory-page .stay-card,.directory-page .panel,.directory-page .content-card{
+  transform:translateZ(0);box-shadow:0 7px 0 rgba(23,48,66,.12),0 20px 38px rgba(23,48,66,.14);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.directory-page .stay-card:hover,.directory-page .panel:hover,.directory-page .content-card:hover{
+  transform:translateY(-5px) translateZ(0);box-shadow:0 11px 0 rgba(23,48,66,.12),0 30px 46px rgba(23,48,66,.2);
+}
+@media (prefers-reduced-motion:reduce){.directory-page .stay-card,.directory-page .panel,.directory-page .content-card{transition:none}.directory-page .stay-card:hover,.directory-page .panel:hover,.directory-page .content-card:hover{transform:translateZ(0)}}
 .directory-page .stay-card{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr) minmax(220px,260px);overflow:hidden;}
 .directory-page .stay-card-image{position:relative;min-height:100%;background:#dbe8ef;}
 .directory-page .stay-card-image img{width:100%;height:100%;min-height:240px;object-fit:cover;display:block;}

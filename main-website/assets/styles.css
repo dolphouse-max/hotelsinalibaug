@@ -160,6 +160,24 @@ border-radius:var(--radius);
 box-shadow:var(--shadow);
 }
 
+/* Raised surfaces give cards a tactile, three-dimensional response. */
+.hero-card,.panel,.feature-card,.list-card,.cta,.content-card,.stay-card,.links-card,.footer-card{
+position:relative;
+transform:translateZ(0);
+box-shadow:0 7px 0 rgba(18,40,57,0.12),0 20px 38px rgba(18,40,57,0.14);
+transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+
+.hero-card:hover,.panel:hover,.feature-card:hover,.list-card:hover,.cta:hover,.content-card:hover,.stay-card:hover,.links-card:hover,.footer-card:hover{
+transform:translateY(-5px) translateZ(0);
+box-shadow:0 11px 0 rgba(18,40,57,0.12),0 30px 46px rgba(18,40,57,0.2);
+}
+
+@media (prefers-reduced-motion:reduce){
+.hero-card,.panel,.feature-card,.list-card,.cta,.content-card,.stay-card,.links-card,.footer-card{transition:none;}
+.hero-card:hover,.panel:hover,.feature-card:hover,.list-card:hover,.cta:hover,.content-card:hover,.stay-card:hover,.links-card:hover,.footer-card:hover{transform:translateZ(0);}
+}
+
 .hero-card{padding:1.6rem;}
 .panel{padding:1.5rem;}
 

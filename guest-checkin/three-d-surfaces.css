@@ -1,0 +1,33 @@
+/* Shared raised-surface treatment for the hotel and police applications. */
+:root {
+  --surface-3d-edge: rgba(15, 35, 55, 0.12);
+  --surface-3d-shadow: rgba(15, 35, 55, 0.18);
+}
+
+main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt) {
+  position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
+  box-shadow: 0 7px 0 var(--surface-3d-edge), 0 18px 34px var(--surface-3d-shadow) !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt):hover {
+  transform: translateY(-5px) translateZ(0);
+  box-shadow: 0 11px 0 var(--surface-3d-edge), 0 28px 42px rgba(15, 35, 55, 0.22) !important;
+}
+
+main :is(a, button):focus-visible {
+  outline: 3px solid rgba(31, 59, 87, 0.45);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt) {
+    transition: none;
+  }
+
+  main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt):hover {
+    transform: translateZ(0);
+  }
+}
