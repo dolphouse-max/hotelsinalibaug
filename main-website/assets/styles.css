@@ -223,7 +223,7 @@ padding:0.9rem 1.2rem;
 border-radius:999px;
 font-weight:700;
 border:1px solid var(--accent);
-box-shadow:var(--shadow-soft);
+box-shadow:0 5px 0 rgba(8,76,96,0.32),0 12px 20px rgba(10,108,137,0.16);
 transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,color .18s ease,border-color .18s ease;
 }
 
@@ -238,8 +238,13 @@ color:var(--accent-dark);
 }
 
 .button:hover{
-transform:translateY(-1px);
-box-shadow:0 14px 30px rgba(10,108,137,0.14);
+transform:translateY(-2px);
+box-shadow:0 7px 0 rgba(8,76,96,0.32),0 18px 28px rgba(10,108,137,0.2);
+}
+
+.button:active{
+transform:translateY(4px) scale(.985);
+box-shadow:0 1px 0 rgba(8,76,96,0.32),0 4px 8px rgba(10,108,137,0.14);
 }
 
 .button.primary:hover{

@@ -29,6 +29,33 @@
   transform: translateY(-2px);
 }
 
+/* Buttons sit on a visible base and depress when pressed. */
+main button:not(.three-d-surface-exempt),
+main a.inline-flex[class*="rounded"]:not(.three-d-surface-exempt) {
+  position: relative;
+  transform: translateY(0);
+  box-shadow: 0 5px 0 rgba(15, 35, 55, 0.28), 0 10px 18px rgba(15, 35, 55, 0.16) !important;
+  transition: transform 130ms ease, box-shadow 130ms ease, filter 130ms ease !important;
+}
+
+main button:not(:disabled):not(.three-d-surface-exempt):hover,
+main a.inline-flex[class*="rounded"]:not(.three-d-surface-exempt):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 7px 0 rgba(15, 35, 55, 0.28), 0 15px 24px rgba(15, 35, 55, 0.2) !important;
+}
+
+main button:not(:disabled):not(.three-d-surface-exempt):active,
+main a.inline-flex[class*="rounded"]:not(.three-d-surface-exempt):active {
+  transform: translateY(4px) scale(0.985) !important;
+  filter: brightness(0.96);
+  box-shadow: 0 1px 0 rgba(15, 35, 55, 0.28), 0 3px 8px rgba(15, 35, 55, 0.14) !important;
+}
+
+main button:disabled {
+  box-shadow: none !important;
+}
+
 main :is(div, section, article, aside, footer, a)[class*="rounded"][class*="bg-"]:not(.three-d-surface-exempt) {
   position: relative;
   isolation: isolate;
@@ -103,5 +130,15 @@ main :is(a, button):focus-visible {
   #taskPagesGrid > :is(a, article):hover,
   #taskPagesGrid > :is(a, article):active {
     transform: translateZ(0) !important;
+  }
+
+  main button:not(.three-d-surface-exempt),
+  main a.inline-flex[class*="rounded"]:not(.three-d-surface-exempt),
+  main button:not(:disabled):not(.three-d-surface-exempt):hover,
+  main a.inline-flex[class*="rounded"]:not(.three-d-surface-exempt):hover,
+  main button:not(:disabled):not(.three-d-surface-exempt):active,
+  main a.inline-flex[class*="rounded"]:not(.three-d-surface-exempt):active {
+    transform: none !important;
+    transition: none !important;
   }
 }

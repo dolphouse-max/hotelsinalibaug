@@ -68,7 +68,9 @@ body.directory-page{
 .directory-page .stay-card .cta-title{font-size:.92rem !important;font-weight:700;color:#173042;}
 .directory-page .meta{font-size:.85rem !important;color:#4f6472;}
 .directory-page .button-row{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem;}
-.directory-page .button{display:inline-flex;align-items:center;justify-content:center;padding:.78rem .95rem;border-radius:12px;font-size:.86rem !important;font-weight:600;text-decoration:none;border:1px solid transparent;}
+.directory-page .button{display:inline-flex;align-items:center;justify-content:center;padding:.78rem .95rem;border-radius:12px;font-size:.86rem !important;font-weight:600;text-decoration:none;border:1px solid transparent;box-shadow:0 5px 0 rgba(15,36,54,.3),0 10px 18px rgba(15,36,54,.14);transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;}
+.directory-page .button:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 7px 0 rgba(15,36,54,.3),0 15px 24px rgba(15,36,54,.2);}
+.directory-page .button:active{transform:translateY(4px) scale(.985);filter:brightness(.96);box-shadow:0 1px 0 rgba(15,36,54,.3),0 3px 8px rgba(15,36,54,.14);}
 .directory-page .button.primary{background:#0f2436;color:#fff;}
 .directory-page .button.secondary{background:#fff;color:#173042;border-color:#d9e3e8;}
 .directory-page .panel,.directory-page .content-card{padding:1.1rem;}
