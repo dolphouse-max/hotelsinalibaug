@@ -1,6 +1,70 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
   const SESSION_PLACEHOLDER = "__app_session__";
+  const POLICE_LOGIN_PATH = "/police-dashboard.html";
+  const HIDDEN_ATTRIBUTE = "data-police-auth-hidden";
+
+  function normalizePath(pathname = window.location.pathname) {
+    const raw = String(pathname || "").trim().toLowerCase() || "/";
+    const withoutTrailingSlash = raw.length > 1 ? raw.replace(/\/+$/, "") : raw;
+    return withoutTrailingSlash.endsWith(".html")
+      ? withoutTrailingSlash.slice(0, -5)
+      : withoutTrailingSlash;
+  }
+
+  function isPoliceLoginPath(pathname = window.location.pathname) {
+    return normalizePath(pathname) === "/police-dashboard";
+  }
+
+  function isProtectedPolicePath(pathname = window.location.pathname) {
+    const path = normalizePath(pathname);
+    return path.startsWith("/police") && !isPoliceLoginPath(path);
+  }
+
+  function hideProtectedPageUntilAuth() {
+    if (typeof document === "undefined" || !isProtectedPolicePath()) {
+      return;
+    }
+
+    document.documentElement.setAttribute(HIDDEN_ATTRIBUTE, "true");
+    if (!document.getElementById("policeAuthHideStyle")) {
+      const style = document.createElement("style");
+      style.id = "policeAuthHideStyle";
+      style.textContent = `html[${HIDDEN_ATTRIBUTE}="true"] body{display:none !important;}`;
+      document.head.appendChild(style);
+    }
+  }
+
+  function showProtectedPageAfterAuth() {
+    if (typeof document !== "undefined") {
+      document.documentElement.removeAttribute(HIDDEN_ATTRIBUTE);
+    }
+  }
+
+  function redirectToPoliceLogin() {
+    if (isPoliceLoginPath()) {
+      return;
+    }
+
+    const loginUrl = new URL(POLICE_LOGIN_PATH, window.location.origin);
+    loginUrl.searchParams.set("next", `${window.location.pathname}${window.location.search}`);
+    window.location.replace(loginUrl.toString());
+  }
+
+  async function requirePoliceAccess() {
+    if (!isProtectedPolicePath()) {
+      return null;
+    }
+
+    const session = await getSession();
+    if (!session || session.role !== "police") {
+      redirectToPoliceLogin();
+      return null;
+    }
+
+    showProtectedPageAfterAuth();
+    return session;
+  }
 
   function formatDateOffset(daysAgo) {
     const date = new Date();
@@ -470,6 +534,9 @@
   }
 
   if (typeof document !== "undefined") {
+    hideProtectedPageUntilAuth();
+    requirePoliceAccess().catch(redirectToPoliceLogin);
+
     document.addEventListener("DOMContentLoaded", () => {
       mountBrandChip();
       mountLegalFooter();
@@ -502,6 +569,7 @@
     attachProofButtons,
     pageChrome,
     quickNav,
+    requirePoliceAccess,
     mountBrandChip,
     mountLegalFooter,
   };

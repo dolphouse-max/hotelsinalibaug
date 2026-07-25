@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
     <script src="firebase-auth.js?v=20260718-3"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="police-reports-common.js?v=20260725-2"></script>
+    <script src="police-reports-common.js?v=20260725-3"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -113,6 +113,13 @@
       const links = Array.from(document.querySelectorAll(".police-link"));
       const loginButton = document.getElementById("loginButton");
 
+      function getSafeNextPath() {
+        const next = new URLSearchParams(window.location.search).get("next") || "";
+        return next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/police-dashboard")
+          ? next
+          : "";
+      }
+
       officerNameInput.value = localStorage.getItem("police_officer_name") || localStorage.getItem("dashboard_officer_name") || "";
       localStorage.setItem("police_access_token", localStorage.getItem("police_access_token") || "");
 
@@ -151,6 +158,10 @@
           policeEmailInput.value = data.session.email || email;
           persistContext();
           showMessage("Police login successful.", "success");
+          const nextPath = getSafeNextPath();
+          if (nextPath) {
+            window.location.replace(nextPath);
+          }
         } catch (error) {
           showMessage(error instanceof Error ? error.message : "Unable to log in.", "error");
         }
